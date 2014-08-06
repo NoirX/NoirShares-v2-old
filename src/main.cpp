@@ -37,16 +37,16 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 libzerocoin::Params* ZCParams;
-uint256 merkleRootGenesisBlock = uint256 ("0x778a15e5efebb6d559325648cfe2294a61267a0073c9362c9c5198379416a0cb");
-const unsigned long nChainStartNonce = 10;
-const unsigned long nChainStartBirthdayA = 31658561;
-const unsigned long nChainStartBirthdayB = 43505039;
-const int64_t nChainStartTime = 1407207190;
+uint256 merkleRootGenesisBlock = uint256 ("0x");
+const unsigned long nChainStartNonce = 0;
+const unsigned long nChainStartBirthdayA = 0;
+const unsigned long nChainStartBirthdayB = 0;
+const int64_t nChainStartTime = 0;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-//#define GEN_GENESIS_BLOCK 1
+#define GEN_GENESIS_BLOCK 1
 CBigNum bnProofOfWorkLimit(~uint256(0) >> 4); 
-CBigNum bnProofOfStakeLimit(~uint256(0) >> 2);
-CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
+CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
+CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 
 static const int64_t nTargetTimespan = 60 * 30 ;  // NoirShares - every 1/2 hour
 unsigned int nTargetSpacing = 5 * 60; // NoirShares - 5 minuteS
