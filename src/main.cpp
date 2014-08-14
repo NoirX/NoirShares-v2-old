@@ -37,13 +37,10 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 libzerocoin::Params* ZCParams;
-uint256 merkleRootGenesisBlock = uint256 ("0x");
-const unsigned long nChainStartNonce = 0;
-const unsigned long nChainStartBirthdayA = 0;
-const unsigned long nChainStartBirthdayB = 0;
-const int64_t nChainStartTime = 0;
+uint256 merkleRootGenesisBlock ("0x");
+const int64_t nChainStartTime = ;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-#define GEN_GENESIS_BLOCK 1
+
 CBigNum bnProofOfWorkLimit(~uint256(0) >> 4); 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
@@ -54,8 +51,8 @@ unsigned int nTargetSpacing = 5 * 60; // NoirShares - 5 minuteS
 
 static const int64_t nDiffChangeTarget = 1;
 
-unsigned int nStakeMinAge = 60 * 60 * 48; // NoirShares - 2 days
-unsigned int nStakeMaxAge = -1; // NoirShares - unlimited
+unsigned int nStakeMinAge = 60 * 60 * 24 * 7; // NoirShares - 2 days
+unsigned int nStakeMaxAge = 60 * 60 * 24 * 14; // NoirShares - unlimited
 unsigned int nModifierInterval = 10 * 60; // NoirShares - time to elapse before new modifier is computed
 
 int nCoinbaseMaturity = 15;
@@ -2520,77 +2517,6 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
     }
 }
 
-void BuildNewGenesisBlock()
-{
-        // Genesis block
-        const char* pszTimestamp = "NoirBits - Future in hand.";
-        CTransaction txNew;
-        txNew.nTime = GetTime();
-        txNew.vin.resize(1);
-        txNew.vout.resize(1);
-        vector<unsigned char> scriptPubKeyAddress = ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f");
-		uint64_t scriptSigInt = 486604799;
-		txNew.vin[0].scriptSig = CScript() << scriptSigInt << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].SetEmpty();
-        txNew.vout[0].scriptPubKey = CScript() << scriptPubKeyAddress << OP_CHECKSIG;
-        
-
-
-        CBlock block;
-        block.vtx.push_back(txNew);
-        block.hashPrevBlock = 0;
-        block.hashMerkleRoot = block.BuildMerkleTree();
-        block.nVersion = 1;
-        block.nTime    = txNew.nTime;
-        block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = nChainStartNonce;
-        block.nBirthdayA   = nChainStartBirthdayA;
-        block.nBirthdayB   = nChainStartBirthdayB;
-        
-	{
-		printf("Generating new genesis block...\n");
-		uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
-		uint256 testHash;
-		block.nNonce = 0;
-		for (;;)
-		{
-			
-			do{
- 				block.nNonce++;
- 				testHash = block.CalculateBestBirthdayHash();
- 				printf("hash=%s\n",testHash.ToString().c_str());
- 			}while(testHash>hashTarget);
- 			
-			// Amount calculation not needed for genesis block - all outputs are zero
-			block.hashMerkleRoot = block.BuildMerkleTree();
-			testHash=block.GetHash();
-			printf("testHash %s\n", testHash.ToString().c_str());
-			printf("Hash Target %s\n", hashTarget.ToString().c_str());
-			if(testHash<hashTarget){
-				printf("Found Genesis Block Hash: %s\n", testHash.ToString().c_str());
-				printf("Found Genesis Block Merkle Root: %s\n", block.hashMerkleRoot.ToString().c_str());
-				printf("Found Genesis Block nNonce: %d\n", block.nNonce);
-				printf("Found Genesis Block nTime: %d\n", block.nTime);
-				printf("Found Genesis Block nBirthdayA: %d\n", block.nBirthdayA);
-				printf("Found Genesis Block nBirthdayB: %d\n", block.nBirthdayB);
-				break;
-			}
-		}
-	}
-
-        //// debug print
-        uint256 hash = block.GetHash();
-        printf("block.nBits = %u \n", block.nBits);
-        printf("Hash: %s\n", hash.ToString().c_str());
-        printf("block.nTime = %u \n", block.nTime);
-        printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
-        printf("MROOT: %s\n", block.hashMerkleRoot.ToString().c_str());
-        printf("coin nNonce=%d;\n",block.nNonce);
-        printf("birthdayA=%u;\n",block.nBirthdayA);
-        printf("birthdayB=%u;\n",block.nBirthdayB);
-        block.print();
-}
-
 bool LoadBlockIndex(bool fAllowNew)
 {
     CBigNum bnTrustedModulus;
@@ -2648,12 +2574,14 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nVersion = 1;
         block.nTime    = nChainStartTime;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = nChainStartNonce;
-		block.nBirthdayA   = nChainStartBirthdayA;
-        block.nBirthdayB   = nChainStartBirthdayB;
-
+        block.nNonce   = 4;
+		block.nBirthdayA   = 21327367;
+        block.nBirthdayB   = 35589541;
+		uint256 hash = block.GetHash();
+		
+		
 		//// debug print
-        uint256 hash = block.GetHash();
+        
         printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
@@ -2664,16 +2592,8 @@ bool LoadBlockIndex(bool fAllowNew)
 		printf("birthdayB=%u;\n",block.nBirthdayB);
         block.print();
 
-#ifdef GEN_GENESIS_BLOCK
-	if ((block.hashMerkleRoot != merkleRootGenesisBlock) || (hash == hashGenesisBlock) || (!block.CheckBlock()))
-	{
-		printf("Generating new genesis block...\n");
-		BuildNewGenesisBlock();
-	}
-#endif
 
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
-
 
 	    block.print();
         assert(hash == hashGenesisBlock);
