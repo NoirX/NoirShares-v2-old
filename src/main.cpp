@@ -37,8 +37,8 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 libzerocoin::Params* ZCParams;
-uint256 merkleRootGenesisBlock ("0x");
-const int64_t nChainStartTime = 0;
+uint256 merkleRootGenesisBlock ("0x7527e486e0d16053a9a0c8065350d7fc9cc69b89f18ca83cb254bbf95902d163");
+const int64_t nChainStartTime = 1408085268;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
 
 CBigNum bnProofOfWorkLimit(~uint256(0) >> 4); 
@@ -51,7 +51,7 @@ unsigned int nTargetSpacing = 2 * 60; // NoirShares - 2 minuteS
 
 static const int64_t nDiffChangeTarget = 1;
 
-unsigned int nStakeMinAge = 60 * 60 * 24 ; // NoirShares - 1 days
+unsigned int nStakeMinAge = 60 * 60 * 12; // NoirShares - 12 hours
 unsigned int nStakeMaxAge = -1 ; // NoirShares - unlimited
 unsigned int nModifierInterval = 10 * 60; // NoirShares - time to elapse before new modifier is computed
 
@@ -1153,7 +1153,7 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
  uint256 CBlock::GetHash() const
      {
  
- 			//uint256 midHash = GetMidHash();
+ 			uint256 midHash = GetMidHash();
  		    
  		//printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
  		//printf("GetHash - Birthday A %u hash \n", nBirthdayA);
@@ -2574,9 +2574,9 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nVersion = 1;
         block.nTime    = nChainStartTime;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 0;
-		block.nBirthdayA   = 0;
-        block.nBirthdayB   = 0;
+        block.nNonce   = 13;
+		block.nBirthdayA   = 5159763;
+        block.nBirthdayB   = 6754191;
 		uint256 hash = block.GetHash();
 		
 		
@@ -2592,6 +2592,29 @@ bool LoadBlockIndex(bool fAllowNew)
 		printf("birthdayB=%u;\n",block.nBirthdayB);
         block.print();
 
+		/*if ((block.GetHash() != hashGenesisBlock)) {
+			printf("Generating new genesis block...\n");
+            uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+            uint256 testHash;
+            do{
+ 				++block.nNonce;
+ 				testHash = block.CalculateBestBirthdayHash();
+ 				printf("hash=%s\n",testHash.ToString().c_str());
+ 				
+ 			}while(testHash>hashTarget);
+ 			
+ 			if(testHash<hashTarget){
+				printf("Found Genesis Block Hash: %s\n", testHash.ToString().c_str());
+				printf("Found Genesis Block Merkle Root: %s\n", block.hashMerkleRoot.ToString().c_str());
+				printf("Found Genesis Block nNonce: %d\n", block.nNonce);
+				printf("Found Genesis Block nTime: %d\n", block.nTime);
+				printf("Found Genesis Block nBirthdayA: %d\n", block.nBirthdayA);
+				printf("Found Genesis Block nBirthdayB: %d\n", block.nBirthdayB);
+				
+			}
+ 			
+        }*/
+              
 
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
 
