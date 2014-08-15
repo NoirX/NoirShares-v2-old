@@ -38,7 +38,7 @@ map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 libzerocoin::Params* ZCParams;
 uint256 merkleRootGenesisBlock ("0x");
-const int64_t nChainStartTime = ;
+const int64_t nChainStartTime = 0;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
 
 CBigNum bnProofOfWorkLimit(~uint256(0) >> 4); 
@@ -46,13 +46,13 @@ CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 
 static const int64_t nTargetTimespan = 60 * 30 ;  // NoirShares - every 1/2 hour
-unsigned int nTargetSpacing = 5 * 60; // NoirShares - 5 minuteS
+unsigned int nTargetSpacing = 2 * 60; // NoirShares - 2 minuteS
 
 
 static const int64_t nDiffChangeTarget = 1;
 
-unsigned int nStakeMinAge = 60 * 60 * 24 * 7; // NoirShares - 2 days
-unsigned int nStakeMaxAge = 60 * 60 * 24 * 14; // NoirShares - unlimited
+unsigned int nStakeMinAge = 60 * 60 * 24 ; // NoirShares - 1 days
+unsigned int nStakeMaxAge = -1 ; // NoirShares - unlimited
 unsigned int nModifierInterval = 10 * 60; // NoirShares - time to elapse before new modifier is computed
 
 int nCoinbaseMaturity = 15;
@@ -2574,9 +2574,9 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nVersion = 1;
         block.nTime    = nChainStartTime;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 4;
-		block.nBirthdayA   = 21327367;
-        block.nBirthdayB   = 35589541;
+        block.nNonce   = 0;
+		block.nBirthdayA   = 0;
+        block.nBirthdayB   = 0;
 		uint256 hash = block.GetHash();
 		
 		
