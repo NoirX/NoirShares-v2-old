@@ -2,16 +2,13 @@
 // Copyright (c) 2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-#ifndef BITCOIN_UI_INTERFACE_H
-#define BITCOIN_UI_INTERFACE_H
-
-#include <boost/signals2/last_value.hpp>
-#include <boost/signals2/signal.hpp>
+#ifndef NoirShares_UI_INTERFACE_H
+#define NoirShares_UI_INTERFACE_H
 
 #include <string>
-
-#include <stdint.h>
+#include "util.h" // for int64
+#include <boost/signals2/signal.hpp>
+#include <boost/signals2/last_value.hpp>
 
 class CBasicKeyStore;
 class CWallet;
@@ -59,14 +56,17 @@ public:
         MORE                  = 0x00010000,
         SETUP                 = 0x00020000,
         // Force blocking, modal message box dialog (not just OS notification)
-        MODAL                 = 0x00040000
+        MODAL                 = 0x00040000,
+        
+        MSG_WARNING = (ICON_WARNING | FORWARD | MODAL),
+        MSG_ERROR = (ICON_ERROR | ICON_STOP | MODAL)
     };
 
     /** Show message box. */
     boost::signals2::signal<void (const std::string& message, const std::string& caption, int style)> ThreadSafeMessageBox;
 
     /** Ask the user whether they want to pay a fee or not. */
-    boost::signals2::signal<bool (int64_t nFeeRequired, const std::string& strCaption), boost::signals2::last_value<bool> > ThreadSafeAskFee;
+    boost::signals2::signal<bool (int64 nFeeRequired, const std::string& strCaption), boost::signals2::last_value<bool> > ThreadSafeAskFee;
 
     /** Handle a URL passed at the command line. */
     boost::signals2::signal<void (const std::string& strURI)> ThreadSafeHandleURI;
@@ -91,6 +91,9 @@ public:
      * @note called with lock cs_mapAlerts held.
      */
     boost::signals2::signal<void (const uint256 &hash, ChangeType status)> NotifyAlertChanged;
+
+    /** New IRC message */
+    boost::signals2::signal<void (std::string message)> NotifyIRCMessage;
 };
 
 extern CClientUIInterface uiInterface;

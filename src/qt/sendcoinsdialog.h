@@ -50,6 +50,7 @@ private slots:
     void on_sendButton_clicked();
     void removeEntry(SendCoinsEntry* entry);
     void updateDisplayUnit();
+
     void coinControlFeatureChanged(bool);
     void coinControlButtonClicked();
     void coinControlChangeChecked(int);
@@ -62,7 +63,7 @@ private slots:
     void coinControlClipboardBytes();
     void coinControlClipboardPriority();
     void coinControlClipboardLowOutput();
-    void coinControlClipboardChange();
+    void coinControlClipboardChange(); 
 };
 
 #endif // SENDCOINSDIALOG_H

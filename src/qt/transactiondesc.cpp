@@ -5,7 +5,7 @@
 
 #include "main.h"
 #include "wallet.h"
-#include "txdb.h"
+#include "db.h"
 #include "ui_interface.h"
 #include "base58.h"
 
@@ -21,11 +21,9 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
     else
     {
         int nDepth = wtx.GetDepthInMainChain();
-        if (nDepth < 0)
-            return tr("conflicted");
-        else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
+        if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
             return tr("%1/offline").arg(nDepth);
-        else if (nDepth < 10)
+        else if (nDepth < 6)
             return tr("%1/unconfirmed").arg(nDepth);
         else
             return tr("%1 confirmations").arg(nDepth);
@@ -41,10 +39,10 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         strHTML.reserve(4000);
         strHTML += "<html><font face='verdana, arial, helvetica, sans-serif'>";
 
-        int64_t nTime = wtx.GetTxTime();
-        int64_t nCredit = wtx.GetCredit();
-        int64_t nDebit = wtx.GetDebit();
-        int64_t nNet = nCredit - nDebit;
+        int64 nTime = wtx.GetTxTime();
+        int64 nCredit = wtx.GetCredit();
+        int64 nDebit = wtx.GetDebit();
+        int64 nNet = nCredit - nDebit;
 
         strHTML += "<b>" + tr("Status") + ":</b> " + FormatTxStatus(wtx);
         int nRequests = wtx.GetRequestCount();
@@ -62,7 +60,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         //
         // From
         //
-        if (wtx.IsCoinBase() || wtx.IsCoinStake())
+        if (wtx.IsCoinBase())
         {
             strHTML += "<b>" + tr("Source") + ":</b> " + tr("Generated") + "<br>";
         }
@@ -124,7 +122,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             //
             // Coinbase
             //
-            int64_t nUnmatured = 0;
+            int64 nUnmatured = 0;
             BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                 nUnmatured += wallet->GetCredit(txout);
             strHTML += "<b>" + tr("Credit") + ":</b> ";
@@ -181,13 +179,13 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                 if (fAllToMe)
                 {
                     // Payment to self
-                    int64_t nChange = wtx.GetChange();
-                    int64_t nValue = nCredit - nChange;
+                    int64 nChange = wtx.GetChange();
+                    int64 nValue = nCredit - nChange;
                     strHTML += "<b>" + tr("Debit") + ":</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, -nValue) + "<br>";
                     strHTML += "<b>" + tr("Credit") + ":</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nValue) + "<br>";
                 }
 
-                int64_t nTxFee = nDebit - wtx.GetValueOut();
+                int64 nTxFee = nDebit - wtx.GetValueOut();
                 if (nTxFee > 0)
                     strHTML += "<b>" + tr("Transaction fee") + ":</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, -nTxFee) + "<br>";
             }
@@ -206,19 +204,22 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         }
 
         strHTML += "<b>" + tr("Net amount") + ":</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nNet, true) + "<br>";
-
+			
         //
         // Message
         //
-        if (wtx.mapValue.count("message") && !wtx.mapValue["message"].empty())
-            strHTML += "<br><b>" + tr("Message") + ":</b><br>" + GUIUtil::HtmlEscape(wtx.mapValue["message"], true) + "<br>";
-        if (wtx.mapValue.count("comment") && !wtx.mapValue["comment"].empty())
+        if (!wtx.mapValue["message"].empty())
+             strHTML += "<br><b>" + tr("Message") + ":</b><br>" + GUIUtil::HtmlEscape(wtx.mapValue["message"], true) + "<br>";
+
+		if (!wtx.mapValue["comment"].empty())
             strHTML += "<br><b>" + tr("Comment") + ":</b><br>" + GUIUtil::HtmlEscape(wtx.mapValue["comment"], true) + "<br>";
 
         strHTML += "<b>" + tr("Transaction ID") + ":</b> " + wtx.GetHash().ToString().c_str() + "<br>";
 
+		
+
         if (wtx.IsCoinBase() || wtx.IsCoinStake())
-            strHTML += "<br>" + tr("Generated coins must mature 110 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to \"not accepted\" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.") + "<br>";
+            strHTML += "<br>" + tr("Generated coins must mature 50 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to \"not accepted\" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.") + "<br>";
 
         //
         // Debug view

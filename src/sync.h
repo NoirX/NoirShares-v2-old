@@ -2,14 +2,58 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_SYNC_H
-#define BITCOIN_SYNC_H
+#ifndef NoirShares_SYNC_H
+#define NoirShares_SYNC_H
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/condition_variable.hpp>
 
+
+
+////////////////////////////////////////////////
+//                                            //
+// THE SIMPLE DEFINITON, EXCLUDING DEBUG CODE //
+//                                            //
+////////////////////////////////////////////////
+
+/*
+ 
+ 
+ 
+CCriticalSection mutex;
+   boost::recursive_mutex mutex;
+
+LOCK(mutex); // uses the local variable criticalblock for RAII
+   boost::unique_lock<boost::recursive_mutex> lock(mutex);
+   lock.lock();
+
+LOCK2(mutex1, mutex2); // uses the local variables criticalblock1, criticalblock2 for RAII
+   boost::unique_lock<boost::recursive_mutex> lock1(mutex1);
+   boost::unique_lock<boost::recursive_mutex> lock2(mutex2);
+   lock1.lock();
+   lock2.lock();
+
+TRY_LOCK(mutex, name); // uses the local variable name for RAII
+  boost::unique_lock<boost::recursive_mutex> lock(mutex);
+  lock.try_lock();
+
+ENTER_CRITICAL_SECTION(mutex); // no RAII
+  mutex.lock();
+
+LEAVE_CRITICAL_SECTION(mutex); // no RAII
+  mutex.unlock();
+ 
+ 
+ 
+ */
+
+///////////////////////////////
+//                           //
+// THE MASOCHISTIC DEFINITON //
+//                           //
+///////////////////////////////
 
 
 

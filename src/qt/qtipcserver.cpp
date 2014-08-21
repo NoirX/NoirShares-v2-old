@@ -42,11 +42,11 @@ static bool ipcScanCmd(int argc, char *argv[], bool fRelay)
     bool fSent = false;
     for (int i = 1; i < argc; i++)
     {
-        if (boost::algorithm::istarts_with(argv[i], "NoirShares:"))
+        if (boost::algorithm::istarts_with(argv[i], "bitcoin:"))
         {
             const char *strURI = argv[i];
             try {
-                boost::interprocess::message_queue mq(boost::interprocess::open_only, BITCOINURI_QUEUE_NAME);
+                boost::interprocess::message_queue mq(boost::interprocess::open_only, BCINNIOINURI_QUEUE_NAME);
                 if (mq.try_send(strURI, strlen(strURI), 0))
                     fSent = true;
                 else if (fRelay)
@@ -75,7 +75,7 @@ void ipcScanRelay(int argc, char *argv[])
 static void ipcThread(void* pArg)
 {
     // Make this thread recognisable as the GUI-IPC thread
-    RenameThread("NoirShares-gui-ipc");
+    RenameThread("bitcoin-gui-ipc");
 	
     try
     {
@@ -104,7 +104,7 @@ static void ipcThread2(void* pArg)
         if (mq->timed_receive(&buffer, sizeof(buffer), nSize, nPriority, d))
         {
             uiInterface.ThreadSafeHandleURI(std::string(buffer, nSize));
-            MilliSleep(1000);
+            Sleep(1000);
         }
 
         if (fShutdown)
@@ -112,7 +112,7 @@ static void ipcThread2(void* pArg)
     }
 
     // Remove message queue
-    message_queue::remove(BITCOINURI_QUEUE_NAME);
+    message_queue::remove(BCINNIOINURI_QUEUE_NAME);
     // Cleanup allocated memory
     delete mq;
 }
@@ -125,7 +125,7 @@ void ipcInit(int argc, char *argv[])
     unsigned int nPriority = 0;
 
     try {
-        mq = new message_queue(open_or_create, BITCOINURI_QUEUE_NAME, 2, MAX_URI_LENGTH);
+        mq = new message_queue(open_or_create, BCINNIOINURI_QUEUE_NAME, 2, MAX_URI_LENGTH);
 
         // Make sure we don't lose any bitcoin: URIs
         for (int i = 0; i < 2; i++)
@@ -140,10 +140,10 @@ void ipcInit(int argc, char *argv[])
         }
 
         // Make sure only one bitcoin instance is listening
-        message_queue::remove(BITCOINURI_QUEUE_NAME);
+        message_queue::remove(BCINNIOINURI_QUEUE_NAME);
         delete mq;
 
-        mq = new message_queue(open_or_create, BITCOINURI_QUEUE_NAME, 2, MAX_URI_LENGTH);
+        mq = new message_queue(open_or_create, BCINNIOINURI_QUEUE_NAME, 2, MAX_URI_LENGTH);
     }
     catch (interprocess_exception &ex) {
         printf("ipcInit() - boost interprocess exception #%d: %s\n", ex.get_error_code(), ex.what());

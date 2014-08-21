@@ -27,8 +27,10 @@ bool static ApplyProxySettings()
     if (!IsLimited(NET_IPV4))
         SetProxy(NET_IPV4, addrProxy, nSocksVersion);
     if (nSocksVersion > 4) {
+#ifdef USE_IPV6
         if (!IsLimited(NET_IPV6))
             SetProxy(NET_IPV6, addrProxy, nSocksVersion);
+#endif
         SetNameProxy(addrProxy, nSocksVersion);
     }
     return true;
@@ -43,11 +45,13 @@ void OptionsModel::Init()
     bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
     fMinimizeToTray = settings.value("fMinimizeToTray", false).toBool();
     fMinimizeOnClose = settings.value("fMinimizeOnClose", false).toBool();
-    fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
+	fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
-    nReserveBalance = settings.value("nReserveBalance").toLongLong();
     language = settings.value("language", "").toString();
-
+    
+    fEnableMessageSendConf = settings.value("fEnableMessageSendConf", true).toBool();
+    fEnableTrollbox = settings.value("fEnableTrollbox", false).toBool();
+    trollname = settings.value("trollname", "").toString();
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
     if (settings.contains("fUseUPnP"))
@@ -61,6 +65,66 @@ void OptionsModel::Init()
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
 }
+
+bool OptionsModel::Upgrade()
+{
+    QSettings settings;
+
+    if (settings.contains("bImportFinished"))
+        return false; // Already upgraded
+
+    settings.setValue("bImportFinished", true);
+
+    // Move settings from old wallet.dat (if any):
+    CWalletDB walletdb("wallet.dat");
+
+    QList<QString> intOptions;
+    intOptions << "nDisplayUnit" << "nTransactionFee";
+    foreach(QString key, intOptions)
+    {
+        int value = 0;
+        if (walletdb.ReadSetting(key.toStdString(), value))
+        {
+            settings.setValue(key, value);
+            walletdb.EraseSetting(key.toStdString());
+        }
+    }
+    QList<QString> boolOptions;
+    boolOptions << "bDisplayAddresses" << "fMinimizeToTray" << "fMinimizeOnClose" << "fUseProxy" << "fUseUPnP";
+    foreach(QString key, boolOptions)
+    {
+        bool value = false;
+        if (walletdb.ReadSetting(key.toStdString(), value))
+        {
+            settings.setValue(key, value);
+            walletdb.EraseSetting(key.toStdString());
+        }
+    }
+    try
+    {
+        CAddress addrProxyAddress;
+        if (walletdb.ReadSetting("addrProxy", addrProxyAddress))
+        {
+            settings.setValue("addrProxy", addrProxyAddress.ToStringIPPort().c_str());
+            walletdb.EraseSetting("addrProxy");
+        }
+    }
+    catch (std::ios_base::failure &e)
+    {
+        // 0.6.0rc1 saved this as a CService, which causes failure when parsing as a CAddress
+        CService addrProxy;
+        if (walletdb.ReadSetting("addrProxy", addrProxy))
+        {
+            settings.setValue("addrProxy", addrProxy.ToStringIPPort().c_str());
+            walletdb.EraseSetting("addrProxy");
+        }
+    }
+    ApplyProxySettings();
+    Init();
+
+    return true;
+}
+
 
 int OptionsModel::rowCount(const QModelIndex & parent) const
 {
@@ -102,8 +166,6 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return settings.value("nSocksVersion", 5);
         case Fee:
             return QVariant((qint64) nTransactionFee);
-        case ReserveBalance:
-            return QVariant((qint64) nReserveBalance);
         case DisplayUnit:
             return QVariant(nDisplayUnit);
         case DisplayAddresses:
@@ -114,6 +176,12 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return settings.value("language", "");
         case CoinControlFeatures:
             return QVariant(fCoinControlFeatures);
+        case EnableMessageSendConf:
+            return QVariant(fEnableMessageSendConf);
+        case EnableTrollbox:
+            return QVariant(fEnableTrollbox);
+        case TrollName:
+            return settings.value("trollname", "");
         default:
             return QVariant();
         }
@@ -185,11 +253,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             settings.setValue("nTransactionFee", (qint64) nTransactionFee);
             emit transactionFeeChanged(nTransactionFee);
             break;
-        case ReserveBalance:
-            nReserveBalance = value.toLongLong();
-            settings.setValue("nReserveBalance", (qint64) nReserveBalance);
-            emit reserveBalanceChanged(nReserveBalance);
-            break;
         case DisplayUnit:
             nDisplayUnit = value.toInt();
             settings.setValue("nDisplayUnit", nDisplayUnit);
@@ -209,10 +272,27 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             settings.setValue("language", value);
             break;
         case CoinControlFeatures: {
-            fCoinControlFeatures = value.toBool();
-            settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
-            emit coinControlFeaturesChanged(fCoinControlFeatures);
-            }
+             fCoinControlFeatures = value.toBool();
+             settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
+             emit coinControlFeaturesChanged(fCoinControlFeatures);
+             }
+             break;
+        case EnableMessageSendConf: {
+             fEnableMessageSendConf = value.toBool();
+             settings.setValue("fEnableMessageSendConf", fEnableMessageSendConf);
+             emit enableMessageSendConfChanged(fEnableMessageSendConf);
+             }
+             break;
+        case EnableTrollbox: {
+             fEnableTrollbox = value.toBool();
+             settings.setValue("fEnableTrollbox", fEnableTrollbox);
+             emit enableTrollboxChanged(fEnableTrollbox);
+             }
+             break;
+        case TrollName:
+            trollname = value.toString();
+            settings.setValue("trollname", trollname);
+            emit trollNameChanged(trollname);
             break;
         default:
             break;
@@ -228,14 +308,19 @@ qint64 OptionsModel::getTransactionFee()
     return nTransactionFee;
 }
 
-qint64 OptionsModel::getReserveBalance()
-{
-    return nReserveBalance;
-}
-
 bool OptionsModel::getCoinControlFeatures()
 {
     return fCoinControlFeatures;
+}
+
+bool OptionsModel::getEnableMessageSendConf()
+{
+    return fEnableMessageSendConf;
+}
+
+bool OptionsModel::getEnableTrollbox()
+{
+    return fEnableTrollbox;
 }
 
 bool OptionsModel::getMinimizeToTray()

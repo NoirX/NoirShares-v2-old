@@ -2,9 +2,6 @@
 // Alert system
 //
 
-#include <algorithm>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/foreach.hpp>
 #include <map>
 
@@ -19,7 +16,7 @@ using namespace std;
 map<uint256, CAlert> mapAlerts;
 CCriticalSection cs_mapAlerts;
 
-static const char* pszMainKey = "0486bce1bac0d543f104cbff2bd23680056a3b9ea05e1137d2ff90eeb5e08472eb500322593a2cb06fbf8297d7beb6cd30cb90f98153b5b7cce1493749e41e0284";
+static const char* pszMainKey = "04b8d49de838594c2289037043e5330f12f4cb98f0a2f0cda90a2a957c3358c95480bb6db13fd5a50368c1f24096495eb473be801e5c919b0668a2f7acf74ed291";
 
 // TestNet alerts pubKey
 static const char* pszTestKey = "0471dc165db490094d35cde15b1f5d755fa6ad6f2b5ed0f340e3f17f57389c3c2af113a8cbcc885bde73305a553b5640c83021128008ddf882e856336269080496";
@@ -56,8 +53,8 @@ std::string CUnsignedAlert::ToString() const
     return strprintf(
         "CAlert(\n"
         "    nVersion     = %d\n"
-        "    nRelayUntil  = %"PRId64"\n"
-        "    nExpiration  = %"PRId64"\n"
+        "    nRelayUntil  = %"PRI64d"\n"
+        "    nExpiration  = %"PRI64d"\n"
         "    nID          = %d\n"
         "    nCancel      = %d\n"
         "    setCancel    = %s\n"
@@ -173,7 +170,7 @@ CAlert CAlert::getAlertByHash(const uint256 &hash)
     return retval;
 }
 
-bool CAlert::ProcessAlert(bool fThread)
+bool CAlert::ProcessAlert()
 {
     if (!CheckSignature())
         return false;
@@ -237,35 +234,9 @@ bool CAlert::ProcessAlert(bool fThread)
 
         // Add to mapAlerts
         mapAlerts.insert(make_pair(GetHash(), *this));
-        // Notify UI and -alertnotify if it applies to me
+        // Notify UI if it applies to me
         if(AppliesToMe())
-        {
             uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
-            std::string strCmd = GetArg("-alertnotify", "");
-            if (!strCmd.empty())
-            {
-                // Alert text should be plain ascii coming from a trusted source, but to
-                // be safe we first strip anything not in safeChars, then add single quotes around
-                // the whole string before passing it to the shell:
-                std::string singleQuote("'");
-                // safeChars chosen to allow simple messages/URLs/email addresses, but avoid anything
-                // even possibly remotely dangerous like & or >
-                std::string safeChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 .,;_/:?@");
-                std::string safeStatus;
-                for (std::string::size_type i = 0; i < strStatusBar.size(); i++)
-                {
-                    if (safeChars.find(strStatusBar[i]) != std::string::npos)
-                        safeStatus.push_back(strStatusBar[i]);
-                }
-                safeStatus = singleQuote+safeStatus+singleQuote;
-                boost::replace_all(strCmd, "%s", safeStatus);
-
-                if (fThread)
-                    boost::thread t(runCommand, strCmd); // thread runs free
-                else
-                    runCommand(strCmd);
-            }
-        }
     }
 
     printf("accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());

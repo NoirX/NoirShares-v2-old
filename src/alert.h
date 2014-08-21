@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef _BITCOINALERT_H_
-#define _BITCOINALERT_H_ 1
+#ifndef _NoirSharesALERT_H_
+#define _NoirSharesALERT_H_ 1
 
 #include <set>
 #include <string>
@@ -24,8 +24,8 @@ class CUnsignedAlert
 {
 public:
     int nVersion;
-    int64_t nRelayUntil;      // when newer nodes stop relaying to newer nodes
-    int64_t nExpiration;
+    int64 nRelayUntil;      // when newer nodes stop relaying to newer nodes
+    int64 nExpiration;
     int nID;
     int nCancel;
     std::set<int> setCancel;
@@ -91,7 +91,7 @@ public:
     bool AppliesToMe() const;
     bool RelayTo(CNode* pnode) const;
     bool CheckSignature() const;
-    bool ProcessAlert(bool fThread = true);
+    bool ProcessAlert();
 
     /*
      * Get copy of (active) alert object by hash. Returns a null alert if it is not found.

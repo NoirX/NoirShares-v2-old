@@ -12,7 +12,7 @@
 using namespace json_spirit;
 using namespace std;
 
-Value getconnectioncount(const Array& params, bool fHelp)
+Value getconnectioncount(CWallet* pWallet, const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -36,7 +36,7 @@ static void CopyNodeStats(std::vector<CNodeStats>& vstats)
     }
 }
 
-Value getpeerinfo(const Array& params, bool fHelp)
+Value getpeerinfo(CWallet* pWallet, const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -52,13 +52,14 @@ Value getpeerinfo(const Array& params, bool fHelp)
         Object obj;
 
         obj.push_back(Pair("addr", stats.addrName));
-        obj.push_back(Pair("services", strprintf("%08"PRIx64, stats.nServices)));
-        obj.push_back(Pair("lastsend", (int64_t)stats.nLastSend));
-        obj.push_back(Pair("lastrecv", (int64_t)stats.nLastRecv));
-        obj.push_back(Pair("conntime", (int64_t)stats.nTimeConnected));
+        obj.push_back(Pair("services", strprintf("%08"PRI64x, stats.nServices)));
+        obj.push_back(Pair("lastsend", (boost::int64_t)stats.nLastSend));
+        obj.push_back(Pair("lastrecv", (boost::int64_t)stats.nLastRecv));
+        obj.push_back(Pair("conntime", (boost::int64_t)stats.nTimeConnected));
         obj.push_back(Pair("version", stats.nVersion));
         obj.push_back(Pair("subver", stats.strSubVer));
         obj.push_back(Pair("inbound", stats.fInbound));
+        obj.push_back(Pair("releasetime", (boost::int64_t)stats.nReleaseTime));
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
         obj.push_back(Pair("banscore", stats.nMisbehavior));
 
@@ -67,12 +68,15 @@ Value getpeerinfo(const Array& params, bool fHelp)
 
     return ret;
 }
+
+extern CCriticalSection cs_mapAlerts;
+extern map<uint256, CAlert> mapAlerts;
  
 // ppcoin: send alert.  
 // There is a known deadlock situation with ThreadMessageHandler
 // ThreadMessageHandler: holds cs_vSend and acquiring cs_main in SendMessages()
 // ThreadRPCServer: holds cs_main and acquiring cs_vSend in alert.RelayTo()/PushMessage()/BeginMessage()
-Value sendalert(const Array& params, bool fHelp)
+Value sendalert(CWallet* pWallet, const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 6)
         throw runtime_error(

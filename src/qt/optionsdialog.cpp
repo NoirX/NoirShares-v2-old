@@ -38,6 +38,8 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     ui->socksVersion->addItem("4", 4);
     ui->socksVersion->setCurrentIndex(0);
 
+	// this->setStyleSheet("background-color: #ceffee;");
+
     connect(ui->connectSocks, SIGNAL(toggled(bool)), ui->proxyIp, SLOT(setEnabled(bool)));
     connect(ui->connectSocks, SIGNAL(toggled(bool)), ui->proxyPort, SLOT(setEnabled(bool)));
     connect(ui->connectSocks, SIGNAL(toggled(bool)), ui->socksVersion, SLOT(setEnabled(bool)));
@@ -150,6 +152,11 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->unit, OptionsModel::DisplayUnit);
     mapper->addMapping(ui->displayAddresses, OptionsModel::DisplayAddresses);
     mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
+
+    //Communications
+    mapper->addMapping(ui->enableMessageSendConf, OptionsModel::EnableMessageSendConf);
+    mapper->addMapping(ui->enableTrollbox, OptionsModel::EnableTrollbox);
+    mapper->addMapping(ui->trollNameEdit, OptionsModel::TrollName);
 }
 
 void OptionsDialog::enableApplyButton()

@@ -4,7 +4,9 @@
 #include "bitcoingui.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
+#include "messagemodel.h"
 #include "optionsmodel.h"
+#include "ircmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
 
@@ -20,8 +22,8 @@
 #include <QSplashScreen>
 #include <QLibraryInfo>
 
-#if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
-#define _BITCOIN_QT_PLUGINS_INCLUDED
+#if defined(BCINNIOIN_NEED_QT_PLUGINS) && !defined(_BCINNIOIN_QT_PLUGINS_INCLUDED)
+#define _BCINNIOIN_QT_PLUGINS_INCLUDED
 #define __INSURE__
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(qcncodecs)
@@ -55,7 +57,7 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
     }
 }
 
-static bool ThreadSafeAskFee(int64_t nFeeRequired, const std::string& strCaption)
+static bool ThreadSafeAskFee(int64 nFeeRequired, const std::string& strCaption)
 {
     if(!guiref)
         return false;
@@ -83,7 +85,7 @@ static void InitMessage(const std::string &message)
 {
     if(splashref)
     {
-        splashref->showMessage(QString::fromStdString(message), Qt::AlignBottom|Qt::AlignHCenter, QColor(232,186,63));
+        splashref->showMessage(QString::fromStdString(message), Qt::AlignBottom|Qt::AlignHCenter, QColor(255,255,200));
         QApplication::instance()->processEvents();
     }
 }
@@ -110,7 +112,7 @@ static void handleRunawayException(std::exception *e)
     exit(1);
 }
 
-#ifndef BITCOIN_QT_TEST
+#ifndef BCINNIOIN_QT_TEST
 int main(int argc, char *argv[])
 {
     // Do this early as we don't want to bother initializing if we are just calling IPC
@@ -145,7 +147,7 @@ int main(int argc, char *argv[])
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
     app.setOrganizationName("NoirShares");
-    //XXX app.setOrganizationDomain("");
+    app.setOrganizationDomain("NoirShares.su");
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
         app.setApplicationName("NoirShares-Qt-testnet");
     else
@@ -202,13 +204,13 @@ int main(int argc, char *argv[])
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
     {
         splash.show();
+        splash.setAutoFillBackground(true);
         splashref = &splash;
     }
 
     app.processEvents();
 
     app.setQuitOnLastWindowClosed(false);
-
     try
     {
         // Regenerate startup link, to fix links to old versions
@@ -217,20 +219,27 @@ int main(int argc, char *argv[])
 
         BitcoinGUI window;
         guiref = &window;
+
         if(AppInit2())
         {
             {
                 // Put this in a block, so that the Model objects are cleaned up before
                 // calling Shutdown().
 
+                optionsModel.Upgrade(); // Must be done after AppInit2
+
                 if (splashref)
                     splash.finish(&window);
 
                 ClientModel clientModel(&optionsModel);
                 WalletModel walletModel(pwalletMain, &optionsModel);
+                MessageModel messageModel(pwalletMain, &walletModel);
+                IRCModel ircModel(&optionsModel);
 
                 window.setClientModel(&clientModel);
                 window.setWalletModel(&walletModel);
+                window.setMessageModel(&messageModel);
+                window.setIRCModel(&ircModel);
 
                 // If -min option passed, start window minimized.
                 if(GetBoolArg("-min"))
@@ -250,6 +259,8 @@ int main(int argc, char *argv[])
                 window.hide();
                 window.setClientModel(0);
                 window.setWalletModel(0);
+                window.setMessageModel(0);
+                window.setIRCModel(0);
                 guiref = 0;
             }
             // Shutdown the core and its threads, but don't exit Bitcoin-Qt here
@@ -266,4 +277,4 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-#endif // BITCOIN_QT_TEST
+#endif // BCINNIOIN_QT_TEST

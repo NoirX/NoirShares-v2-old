@@ -34,9 +34,9 @@ QString BitcoinUnits::name(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("BTCD");
-    case mBTC: return QString("mBTCD");
-    case uBTC: return QString::fromUtf8("μBTCD");
+    case BTC: return QString("CINNI");
+    case mBTC: return QString("mCINNI");
+    case uBTC: return QString::fromUtf8("μCINNI");
     default: return QString("???");
     }
 }
@@ -56,10 +56,10 @@ qint64 BitcoinUnits::factor(int unit)
 {
     switch(unit)
     {
-    case BTC:  return 100000000;
-    case mBTC: return 100000;
-    case uBTC: return 100;
-    default:   return 100000000;
+    case BTC:  return 1000000;
+    case mBTC: return 1000;
+    case uBTC: return 1;
+    default:   return 1000000;
     }
 }
 
@@ -78,9 +78,9 @@ int BitcoinUnits::decimals(int unit)
 {
     switch(unit)
     {
-    case BTC: return 8;
-    case mBTC: return 5;
-    case uBTC: return 2;
+    case BTC: return 6;
+    case mBTC: return 3;
+    case uBTC: return 0;
     default: return 0;
     }
 }

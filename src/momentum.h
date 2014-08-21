@@ -1,6 +1,5 @@
 #include "bignum.h"
 #include "semiOrderedMap.h"
-#include <boost/thread.hpp>
 
 namespace bts 
 {

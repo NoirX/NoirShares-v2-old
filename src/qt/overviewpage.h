@@ -11,6 +11,7 @@ namespace Ui {
     class OverviewPage;
 }
 class WalletModel;
+class IRCModel;
 class TxViewDelegate;
 class TransactionFilterProxy;
 
@@ -24,10 +25,15 @@ public:
     ~OverviewPage();
 
     void setModel(WalletModel *model);
+    void setIRCModel(IRCModel *model);
     void showOutOfSyncWarning(bool fShow);
 
 public slots:
     void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void setNumTransactions(int count);
+    void ircAppendMessage(QString message);
+	void unlockWallet();
+    //void pollIRC();
 
 signals:
     void transactionClicked(const QModelIndex &index);
@@ -35,6 +41,7 @@ signals:
 private:
     Ui::OverviewPage *ui;
     WalletModel *model;
+    IRCModel *ircmodel;
     qint64 currentBalance;
     qint64 currentStake;
     qint64 currentUnconfirmedBalance;
@@ -45,7 +52,10 @@ private:
 
 private slots:
     void updateDisplayUnit();
+    void enableTrollbox();
+    void updateTrollName();
     void handleTransactionClicked(const QModelIndex &index);
+    void sendIRCMessage();
 };
 
 #endif // OVERVIEWPAGE_H

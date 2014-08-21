@@ -12,8 +12,8 @@
 // - E-mail usually won't line-break if there's no punctuation to break at.
 // - Double-clicking selects the whole number as one word if it's all alphanumeric.
 //
-#ifndef BITCOIN_BASE58_H
-#define BITCOIN_BASE58_H
+#ifndef NoirShares_BASE58_H
+#define NoirShares_BASE58_H
 
 #include <string>
 #include <vector>
@@ -22,6 +22,7 @@
 #include "script.h"
 
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
 // Encode a byte sequence as a base58-encoded string
 inline std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
 {
@@ -252,10 +253,10 @@ public:
     bool operator> (const CBase58Data& b58) const { return CompareTo(b58) >  0; }
 };
 
-/** base58-encoded addresses.
- * Public-key-hash-addresses have version 25 (or 111 testnet).
+/** base58-encoded Bitcoin addresses.
+ * Public-key-hash-addresses have version 0 (or 111 testnet).
  * The data vector contains RIPEMD160(SHA256(pubkey)), where pubkey is the serialized public key.
- * Script-hash-addresses have version 85 (or 196 testnet).
+ * Script-hash-addresses have version 5 (or 196 testnet).
  * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
  */
 class CBitcoinAddress;
@@ -275,7 +276,7 @@ class CBitcoinAddress : public CBase58Data
 public:
     enum
     {
-        PUBKEY_ADDRESS = 21,
+        PUBKEY_ADDRESS = 53,
         SCRIPT_ADDRESS = 30, 
         PUBKEY_ADDRESS_TEST = 111,
         SCRIPT_ADDRESS_TEST = 196,

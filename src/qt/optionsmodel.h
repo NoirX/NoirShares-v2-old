@@ -32,10 +32,16 @@ public:
         DetachDatabases,   // bool
         Language,          // QString
         CoinControlFeatures, // bool
+        EnableMessageSendConf, // bool
+        EnableTrollbox, // bool
+        TrollName, // QString
         OptionIDRowCount,
     };
 
     void Init();
+
+    /* Migrate settings from wallet.dat after app initialization */
+    bool Upgrade(); /* returns true if settings upgraded */
 
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -43,27 +49,35 @@ public:
 
     /* Explicit getters */
     qint64 getTransactionFee();
-    qint64 getReserveBalance();
     bool getMinimizeToTray();
     bool getMinimizeOnClose();
     int getDisplayUnit();
     bool getDisplayAddresses();
-    bool getCoinControlFeatures();
     QString getLanguage() { return language; }
+    bool getCoinControlFeatures();
+    bool getEnableMessageSendConf();
+    bool getEnableTrollbox();
+    QString getTrollName() { return trollname; }
 
 private:
     int nDisplayUnit;
     bool bDisplayAddresses;
     bool fMinimizeToTray;
     bool fMinimizeOnClose;
-    bool fCoinControlFeatures;
     QString language;
+    bool fCoinControlFeatures;
+    bool fEnableMessageSendConf;
+    bool fEnableTrollbox;
+    QString trollname;
 
 signals:
     void displayUnitChanged(int unit);
     void transactionFeeChanged(qint64);
     void reserveBalanceChanged(qint64);
     void coinControlFeaturesChanged(bool);
+    void enableMessageSendConfChanged(bool);
+    void enableTrollboxChanged(bool);
+    void trollNameChanged(QString);
 };
 
 #endif // OPTIONSMODEL_H

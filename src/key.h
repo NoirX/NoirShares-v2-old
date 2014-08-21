@@ -2,8 +2,8 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_KEY_H
-#define BITCOIN_KEY_H
+#ifndef NoirShares_KEY_H
+#define NoirShares_KEY_H
 
 #include <stdexcept>
 #include <vector>
@@ -113,10 +113,14 @@ protected:
     bool fSet;
     bool fCompressedPubKey;
 
-    void SetCompressedPubKey();
+    
 
 public:
-
+    void SetCompressedPubKey();
+    void SetUnCompressedPubKey();
+    
+    EC_KEY* GetECKey();
+    
     void Reset();
 
     CKey();
@@ -153,10 +157,10 @@ public:
 
     bool Verify(uint256 hash, const std::vector<unsigned char>& vchSig);
 
-    bool IsValid();
+    // Verify a compact signature
+    bool VerifyCompact(uint256 hash, const std::vector<unsigned char>& vchSig);
 
-    // Check whether an element of a signature (r or s) is valid.
-    static bool CheckSignatureElement(const unsigned char *vch, int len, bool half);
+    bool IsValid();
 };
 
 #endif
