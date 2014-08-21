@@ -476,7 +476,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addSeparator();
 
     QLabel* enc_lbl = new QLabel();
-    enc_lbl->setText("NOircryption ");
+    enc_lbl->setText("Noircryption ");
     enc_lbl->setAlignment(Qt::AlignHCenter);
 
     toolbar->addWidget(enc_lbl);
