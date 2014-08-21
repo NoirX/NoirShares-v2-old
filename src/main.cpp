@@ -1059,7 +1059,7 @@ int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTi
     return nSubsidy;
 }
 
-static const int64 nTargetTimespan = 15 * 40;  
+static const int64 nTargetTimespan = 5 * 60;  
 static const int64 nTargetSpacingWorkMax = 1 * nStakeTargetSpacing; 
 
 //
@@ -2202,9 +2202,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     if (fCheckMerkleRoot && hashMerkleRoot != BuildMerkleTree())
         return DoS(100, error("CheckBlock() : hashMerkleRoot mismatch"));
 
-    // ppcoin: check block signature
+    /* ppcoin: check block signature
     if (!CheckBlockSignature())
-        return DoS(100, error("CheckBlock() : bad block signature"));
+        return DoS(100, error("CheckBlock() : bad block signature"));*/
 
     return true;
 }
