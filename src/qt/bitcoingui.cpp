@@ -79,7 +79,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 {
     resize(850, 550);
     setWindowTitle(tr("NoirShares") + " - " + tr("Wallet"));
-
+    
+    
 
     // QPalette pal = this->palette();
     // pal.setColor(QPalette::Window, Qt::black);
@@ -127,6 +128,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
                        );
 
 
+    
+    
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
     setWindowIcon(QIcon(":icons/bitcoin"));
@@ -473,7 +476,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addSeparator();
 
     QLabel* enc_lbl = new QLabel();
-    enc_lbl->setText("Encryption Suite");
+    enc_lbl->setText("NOircryption ");
     enc_lbl->setAlignment(Qt::AlignHCenter);
 
     toolbar->addWidget(enc_lbl);
@@ -484,7 +487,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addSeparator();
 
     QLabel* anon_lbl = new QLabel();
-    anon_lbl->setText("Anonymous Suite");
+    anon_lbl->setText("AnoNoir ");
     anon_lbl->setAlignment(Qt::AlignHCenter);
 
     toolbar->addWidget(anon_lbl);
@@ -1185,49 +1188,3 @@ void BitcoinGUI::toggleHidden()
 {
     showNormalIfMinimized(true);
 }
-/*
-void BitcoinGUI::updateStakingIcon()
-{
-
-    if (nLastCoinStakeSearchInterval)
-    {
-        uint64 nNetworkWeight = GetPoSKernelPS();
-        unsigned nEstimateTime = nTargetSpacing * nNetworkWeight / nWeight;
-
-        QString text;
-        if (nEstimateTime < 60)
-        {
-            text = tr("%n second(s)", "", nEstimateTime);
-        }
-        else if (nEstimateTime < 60*60)
-        {
-            text = tr("%n minute(s)", "", nEstimateTime/60);
-        }
-        else if (nEstimateTime < 24*60*60)
-        {
-            text = tr("%n hour(s)", "", nEstimateTime/(60*60));
-        }
-        else
-        {
-            text = tr("%n day(s)", "", nEstimateTime/(60*60*24));
-        }
-
-        labelStakingIcon->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        labelStakingIcon->setToolTip(tr("Staking.<br>Your weight is %1<br>Network weight is %2<br>Expected time to earn reward is %3").arg(nWeight).arg(nNetworkWeight).arg(text));
-    }
-    else
-    {
-        labelStakingIcon->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        if (pwalletMain && pwalletMain->IsLocked())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is locked"));
-        else if (vNodes.empty())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
-        else if (IsInitialBlockDownload())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
-        else if (!nWeight)
-            labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
-        else
-            labelStakingIcon->setToolTip(tr("Not staking"));
-    }
-}
-*/

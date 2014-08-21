@@ -1,5 +1,5 @@
-#ifndef BCINNIOINUNITS_H
-#define BCINNIOINUNITS_H
+#ifndef NoirSharesUNITS_H
+#define NoirSharesUNITS_H
 
 #include <QString>
 #include <QAbstractListModel>
@@ -63,4 +63,4 @@ private:
 };
 typedef BitcoinUnits::Unit BitcoinUnit;
 
-#endif // BCINNIOINUNITS_H
+#endif // NoirSharesUNITS_H

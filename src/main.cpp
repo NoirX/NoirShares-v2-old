@@ -4870,7 +4870,7 @@ void static ThreadBitcoinMiner(void* parg)
     nHPSTimerStart = 0;
     if (vnThreadsRunning[THREAD_MINER] == 0)
         dhashespermin = 0;
-    printf("ThreadNoirBitsMiner exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINER]);
+    printf("ThreadNoirMiner exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINER]);
 }
 
 

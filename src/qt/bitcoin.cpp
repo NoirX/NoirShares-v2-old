@@ -22,8 +22,8 @@
 #include <QSplashScreen>
 #include <QLibraryInfo>
 
-#if defined(BCINNIOIN_NEED_QT_PLUGINS) && !defined(_BCINNIOIN_QT_PLUGINS_INCLUDED)
-#define _BCINNIOIN_QT_PLUGINS_INCLUDED
+#if defined(NoirShares_NEED_QT_PLUGINS) && !defined(_NoirShares_QT_PLUGINS_INCLUDED)
+#define _NoirShares_QT_PLUGINS_INCLUDED
 #define __INSURE__
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(qcncodecs)
@@ -112,7 +112,7 @@ static void handleRunawayException(std::exception *e)
     exit(1);
 }
 
-#ifndef BCINNIOIN_QT_TEST
+#ifndef NoirShares_QT_TEST
 int main(int argc, char *argv[])
 {
     // Do this early as we don't want to bother initializing if we are just calling IPC
@@ -277,4 +277,4 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-#endif // BCINNIOIN_QT_TEST
+#endif // NoirShares_QT_TEST

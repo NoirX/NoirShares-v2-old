@@ -1,5 +1,5 @@
-#ifndef BCINNIOINFIELD_H
-#define BCINNIOINFIELD_H
+#ifndef NoirSharesFIELD_H
+#define NoirSharesFIELD_H
 
 #include <QWidget>
 
@@ -57,4 +57,4 @@ private slots:
 };
 
 
-#endif // BCINNIOINFIELD_H
+#endif // NoirSharesFIELD_H

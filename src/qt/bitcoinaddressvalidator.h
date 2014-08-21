@@ -1,5 +1,5 @@
-#ifndef BCINNIOINADDRESSVALIDATOR_H
-#define BCINNIOINADDRESSVALIDATOR_H
+#ifndef NoirSharesADDRESSVALIDATOR_H
+#define NoirSharesADDRESSVALIDATOR_H
 
 #include <QRegExpValidator>
 
@@ -21,4 +21,4 @@ public slots:
 
 };
 
-#endif // BCINNIOINADDRESSVALIDATOR_H
+#endif // NoirSharesADDRESSVALIDATOR_H

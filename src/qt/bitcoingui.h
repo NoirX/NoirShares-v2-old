@@ -1,5 +1,5 @@
-#ifndef BCINNIOINGUI_H
-#define BCINNIOINGUI_H
+#ifndef NoirSharesGUI_H
+#define NoirSharesGUI_H
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NoirShares - Debug window</string>
+   <string>NoirShares - Info and Console</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -23,6 +23,9 @@
       <attribute name="title">
        <string>&amp;Information</string>
       </attribute>
+	  <property name="styleSheet">
+          <string notr="true">color:white;background-color:black;border-width:1px</string>
+         </property>
       <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
        <property name="horizontalSpacing">
         <number>12</number>
