@@ -120,7 +120,40 @@ std::string HexBits(unsigned int nBits)
     return HexStr(BEGIN(uBits.cBits), END(uBits.cBits));
 }
 
+// Utilities: convert hex-encoded Values
+// (throws error if not hex).
+//
+uint256 ParseHashV(const Value& v, string strName)
+{
+    string strHex;
+    if (v.type() == str_type)
+        strHex = v.get_str();
+    if (!IsHex(strHex)) // Note: IsHex("") is false
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strName+" must be hexadecimal string (not '"+strHex+"')");
+    uint256 result;
+    result.SetHex(strHex);
+    return result;
+}
 
+uint256 ParseHashO(const Object& o, string strKey)
+{
+    return ParseHashV(find_value(o, strKey), strKey);
+}
+
+vector<unsigned char> ParseHexV(const Value& v, string strName)
+{
+    string strHex;
+    if (v.type() == str_type)
+        strHex = v.get_str();
+    if (!IsHex(strHex))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strName+" must be hexadecimal string (not '"+strHex+"')");
+    return ParseHex(strHex);
+}
+
+vector<unsigned char> ParseHexO(const Object& o, string strKey)
+{
+    return ParseHexV(find_value(o, strKey), strKey);
+}
 
 ///
 /// Note: This interface may still be subject to change.
@@ -236,6 +269,7 @@ static const CRPCCommand vRPCCommands[] =
     { "sendfrom",               &sendfrom,               false,  false,	   true  },
     { "sendmany",               &sendmany,               false,  false,	   true  },
     { "addmultisigaddress",     &addmultisigaddress,     false,  false,	   true  },
+    { "addredeemscript",        &addredeemscript,        false,  false,	   false },
     { "getrawmempool",          &getrawmempool,          true,   false,	   false },
     { "getblock",               &getblock,               false,  false,	   false },
     { "getblockbynumber",       &getblockbynumber,       false,  false,	   false },
@@ -258,6 +292,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawtransaction",      &getrawtransaction,      false,  false,	   false },
     { "createrawtransaction",   &createrawtransaction,   false,  false,	   false },
     { "decoderawtransaction",   &decoderawtransaction,   false,  false,	   false },
+    { "decodescript",           &decodescript,           false,  false,	   false },
     { "signrawtransaction",     &signrawtransaction,     false,  false,	   true  },
     { "sendrawtransaction",     &sendrawtransaction,     false,  false,	   false },
     { "getcheckpoint",          &getcheckpoint,          true,   false,	   false },
@@ -1231,6 +1266,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "loadwallet"             && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "loadwallet"             && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "loadwallet"             && n > 3) ConvertTo<boost::int64_t>(params[3]);
+    if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
 
     return params;
 }

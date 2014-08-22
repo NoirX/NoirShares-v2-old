@@ -133,6 +133,14 @@ extern std::string HexBits(unsigned int nBits);
 extern std::string HelpRequiringPassphrase(CWallet* pWallet = NULL);
 extern void EnsureWalletIsUnlocked(CWallet* pWallet = NULL);
 
+//
+// Utilities: convert hex-encoded Values
+// (throws error if not hex).
+//
+extern uint256 ParseHashV(const json_spirit::Value& v, std::string strName);
+extern uint256 ParseHashO(const json_spirit::Object& o, std::string strKey);
+extern std::vector<unsigned char> ParseHexV(const json_spirit::Value& v, std::string strName);
+extern std::vector<unsigned char> ParseHexO(const json_spirit::Object& o, std::string strKey); 
 
 extern json_spirit::Value getconnectioncount(CWallet* pWallet, const json_spirit::Array& params, bool fHelp); // in rpcnet.cpp
 extern json_spirit::Value getpeerinfo(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
@@ -164,6 +172,7 @@ extern json_spirit::Value movecmd(CWallet* pWallet, const json_spirit::Array& pa
 extern json_spirit::Value sendfrom(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendmany(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addmultisigaddress(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addredeemscript(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listreceivedbyaddress(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listreceivedbyaccount(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listtransactions(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
@@ -196,6 +205,7 @@ extern json_spirit::Value getrawtransaction(CWallet* pWallet, const json_spirit:
 extern json_spirit::Value listunspent(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createrawtransaction(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decoderawtransaction(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value decodescript(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value signrawtransaction(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendrawtransaction(CWallet* pWallet, const json_spirit::Array& params, bool fHelp);
 

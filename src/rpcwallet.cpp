@@ -84,6 +84,7 @@ Value getinfo(CWallet* pWallet, const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
     obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
+    obj.push_back(Pair("keypoolsize",   (int)pWallet->GetKeyPoolSize()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
@@ -821,6 +822,29 @@ Value addmultisigaddress(CWallet* pWallet, const Array& params, bool fHelp)
     return CBitcoinAddress(innerID).ToString();
 }
 
+Value addredeemscript(CWallet* pWallet, const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 2)
+    {
+        string msg = "addredeemscript <redeemScript> [account]\n"
+            "Add a P2SH address with a specified redeemScript to the wallet.\n"
+            "If [account] is specified, assign address to [account].";
+        throw runtime_error(msg);
+    }
+
+    string strAccount;
+    if (params.size() > 1)
+        strAccount = AccountFromValue(params[1]);
+
+    // Construct using pay-to-script-hash:
+    vector<unsigned char> innerData = ParseHexV(params[0], "redeemScript");
+    CScript inner(innerData.begin(), innerData.end());
+    CScriptID innerID = inner.GetID();
+    pwalletMain->AddCScript(inner);
+
+    pwalletMain->SetAddressBookName(innerID, strAccount);
+    return CBitcoinAddress(innerID).ToString();
+}
 
 struct tallyitem
 {
@@ -1310,17 +1334,24 @@ Value backupwallet(CWallet* pWallet, const Array& params, bool fHelp)
 
 Value keypoolrefill(CWallet* pWallet, const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 0)
+    if (fHelp || params.size() > 1)
         throw runtime_error(
-            "keypoolrefill\n"
+            "keypoolrefill [new-size]\n"
             "Fills the keypool."
             + HelpRequiringPassphrase(pWallet));
-
+	
+	unsigned int nSize = max(GetArg("-keypool", 100), 0LL);
+    if (params.size() > 0) {
+        if (params[0].get_int() < 0)
+            throw JSONRPCError(-8, "Invalid parameter, expected valid size");
+        nSize = (unsigned int) params[0].get_int();
+    }
+	
     EnsureWalletIsUnlocked(pWallet);
 
-    pWallet->TopUpKeyPool();
+    pWallet->TopUpKeyPool(nSize);
 
-    if (pWallet->GetKeyPoolSize() < GetArg("-keypool", 100))
+    if (pWallet->GetKeyPoolSize() < nSize)
         throw JSONRPCError(RPC_WALLET_ERROR, "Error refreshing keypool.");
 
     return Value::null;
@@ -1485,6 +1516,7 @@ public:
         int nRequired;
         ExtractDestinations(subscript, whichType, addresses, nRequired);
         obj.push_back(Pair("script", GetTxnOutputType(whichType)));
+        obj.push_back(Pair("hex", HexStr(subscript.begin(), subscript.end())));
         Array a;
         BOOST_FOREACH(const CTxDestination& addr, addresses)
             a.push_back(CBitcoinAddress(addr).ToString());
@@ -1704,7 +1736,7 @@ Value listwallets(CWallet* pWallet, const Array& params, bool fHelp)
             objWallet.push_back(Pair("unlocked_until_pretty", item.second->GetStringLockTime()));
         }
         objWallet.push_back(Pair("walletversion", item.second->GetVersion()));
-        objWallet.push_back(Pair("keypoolsize",   item.second->GetKeyPoolSize()));
+        objWallet.push_back(Pair("keypoolsize",   (int)item.second->GetKeyPoolSize()));
         objWallet.push_back(Pair("keypoololdest", (boost::int64_t)item.second->GetOldestKeyPoolTime()));
         obj.push_back(Pair(item.first, objWallet));
     }
