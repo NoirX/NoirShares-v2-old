@@ -7,6 +7,7 @@ CXX ?= g++
 #USE_UPNP:=-
 USE_UPNP:=1
 USE_IPV6:=1
+USE_LEVELDB:=1
 
 DEPSDIR?=/usr/local
 BOOST_SUFFIX?=-mgw48-mt-s-1_55
@@ -97,6 +98,21 @@ OBJS= \
     obj/rpcemessage.o 
 
 all: NoirSharesd.exe
+
+#
+# LevelDB support
+#
+ifdef USE_LEVELDB
+LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/include) -DUSE_LEVELDB
+DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
+OBJS += obj/txdb-leveldb.o
+leveldb/libleveldb.a:
+	cd leveldb; make; cd ..
+obj/txdb-leveldb.o: leveldb/libleveldb.lib
+else
+OBJS += obj/txdb-bdb.o
+endif
 
 test check: test_NoirShares.exe FORCE
 	test_NoirShares.exe

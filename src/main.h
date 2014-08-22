@@ -110,7 +110,12 @@ void PrintBlockTree();
 CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
-bool LoadExternalBlockFile(FILE* fileIn);
+
+// Processes a blk*.dat file and fires the given signal to indicate how far
+// through the file the load has reached, if provided.
+typedef boost::signals2::signal<void (unsigned int bytesRead)> ExternalBlockFileProgress;
+bool LoadExternalBlockFile(FILE* fileIn, ExternalBlockFileProgress *progress=NULL);
+
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet);
 CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false);
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
