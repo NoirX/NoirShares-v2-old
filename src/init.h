@@ -10,7 +10,7 @@
 extern CWalletManager* pWalletManager;
 //TODO: get rid of pwalletMain
 extern CWallet* pwalletMain;
-
+extern std::string strWalletFileName;
 void StartShutdown();
 void Shutdown(void* parg);
 bool AppInit2();
