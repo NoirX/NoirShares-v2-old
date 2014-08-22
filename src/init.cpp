@@ -245,7 +245,6 @@ std::string HelpMessage()
         "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + "\n" +
         "  -port=<port>           " + _("Listen for connections on <port> (default: 31813 or testnet: 31814)") + "\n" +
         "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n" +
-        "  -stakepooledkeys       " + _("Use pooled pubkeys for the last coinstake output (default: 0)") + "\n" +
         "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n" +
         "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n" +
         "  -seednode=<ip>         " + _("Connect to a node to retrieve peer addresses, and disconnect") + "\n" +
@@ -444,9 +443,7 @@ bool AppInit2()
     // ********************************************************* Step 2: parameter interactions
 
 	nNodeLifespan = GetArg("-addrlifespan", 7);
-	
-	fStakeUsePooledKeys = GetBoolArg("-stakepooledkeys", false);
-	
+
     fTestNet = GetBoolArg("-testnet");
     if (fTestNet) {
         SoftSetBoolArg("-irc", true);
