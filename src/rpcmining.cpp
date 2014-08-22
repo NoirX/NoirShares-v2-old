@@ -6,6 +6,7 @@
 #include "main.h"
 #include "db.h"
 #include "init.h"
+#include "miner.cpp"
 #include "bitcoinrpc.h"
 
 using namespace json_spirit;
