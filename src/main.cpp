@@ -1000,7 +1000,7 @@ int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees)
 	int64 nSubsidy = 10 * COIN;
 	
 	// Subsidy is reduced by 5% every 2000 blocks, 
-    int exponent=(nHeight / 2000);
+    int exponent=(nHeight / 3000);
     for(int i=0;i<exponent;i++){
         nSubsidy=nSubsidy*19;
 	nSubsidy=nSubsidy/20;
@@ -1008,9 +1008,7 @@ int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees)
     
     if (nHeight== 30) {nSubsidy= 1000000 *COIN;}
     
-    if (nHeight> 50000) {nSubsidy= 0 *COIN;}
-
-	return nSubsidy +( nFees * 0);
+    return nSubsidy +( nFees * 0);
 }
 
 int generateMTRandom(unsigned int s, int range)
@@ -1052,7 +1050,7 @@ int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTi
     int64 nRewardCoinYear;
     nRewardCoinYear = MAX_MINT_PROOF_OF_STAKE;
 
-    int64 nSubsidy = nCoinAge * nRewardCoinYear / 365;
+    int64 nSubsidy = nRewardCoinYear * nCoinAge * 33 / (365 * 33 + 8);
     if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, nBits);
 
