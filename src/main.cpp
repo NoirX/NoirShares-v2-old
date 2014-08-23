@@ -6,7 +6,6 @@
 #include "alert.h"
 #include "checkpoints.h"
 #include "db.h"
-#include "txdb.h"
 #include "net.h"
 #include "init.h" 
 #include "ui_interface.h"
@@ -91,8 +90,7 @@ int64 nHPSTimerStart;
 
 // Settings
 int64 nTransactionFee = MIN_TX_FEE;
-// Used during database migration.
-bool fDisableSignatureChecking = false;
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -2106,7 +2104,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
         if (!SetBestChain(txdb, pindexNew))
             return false;
 
-    
+    txdb.Close();
 
     if (pindexNew == pindexBest)
     {
@@ -2993,7 +2991,7 @@ void PrintBlockTree()
     }
 }
 
-bool LoadExternalBlockFile(FILE* fileIn, ExternalBlockFileProgress *progress)
+bool LoadExternalBlockFile(FILE* fileIn)
 {
     int64 nStart = GetTimeMillis();
 
@@ -3042,8 +3040,6 @@ bool LoadExternalBlockFile(FILE* fileIn, ExternalBlockFileProgress *progress)
                         nPos += 4 + nSize;
                     }
                 }
-                if (progress != NULL)
-                    (*progress)(4 + nSize);
             }
         }
         catch (std::exception &e) {

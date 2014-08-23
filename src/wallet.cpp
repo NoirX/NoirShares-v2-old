@@ -10,7 +10,6 @@
 #include "ui_interface.h"
 #include "base58.h"
 #include "coincontrol.h"
-#include "txdb.h"
 #include "kernel.h"
 #include <boost/algorithm/string.hpp>
 
