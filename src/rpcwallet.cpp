@@ -84,6 +84,7 @@ Value getinfo(CWallet* pWallet, const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
     obj.push_back(Pair("testnet",       fTestNet));
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
+    obj.push_back(Pair("mininput",      ValueFromAmount(nMinimumInputValue)));
     obj.push_back(Pair("keypoolsize",   (int)pWallet->GetKeyPoolSize()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
