@@ -37,7 +37,7 @@ LIBS= \
 DEFS=-DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -DBOOST_SPIRIT_THREADSAFE -D__NO_SYSTEM_INCLUDES
 
 DEBUGFLAGS=-g
-CFLAGS=-mthreads -static -O2 -msse2 -w -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
+CFLAGS=-mthreads -static -O2 -msse2 -w -Wall -Wextra -Wformat -Wformat-security -Wno-ignored-qualifiers -Wno-unused-parameter $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 #LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat
 LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat -Wl,--large-address-aware -static -static-libgcc -static-libstdc++
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
@@ -93,6 +93,16 @@ OBJS= \
     obj/scrypt_mine.o \
     obj/scrypt-x86.o \
     obj/scrypt-x86_64.o \
+    obj/zerocoin/Accumulator.o \
+    obj/zerocoin/AccumulatorProofOfKnowledge.o \
+    obj/zerocoin/Coin.o \
+    obj/zerocoin/CoinSpend.o \
+    obj/zerocoin/Commitment.o \
+    obj/zerocoin/ParamGeneration.o \
+    obj/zerocoin/Params.o \
+    obj/zerocoin/SerialNumberSignatureOfKnowledge.o \
+    obj/zerocoin/SpendMetaData.o \
+    obj/zerocoin/ZeroTest.o \
     obj/emessage.o \
     obj/rpcemessage.o 
 
@@ -102,6 +112,9 @@ test check: test_NoirShares.exe FORCE
 	test_NoirShares.exe
 
 obj/%.o: %.cpp $(HEADERS)
+	g++ -c $(CFLAGS) -o $@ $<
+
+obj/zerocoin/%.o: zerocoin/%.cpp
 	g++ -c $(CFLAGS) -o $@ $<
 
 obj/scrypt-x86.o: scrypt-x86.S
@@ -122,8 +135,8 @@ test_NoirShares.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework $(LIBS)
 
 clean:
-	rm -f NoirShares test_NoirShares
+	rm -f NoirSharesd test_NoirSharesd
 	rm -f obj/*
 	rm -f obj-test/*
-
+	rm -f obj/zerocoin/*
 FORCE:

@@ -10,6 +10,7 @@
 #include "net.h"
 #include "script.h"
 #include "scrypt_mine.h"
+#include "zerocoin/Zerocoin.h"
 
 #include <list>
 
@@ -56,6 +57,7 @@ static const uint256 hashGenesisBlockTestNet("0x");
 
 static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
 
+extern libzerocoin::Params* ZCParams;
 extern CScript COINBASE_FLAGS;
 
 

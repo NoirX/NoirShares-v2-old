@@ -11,6 +11,7 @@
 #include "ui_interface.h"
 #include "timer.h"
 #include "checkpoints.h"
+#include "zerocoin/ZeroTest.h"
 #include "emessage.h"
 
 #include <boost/filesystem.hpp>
@@ -444,7 +445,7 @@ bool AppInit2()
 
 	nNodeLifespan = GetArg("-addrlifespan", 7);
 
-    fTestNet = GetBoolArg("-testnet");
+	fTestNet = GetBoolArg("-testnet");
     if (fTestNet) {
         SoftSetBoolArg("-irc", true);
     }
@@ -815,6 +816,16 @@ bool AppInit2()
         if (nFound == 0)
             printf("No blocks matching %s were found\n", strMatch.c_str());
         return false;
+    }
+
+	// ********************************************************* Testing Zerocoin
+
+
+    if (GetBoolArg("-zerotest", false))
+    {
+        printf("\n=== ZeroCoin tests start ===\n");
+        Test_RunAllTests();
+        printf("=== ZeroCoin tests end ===\n\n");
     }
 
     // ********************************************************* Step 8: load wallet
