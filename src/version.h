@@ -8,6 +8,11 @@
 #include <string>
 
 //
+// database format versioning
+//
+static const int DATABASE_VERSION = 70507;
+
+//
 // client versioning
 //
 
