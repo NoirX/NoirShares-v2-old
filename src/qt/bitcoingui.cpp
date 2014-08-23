@@ -487,7 +487,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addSeparator();
 
     QLabel* anon_lbl = new QLabel();
-    anon_lbl->setText("AnoNoir ");
+    anon_lbl->setText("NoirSpace ");
     anon_lbl->setAlignment(Qt::AlignHCenter);
 
     toolbar->addWidget(anon_lbl);
