@@ -68,8 +68,8 @@ extern unsigned int nStakeMinAge;
 extern unsigned int nNodeLifespan;
 extern int nCoinbaseMaturity;
 extern int nBestHeight;
-extern uint256 bnBestChainTrust;
-extern uint256 bnBestInvalidTrust;
+extern CBigNum bnBestChainTrust;
+extern CBigNum bnBestInvalidTrust;
 extern uint256 hashBestChain;
 extern CBlockIndex* pindexBest;
 extern unsigned int nTransactionsUpdated;
@@ -1142,7 +1142,7 @@ public:
     CBlockIndex* pnext;
     unsigned int nFile;
     unsigned int nBlockPos;
-    uint256 bnChainTrust; // ppcoin: trust score of block chain
+    CBigNum bnChainTrust; // ppcoin: trust score of block chain
     int nHeight;
 
     int64 nMint;
@@ -1265,7 +1265,7 @@ public:
         return (int64)nTime;
     }
 
-    uint256 GetBlockTrust() const;
+    CBigNum GetBlockTrust() const;
 
     bool IsInMainChain() const
     {

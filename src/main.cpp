@@ -46,7 +46,6 @@ uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
 uint256 merkleRootGenesisBlock("0x4ed35a3349ab2f6adc0b710d6df899a0f7cdfaec49ef7515da9ea8a63eaf2218");
 uint256 rseedGenesisBlock("0x2dcd1c9a6f9c79342224611cebc701eacc8a670086a4acd7cb7d3fea528d9693");
-uint256 nPoWBase = uint256("0x0fffff0000000000000000000000000000000000000000000000000000000000"); // difficulty-1 target
 const int64 nChainStartTime = 1408563876; 
 const unsigned long nChainStartNonce = 11;
 const unsigned long nChainStartBirthdayA = 6715920;
@@ -66,8 +65,8 @@ unsigned int nStakeTargetSpacing = 60 * 4;          // 4 min block spacing
 int nCoinbaseMaturity = 30;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
-uint256 bnBestChainTrust = 0;
-uint256 bnBestInvalidTrust = 0;
+CBigNum bnBestChainTrust = 0;
+CBigNum bnBestInvalidTrust = 0;
 uint256 hashBestChain = 0;
 CBlockIndex* pindexBest = NULL;
 int64 nTimeBestReceived = 0;
@@ -2297,79 +2296,23 @@ bool CBlock::AcceptBlock()
 }
 
 
-uint256 CBlockIndex::GetBlockTrust() const
+CBigNum CBlockIndex::GetBlockTrust() const
 {
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
     if (bnTarget <= 0)
         return 0;
-// Calculate work amount for block
-    uint256 nPoWTrust = (CBigNum(nPoWBase) / (bnTarget+1)).getuint256();
-    
-    // Set nPowTrust to 1 if we are checking PoS block or PoW difficulty is too low
-    nPoWTrust = (IsProofOfStake() || nPoWTrust < 1) ? 1 : nPoWTrust;
-	
-	// Return nPoWTrust for the first 12 blocks
-    if (pprev == NULL || pprev->nHeight < 12)
-        return nPoWTrust;
-
-const CBlockIndex* currentIndex = pprev;
 
     if (IsProofOfStake())
     {
-		CBigNum bnNewTrust = (CBigNum(1)<<256) / (bnTarget+1);
-        // Return 1/3 of score if parent block is not the PoW block
-        if (!pprev->IsProofOfWork())
-            return (bnNewTrust / 3).getuint256();
-        
-        
-        int nPoWCount = 0;
-
-        // Check last 12 blocks type
-        while (pprev->nHeight - currentIndex->nHeight < 12)
-        {
-            if (currentIndex->IsProofOfWork())
-                nPoWCount++;
-            currentIndex = currentIndex->pprev;
-        }
-        
-        // Return 1/3 of score if less than 3 PoW blocks found
-        if (nPoWCount < 3)
-            return (bnNewTrust / 3).getuint256();
-
-        return bnNewTrust.getuint256();
+        // Return trust score as usual
+        return (CBigNum(1)<<256) / (bnTarget+1);
     }
-    else{
-    CBigNum bnLastBlockTrust = CBigNum(pprev->bnChainTrust - pprev->pprev->bnChainTrust);
-
-
-        // Return nPoWTrust + 2/3 of previous block score if two parent blocks are not PoS blocks
-        if (!(pprev->IsProofOfStake() && pprev->pprev->IsProofOfStake()))
-            return nPoWTrust + (2 * bnLastBlockTrust / 3).getuint256();
-
-        int nPoSCount = 0;
-
-        // Check last 12 blocks type
-        while (pprev->nHeight - currentIndex->nHeight < 12)
-        {
-            if (currentIndex->IsProofOfStake())
-                nPoSCount++;
-            currentIndex = currentIndex->pprev;
-        }
-
-        // Return nPoWTrust + 2/3 of previous block score if less than 7 PoS blocks found
-        if (nPoSCount < 7)
-            return nPoWTrust + (2 * bnLastBlockTrust / 3).getuint256();
-
-        bnTarget.SetCompact(pprev->nBits);
-
-        if (bnTarget <= 0)
-            return 0;
-
-        CBigNum bnNewTrust = (CBigNum(1)<<256) / (bnTarget+1);
-
-        // Return nPoWTrust + full trust score for previous block nBits
-        return nPoWTrust + bnNewTrust.getuint256();
+    else
+    {
+        // Calculate work amount for block
+        CBigNum bnPoWTrust = (bnProofOfWorkLimit / (bnTarget+1));
+        return bnPoWTrust > 1 ? bnPoWTrust : 1;
     }
 } 
 
