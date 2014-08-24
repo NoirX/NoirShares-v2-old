@@ -314,6 +314,9 @@
                    <pointsize>10</pointsize>
                   </font>
                  </property>
+                 <property name="styleSheet">
+                  <string notr="true">color:white;background-color:black;border-width:1px;border-style:solid;border-color:white;</string>
+                 </property>
                  <property name="cursor">
                   <cursorShape>IBeamCursor</cursorShape>
                  </property>
@@ -555,6 +558,9 @@
           </property>
           <item>
            <widget class="QCheckBox" name="checkBoxCoinControlChange">
+            <property name="styleSheet">
+             <string notr="true">color:white;background-color:black;border-width:1px</string>
+            </property>
             <property name="text">
              <string>custom change address</string>
             </property>
@@ -562,6 +568,9 @@
           </item>
           <item>
            <widget class="QLineEdit" name="lineEditCoinControlChange">
+            <property name="styleSheet">
+             <string notr="true">color:white;background-color:black;border-width:1px</string>
+            </property>
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -621,6 +630,9 @@
       <bool>true</bool>
      </property>
      <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="styleSheet">
+        <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <property name="geometry">
        <rect>
         <x>0</x>

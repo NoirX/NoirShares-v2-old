@@ -13,13 +13,10 @@
   <property name="windowTitle">
    <string>Options</string>
   </property>
-	<property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="tabPosition">
@@ -30,8 +27,11 @@
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
-       <string>&amp;Main</string>
-      </attribute>
+       <string>&amp;Main </string>
+       </attribute>
+       <property name="styleSheet">
+     <string notr="true">color:white;background-color:black;border-width:1px</string>
+  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Main">
        <item>
         <widget class="QLabel" name="transactionFeeInfoLabel">
@@ -164,6 +164,9 @@
       <attribute name="title">
        <string>&amp;Network</string>
       </attribute>
+      <property name="styleSheet">
+     <string notr="true">color:white;background-color:black;border-width:1px</string>
+  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Network">
        <item>
         <widget class="QCheckBox" name="mapPortUpnp">
@@ -293,6 +296,9 @@
       <attribute name="title">
        <string>&amp;Window</string>
       </attribute>
+      <property name="styleSheet">
+     <string notr="true">color:white;background-color:black;border-width:1px</string>
+  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Window">
        <item>
         <widget class="QCheckBox" name="minimizeToTray">
@@ -333,6 +339,9 @@
       <attribute name="title">
        <string>&amp;Display</string>
       </attribute>
+      <property name="styleSheet">
+     <string notr="true">color:white;background-color:black;border-width:1px</string>
+  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Display">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_1_Display">
@@ -419,13 +428,16 @@
      </widget>
      <widget class="QWidget" name="tabComms">
       <attribute name="title">
-       <string>&amp;Communication</string>
+       <string>&amp;Noir +</string>
       </attribute>
+      <property name="styleSheet">
+     <string notr="true">color:white;background-color:black;border-width:1px</string>
+  </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="groupBoxEM">
          <property name="title">
-          <string>Encrypted Messaging Settings</string>
+          <string>NoirTalk Settings</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
@@ -441,13 +453,13 @@
        <item>
         <widget class="QGroupBox" name="groupBoxTrollbox">
          <property name="title">
-          <string>Trollbox Settings</string>
+          <string>Holla! Settings</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QCheckBox" name="enableTrollbox">
             <property name="text">
-             <string>&amp;Enable Trollbox</string>
+             <string>&amp;Enable Holla!</string>
             </property>
            </widget>
           </item>
