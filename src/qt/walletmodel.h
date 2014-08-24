@@ -99,6 +99,7 @@ public:
 
     bool dumpWallet(const QString &filename);
     bool importWallet(const QString &filename);
+    
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
     {

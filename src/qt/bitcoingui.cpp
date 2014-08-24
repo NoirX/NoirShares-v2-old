@@ -30,6 +30,7 @@
 #include "askpassphrasedialog.h"
 #include "notificator.h"
 #include "guiutil.h"
+#include "ui_interface.h"
 #include "rpcconsole.h"
 
 #ifdef Q_OS_MAC
@@ -396,6 +397,10 @@ void BitcoinGUI::createActions()
     encryptWalletAction->setCheckable(true);
     backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
     backupWalletAction->setToolTip(tr("Backup wallet to another location"));
+    dumpWalletAction = new QAction(QIcon(":/icons/dump"), tr("&Dump Wallet..."), this);
+    dumpWalletAction->setStatusTip(tr("Export wallet's keys to a text file"));
+    importWalletAction = new QAction(QIcon(":/icons/import"), tr("&Import Wallet..."), this);
+    importWalletAction->setStatusTip(tr("Import a file's keys into a wallet"));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setToolTip(tr("Change the passphrase used for wallet encryption"));
     unlockWalletAction = new QAction(QIcon(":/icons/lock_open"), tr("&Unlock Wallet..."), this);
@@ -417,6 +422,8 @@ void BitcoinGUI::createActions()
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
     connect(encryptWalletAction, SIGNAL(triggered(bool)), this, SLOT(encryptWallet(bool)));
     connect(backupWalletAction, SIGNAL(triggered()), this, SLOT(backupWallet()));
+    connect(dumpWalletAction, SIGNAL(triggered()), this, SLOT(dumpWallet()));
+    connect(importWalletAction, SIGNAL(triggered()), this, SLOT(importWallet()));
     connect(changePassphraseAction, SIGNAL(triggered()), this, SLOT(changePassphrase()));
     connect(unlockWalletAction, SIGNAL(triggered()), this, SLOT(unlockWallet()));
     connect(lockWalletAction, SIGNAL(triggered()), this, SLOT(lockWallet()));
@@ -438,6 +445,9 @@ void BitcoinGUI::createMenuBar()
     QMenu *file = appMenuBar->addMenu(tr("&File"));
     file->addAction(backupWalletAction);
     file->addAction(exportAction);
+    file->addSeparator();
+    file->addAction(dumpWalletAction);
+    file->addAction(importWalletAction);
     file->addAction(signMessageAction);
     file->addAction(verifyMessageAction);
     file->addSeparator();
@@ -814,6 +824,55 @@ void BitcoinGUI::error(const QString &title, const QString &message, bool modal)
     }
 }
 
+void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, const QString &detail)
+{
+    QString strTitle = tr("NovaCoin") + " - ";
+    // Default to information icon
+    int nMBoxIcon = QMessageBox::Information;
+    int nNotifyIcon = Notificator::Information;
+
+
+    // Check for usage of predefined title
+    switch (style) {
+    case CClientUIInterface::MSG_ERROR:
+        strTitle += tr("Error");
+        break;
+    case CClientUIInterface::MSG_WARNING:
+        strTitle += tr("Warning");
+        break;
+    case CClientUIInterface::MSG_INFORMATION:
+        strTitle += tr("Information");
+        break;
+    default:
+        strTitle += title; // Use supplied title
+    }
+
+    // Check for error/warning icon
+    if (style & CClientUIInterface::ICON_ERROR) {
+        nMBoxIcon = QMessageBox::Critical;
+        nNotifyIcon = Notificator::Critical;
+    }
+    else if (style & CClientUIInterface::ICON_WARNING) {
+        nMBoxIcon = QMessageBox::Warning;
+        nNotifyIcon = Notificator::Warning;
+    }
+
+    // Display message
+    if (style & CClientUIInterface::MODAL) {
+        // Check for buttons, use OK as default, if none was supplied
+        QMessageBox::StandardButton buttons;
+        buttons = QMessageBox::Ok;
+
+        QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message, buttons);
+
+        if(!detail.isEmpty()) { mBox.setDetailedText(detail); }
+
+        mBox.exec();
+    }
+    else
+        notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
+}
+
 void BitcoinGUI::changeEvent(QEvent *e)
 {
     QMainWindow::changeEvent(e);
@@ -1131,6 +1190,73 @@ void BitcoinGUI::backupWallet()
         if(!walletModel->backupWallet(filename)) {
             QMessageBox::warning(this, tr("Backup Failed"), tr("There was an error trying to save the wallet data to the new location."));
         }
+    }
+}
+
+void BitcoinGUI::dumpWallet()
+{
+   if(!walletModel)
+      return;
+
+   WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+   if(!ctx.isValid())
+   {
+       // Unlock wallet failed or was cancelled
+       return;
+   }
+
+#if QT_VERSION < 0x050000
+    QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    QString saveDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export Wallet"), saveDir, tr("Wallet Text (*.txt)"));
+    if(!filename.isEmpty()) {
+        if(!walletModel->dumpWallet(filename)) {
+            error(tr("DumpWallet Failed"),
+                         tr("An error happened while trying to save the keys to your location.\n"
+                            "Keys were not saved")
+                      ,CClientUIInterface::MSG_ERROR);
+        }
+        else
+          message(tr("DumpWallet Successful"),
+                       tr("Keys were saved to this file:\n%2")
+                       .arg(filename)
+                      ,CClientUIInterface::MSG_INFORMATION);
+    }
+}
+
+void BitcoinGUI::importWallet()
+{
+   if(!walletModel)
+      return;
+
+   WalletModel::UnlockContext ctx(walletModel->requestUnlock());
+   if(!ctx.isValid())
+   {
+       // Unlock wallet failed or was cancelled
+       return;
+   }
+
+#if QT_VERSION < 0x050000
+    QString openDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#else
+    QString openDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#endif
+    QString filename = QFileDialog::getOpenFileName(this, tr("Import Wallet"), openDir, tr("Wallet Text (*.txt)"));
+    if(!filename.isEmpty()) {
+        if(!walletModel->importWallet(filename)) {
+            error(tr("Import Failed"),
+                         tr("An error happened while trying to import the keys.\n"
+                            "Some or all keys from:\n %1,\n were not imported into your wallet.")
+                         .arg(filename)
+                      ,CClientUIInterface::MSG_ERROR);
+        }
+        else
+          message(tr("Import Successful"),
+                       tr("All keys from:\n %1,\n were imported into your wallet.")
+                       .arg(filename)
+                      ,CClientUIInterface::MSG_INFORMATION);
     }
 }
 
