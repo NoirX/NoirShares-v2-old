@@ -75,6 +75,8 @@ Value getinfo(CWallet* pWallet, const Array& params, bool fHelp)
     obj.push_back(Pair("wallets",       pWalletManager->GetWalletCount()));
     obj.push_back(Pair("newmint",       ValueFromAmount(pWallet->GetNewMint())));
     obj.push_back(Pair("stake",         ValueFromAmount(pWallet->GetStake())));
+	obj.push_back(Pair("unspendable",   ValueFromAmount(pWallet->GetWatchOnlyBalance())));
+	obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
     obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
