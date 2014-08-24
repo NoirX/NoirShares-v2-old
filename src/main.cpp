@@ -3291,7 +3291,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-       /* if (pfrom->nVersion < 60010)
+       /* if (pfrom->nVersion < 60010) // use when we need to disconnet older troublesome clients
         {
             printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             pfrom->fDisconnect = true;
