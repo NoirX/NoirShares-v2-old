@@ -275,6 +275,53 @@ Value getaddressesbyaccount(CWallet* pWallet, const Array& params, bool fHelp)
     return ret;
 }
 
+Value mergecoins(CWallet* pWallet, const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 3)
+        throw runtime_error(
+            "mergecoins <amount> <outputvalue> <maxvalue>\n"
+            "<amount> is resulting inputs sum\n"
+            "<outputvalue> is resulting value of inputs which will be created\n"
+            "<maxvalue> is maximum value of inputs which are used in join process\n"
+            "All values are real and and rounded to the nearest " + FormatMoney(MIN_TXOUT_AMOUNT)
+            + HelpRequiringPassphrase());
+
+    if (pwalletMain->IsLocked())
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
+
+    // Amount
+    int64 nAmount = AmountFromValue(params[0]);
+
+    // Amount
+    int64 nOutputValue = AmountFromValue(params[1]);
+
+    // Amount
+    int64 nMaxValue = AmountFromValue(params[2]);
+
+    if (nAmount < MIN_TXOUT_AMOUNT)
+        throw JSONRPCError(-101, "Send amount too small");
+
+    if (nOutputValue < MIN_TXOUT_AMOUNT)
+        throw JSONRPCError(-101, "Output value too small");
+
+    if (nMaxValue < MIN_TXOUT_AMOUNT)
+        throw JSONRPCError(-101, "Max value too small");
+
+    if (nOutputValue < nMaxValue)
+        throw JSONRPCError(-101, "Output value is lower than max value");
+
+
+    list<uint256> listMerged;
+    if (!pwalletMain->MergeCoins(nAmount, nMaxValue, nOutputValue, listMerged))
+        return Value::null;
+
+    Array mergedHashes;
+    BOOST_FOREACH(const uint256 txHash, listMerged)
+        mergedHashes.push_back(txHash.GetHex());
+
+    return mergedHashes;
+}
+
 Value sendtoaddress(CWallet* pWallet, const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 4)
@@ -501,7 +548,7 @@ Value getreceivedbyaccount(CWallet* pWallet, const Array& params, bool fHelp)
 }
 
 
-int64 GetAccountBalance(CWallet* pWallet, CWalletDB& walletdb, const string& strAccount, int nMinDepth)
+int64 GetAccountBalance(CWallet* pWallet, CWalletDB& walletdb, const string& strAccount, int nMinDepth, const isminefilter& filter)
 {
     int64 nBalance = 0;
 
@@ -513,7 +560,7 @@ int64 GetAccountBalance(CWallet* pWallet, CWalletDB& walletdb, const string& str
             continue;
 
         int64 nGenerated, nReceived, nSent, nFee;
-        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee);
+        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee, filter);
 
         if (nReceived != 0 && wtx.GetDepthInMainChain() >= nMinDepth)
             nBalance += nReceived;
@@ -526,10 +573,10 @@ int64 GetAccountBalance(CWallet* pWallet, CWalletDB& walletdb, const string& str
     return nBalance;
 }
 
-int64 GetAccountBalance(CWallet* pWallet, const string& strAccount, int nMinDepth)
+int64 GetAccountBalance(CWallet* pWallet, const string& strAccount, int nMinDepth, const isminefilter& filter)
 {
     CWalletDB walletdb(pWallet->strWalletFile);
-    return GetAccountBalance(pWallet, walletdb, strAccount, nMinDepth);
+    return GetAccountBalance(pWallet, walletdb, strAccount, nMinDepth, filter);
 }
 
 
@@ -539,14 +586,19 @@ Value getbalance(CWallet* pWallet, const Array& params, bool fHelp)
         throw runtime_error(
             "getbalance [account] [minconf=1]\n"
             "If [account] is not specified, returns the server's total available balance.\n"
-            "If [account] is specified, returns the balance in the account.");
-
+            "If [account] is specified, returns the balance in the account..\n"
+			"if [includeWatchonly] is specified, include balance in watchonly addresses (see 'importaddress').");
+			
     if (params.size() == 0)
         return  ValueFromAmount(pWallet->GetBalance());
 
     int nMinDepth = 1;
     if (params.size() > 1)
         nMinDepth = params[1].get_int();
+    isminefilter filter = MINE_SPENDABLE;
+    if(params.size() > 2)
+        if(params[2].get_bool())
+            filter = filter | MINE_WATCH_ONLY;
 
     if (params[0].get_str() == "*") {
         // Calculate total balance a different way from GetBalance()
@@ -565,7 +617,7 @@ Value getbalance(CWallet* pWallet, const Array& params, bool fHelp)
             string strSentAccount;
             list<pair<CTxDestination, int64> > listReceived;
             list<pair<CTxDestination, int64> > listSent;
-            wtx.GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent, allFee, strSentAccount);
+            wtx.GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent, allFee, strSentAccount, filter);
             if (wtx.GetDepthInMainChain() >= nMinDepth)
             {
                 BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64)& r, listReceived)
@@ -581,7 +633,7 @@ Value getbalance(CWallet* pWallet, const Array& params, bool fHelp)
 
     string strAccount = AccountFromValue(params[0]);
 
-    int64 nBalance = GetAccountBalance(pWallet, strAccount, nMinDepth);
+    int64 nBalance = GetAccountBalance(pWallet, strAccount, nMinDepth, filter);
 
     return ValueFromAmount(nBalance);
 }
@@ -672,7 +724,7 @@ Value sendfrom(CWallet* pWallet, const Array& params, bool fHelp)
     EnsureWalletIsUnlocked(pWallet);
 
     // Check funds
-    int64 nBalance = GetAccountBalance(pWallet, strAccount, nMinDepth);
+    int64 nBalance = GetAccountBalance(pWallet, strAccount, nMinDepth, MINE_SPENDABLE);
     if (nAmount > nBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
@@ -689,7 +741,7 @@ Value sendmany(CWallet* pWallet, const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 4)
         throw runtime_error(
-		"sendmany <fromaccount> {address:amount,...} [minconf=1] [comment]\n"
+            "sendmany <fromaccount> {address:amount,...} [minconf=1] [comment]\n"
             "amounts are double-precision floating point numbers"
             + HelpRequiringPassphrase(pWallet));
 
@@ -700,7 +752,6 @@ Value sendmany(CWallet* pWallet, const Array& params, bool fHelp)
         nMinDepth = params[2].get_int();
 
     CWalletTx wtx;
-	
     wtx.strFromAccount = strAccount;
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
         wtx.mapValue["comment"] = params[3].get_str();
@@ -734,7 +785,7 @@ Value sendmany(CWallet* pWallet, const Array& params, bool fHelp)
     EnsureWalletIsUnlocked(pWallet);
 
     // Check funds
-    int64 nBalance = GetAccountBalance(pWallet, strAccount, nMinDepth);
+    int64 nBalance = GetAccountBalance(pWallet, strAccount, nMinDepth, MINE_SPENDABLE);
     if (totalAmount > nBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
@@ -744,7 +795,8 @@ Value sendmany(CWallet* pWallet, const Array& params, bool fHelp)
     bool fCreated = pWallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired);
     if (!fCreated)
     {
-        if (totalAmount + nFeeRequired > pWallet->GetBalance())
+        int64 nTotal = pWallet->GetBalance(), nWatchOnly = pWallet->GetWatchOnlyBalance();
+        if (totalAmount + nFeeRequired > nTotal - nWatchOnly)
             throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
         throw JSONRPCError(RPC_WALLET_ERROR, "Transaction creation failed");
     }
@@ -979,16 +1031,17 @@ Value listreceivedbyaccount(CWallet* pWallet, const Array& params, bool fHelp)
     return ListReceived(pWallet, params, true);
 }
 
-void ListTransactions(CWallet* pWallet, const CWalletTx& wtx, const string& strAccount, int nMinDepth, bool fLong, Array& ret)
+void ListTransactions(CWallet* pWallet, const CWalletTx& wtx, const string& strAccount, int nMinDepth, bool fLong, Array& ret, const isminefilter& filter)
 {
     int64 nGeneratedImmature, nGeneratedMature, nFee;
     string strSentAccount;
     list<pair<CTxDestination, int64> > listReceived;
     list<pair<CTxDestination, int64> > listSent;
 
-    wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent, nFee, strSentAccount);
+    wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent, nFee, strSentAccount, filter);
 
     bool fAllAccounts = (strAccount == string("*"));
+    bool involvesWatchonly = wtx.IsFromMe(MINE_WATCH_ONLY);
 
     // Generated blocks assigned to account ""
     if ((nGeneratedMature+nGeneratedImmature) != 0 && (fAllAccounts || strAccount == ""))
@@ -1039,7 +1092,8 @@ void ListTransactions(CWallet* pWallet, const CWalletTx& wtx, const string& strA
             {
                 Object entry;
                 entry.push_back(Pair("account", account));
-                entry.push_back(Pair("address", CBitcoinAddress(r.first).ToString()));
+                if(involvesWatchonly || (::IsMine(*pwalletMain, r.first) & MINE_WATCH_ONLY))
+                    entry.push_back(Pair("involvesWatchonly", true));
                 if (wtx.IsCoinBase())
                 {
                     if (wtx.GetDepthInMainChain() < 1)
@@ -1094,6 +1148,11 @@ Value listtransactions(CWallet* pWallet, const Array& params, bool fHelp)
     if (params.size() > 2)
         nFrom = params[2].get_int();
 
+    isminefilter filter = MINE_SPENDABLE;
+    if(params.size() > 3)
+        if(params[3].get_bool())
+            filter = filter | MINE_WATCH_ONLY;
+
     if (nCount < 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative count");
     if (nFrom < 0)
@@ -1109,7 +1168,7 @@ Value listtransactions(CWallet* pWallet, const Array& params, bool fHelp)
     {
         CWalletTx *const pwtx = (*it).second.first;
         if (pwtx != 0)
-            ListTransactions(pWallet, *pwtx, strAccount, 0, true, ret);
+            ListTransactions(pWallet, *pwtx, strAccount, 0, true, ret, filter);
         CAccountingEntry *const pacentry = (*it).second.second;
         if (pacentry != 0)
             AcentryToJSON(*pacentry, strAccount, ret);
@@ -1146,6 +1205,12 @@ Value listaccounts(CWallet* pWallet, const Array& params, bool fHelp)
     if (params.size() > 0)
         nMinDepth = params[0].get_int();
 
+    isminefilter includeWatchonly = MINE_SPENDABLE;
+    if(params.size() > 1)
+        if(params[1].get_bool())
+            includeWatchonly = includeWatchonly | MINE_WATCH_ONLY;
+
+
     map<string, int64> mapAccountBalances;
     BOOST_FOREACH(const PAIRTYPE(CTxDestination, string)& entry, pWallet->mapAddressBook) {
         if (IsMine(*pWallet, entry.first)) // This address belongs to me
@@ -1159,7 +1224,7 @@ Value listaccounts(CWallet* pWallet, const Array& params, bool fHelp)
         string strSentAccount;
         list<pair<CTxDestination, int64> > listReceived;
         list<pair<CTxDestination, int64> > listSent;
-        wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent, nFee, strSentAccount);
+        wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent, nFee, strSentAccount, includeWatchonly);
         mapAccountBalances[strSentAccount] -= nFee;
         BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64)& s, listSent)
             mapAccountBalances[strSentAccount] -= s.second;
@@ -1195,6 +1260,7 @@ Value listsinceblock(CWallet* pWallet, const Array& params, bool fHelp)
 
     CBlockIndex *pindex = NULL;
     int target_confirms = 1;
+    isminefilter filter = MINE_SPENDABLE;
 
     if (params.size() > 0)
     {
@@ -1212,6 +1278,10 @@ Value listsinceblock(CWallet* pWallet, const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
     }
 
+    if(params.size() > 2)
+        if(params[2].get_bool())
+            filter = filter | MINE_WATCH_ONLY;
+
     int depth = pindex ? (1 + nBestHeight - pindex->nHeight) : -1;
 
     Array transactions;
@@ -1221,7 +1291,7 @@ Value listsinceblock(CWallet* pWallet, const Array& params, bool fHelp)
         CWalletTx tx = (*it).second;
 
         if (depth == -1 || tx.GetDepthInMainChain() < depth)
-            ListTransactions(pWallet, tx, "*", 0, true, transactions);
+            ListTransactions(pWallet, tx, "*", 0, true, transactions, filter);
     }
 
     uint256 lastblock;
@@ -1259,6 +1329,11 @@ Value gettransaction(CWallet* pWallet, const Array& params, bool fHelp)
     uint256 hash;
     hash.SetHex(params[0].get_str());
 
+    isminefilter filter = MINE_SPENDABLE;
+    if(params.size() > 1)
+        if(params[1].get_bool())
+            filter = filter | MINE_WATCH_ONLY;
+
     Object entry;
 
     if (pWallet->mapWallet.count(hash))
@@ -1267,19 +1342,19 @@ Value gettransaction(CWallet* pWallet, const Array& params, bool fHelp)
 
         TxToJSON(wtx, 0, entry);
 
-        int64 nCredit = wtx.GetCredit();
-        int64 nDebit = wtx.GetDebit();
+        int64 nCredit = wtx.GetCredit(filter);
+        int64 nDebit = wtx.GetDebit(filter);
         int64 nNet = nCredit - nDebit;
-        int64 nFee = (wtx.IsFromMe() ? wtx.GetValueOut() - nDebit : 0);
+        int64 nFee = (wtx.IsFromMe(filter) ? wtx.GetValueOut() - nDebit : 0);
 
         entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
-        if (wtx.IsFromMe())
+        if (wtx.IsFromMe(filter))
             entry.push_back(Pair("fee", ValueFromAmount(nFee)));
 
         WalletTxToJSON(wtx, entry);
 
         Array details;
-        ListTransactions(pWallet, wtx,  "*", 0, false, details);
+        ListTransactions(pWallet, wtx,  "*", 0, false, details, filter);
         entry.push_back(Pair("details", details));
     }
     else
@@ -1490,7 +1565,7 @@ class DescribeAddressVisitor : public boost::static_visitor<Object>
 {
 	private:
     CWallet* pWallet;
-    
+    isminetype mine;
     public:
     DescribeAddressVisitor(CWallet* _pWallet) : pWallet(_pWallet) { }
 

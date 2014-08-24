@@ -97,7 +97,7 @@ public:
         setvch(vch);
     }
 
-/** Generates a cryptographically secure random number between zero and range exclusive
+    /** Generates a cryptographically secure random number between zero and range exclusive
     * i.e. 0 < returned number < range
     * @param range The upper bound on the number.
     * @return
@@ -129,6 +129,8 @@ public:
     int bitSize() const{
         return  BN_num_bits(this);
     }
+
+
     void setulong(unsigned long n)
     {
         if (!BN_set_word(this, n))
@@ -415,7 +417,7 @@ public:
         setvch(vch);
     }
 
-/**
+    /**
     * exponentiation with an int. this^e
     * @param e the exponent as an int
     * @return
@@ -530,6 +532,7 @@ public:
     bool isOne() const {
         return BN_is_one(this);
     }
+
 
     bool operator!() const
     {

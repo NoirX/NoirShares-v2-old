@@ -25,6 +25,7 @@
 #include <signal.h>
 #endif
 
+
 using namespace std;
 using namespace boost;
 
@@ -33,7 +34,8 @@ CWalletManager* pWalletManager;
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 std::string strWalletFileName;
-
+bool fUseMemoryLog;
+bool fConfChange;
 unsigned int nNodeLifespan;
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -91,7 +93,6 @@ void Shutdown(void* parg)
         delete pWalletManager;
         TimerThread::StopTimer(); // for walletpassphrase unlock
         NewThread(ExitTimeout, NULL);
-        
         Sleep(50);
         printf("NoirShares exited\n\n");
         fExit = true;
@@ -269,6 +270,9 @@ std::string HelpMessage()
 #endif
 #endif
         "  -detachdb              " + _("Detach block and address databases. Increases shutdown time (default: 0)") + "\n" +
+#ifdef DB_LOG_IN_MEMORY
+        "  -memorylog              " + _("Use in-memory logging for block index database (default: 1)") + "\n" +
+#endif
         "  -paytxfee=<amt>        " + _("Fee per KB to add to transactions you send") + "\n" +
         "  -mininput=<amt>        " + _("When creating transactions, ignore inputs with value less than this (default: 0.01)") + "\n" +
 #ifdef QT_GUI
@@ -445,7 +449,8 @@ bool AppInit2()
     // ********************************************************* Step 2: parameter interactions
 
 	nNodeLifespan = GetArg("-addrlifespan", 7);
-
+	fUseMemoryLog = GetBoolArg("-memorylog", true);
+	
 	fTestNet = GetBoolArg("-testnet");
     if (fTestNet) {
         SoftSetBoolArg("-irc", true);
@@ -543,20 +548,23 @@ bool AppInit2()
             InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
     }
 	
+	fConfChange = GetBoolArg("-confchange", false);
+	
 	 if (mapArgs.count("-mininput"))
     {
         if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
             return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
     }
-	
+
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     std::string strDataDir = GetDataDir().string();
-	std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
+    std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
 
     // strWalletFileName must be a plain filename without a directory
     if (strWalletFileName != boost::filesystem::basename(strWalletFileName) + boost::filesystem::extension(strWalletFileName))
         return InitError(strprintf(_("Wallet %s resides outside data directory %s."), strWalletFileName.c_str(), strDataDir.c_str()));
+
     // Make sure only a single Bitcoin process is using the data directory.
     boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
@@ -759,9 +767,6 @@ bool AppInit2()
     BOOST_FOREACH(string strDest, mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
-    // TODO: replace this by DNSseed
-    // AddOneShot(string(""));
-
     // ********************************************************* Step 7: load blockchain
 
     if (!bitdb.Open(GetDataDir()))
@@ -785,6 +790,7 @@ bool AppInit2()
     nStart = GetTimeMillis();
     if (!LoadBlockIndex())
         return InitError(_("Error loading blkindex.dat"));
+
 
     // as LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill bitcoin-qt during the last operation. If so, exit.
@@ -825,7 +831,7 @@ bool AppInit2()
         return false;
     }
 
-	// ********************************************************* Testing Zerocoin
+    // ********************************************************* Testing Zerocoin
 
 
     if (GetBoolArg("-zerotest", false))
@@ -913,8 +919,6 @@ bool AppInit2()
     if (fServer)
         NewThread(ThreadRPCServer, NULL);
 
-    
-    
     // ********************************************************* Step 12: finished
 
     uiInterface.InitMessage(_("Done loading"));

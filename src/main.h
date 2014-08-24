@@ -43,6 +43,8 @@ static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+// Maximum number of script-checking threads allowed
+static const int MAX_SCRIPTCHECK_THREADS = 16;
 
 #ifdef USE_UPNP
 static const int fHaveUPnP = true;
@@ -59,8 +61,6 @@ static const int64 nMaxClockDrift = 2 * 60 * 60;        // two hours
 
 extern libzerocoin::Params* ZCParams;
 extern CScript COINBASE_FLAGS;
-
-
 extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
@@ -90,13 +90,15 @@ extern std::map<uint256, CBlock*> mapOrphanBlocks;
 // Settings
 extern int64 nTransactionFee;
 extern int64 nMinimumInputValue;
+extern int nScriptCheckThreads;
+
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64 nMinDiskSpace = 52428800;
-
 
 class CReserveKey;
 class CTxDB;
 class CTxIndex;
+class CScriptCheck;
 
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
@@ -133,12 +135,12 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 void BitcoinMiner(CWallet *pwallet, bool fProofOfStake);
 void ResendWalletTransactions();
 
+bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType);
 
-
-
-
-
-
+// Run an instance of the script checking thread
+void ThreadScriptCheck(void* parg);
+// Stop the script checking threads
+void ThreadScriptCheckQuit();
 
 
 
@@ -439,7 +441,6 @@ class CTransaction
 {
 public:
     static const int CURRENT_VERSION=1;
-
     int nVersion;
     unsigned int nTime;
     std::vector<CTxIn> vin;
@@ -597,10 +598,10 @@ public:
     {
         // Large (in bytes) low-priority (new, small-coin) transactions
         // need a fee.
-        return dPriority > COIN * 5760 / 250;
+        return dPriority > COIN * 144 / 250;
     }
 
-    int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK, unsigned int nBytes=0) const;
+    int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=false, enum GetMinFee_mode mode=GMF_BLOCK, unsigned int nBytes = 0) const;
 
     bool ReadFromDisk(CDiskTxPos pos, FILE** pfileRet=NULL)
     {
@@ -660,9 +661,7 @@ public:
             nVersion,
             vin.size(),
             vout.size(),
-            nLockTime
-            );
-
+            nLockTime);
         for (unsigned int i = 0; i < vin.size(); i++)
             str += "    " + vin[i].ToString() + "\n";
         for (unsigned int i = 0; i < vout.size(); i++)
@@ -703,12 +702,14 @@ public:
         @param[in] pindexBlock
         @param[in] fBlock	true if called from ConnectBlock
         @param[in] fMiner	true if called from CreateNewBlock
-        @param[in] fStrictPayToScriptHash	true if fully validating p2sh transactions
+        @param[in] fScriptChecks	enable scripts validation?
+        @param[in] flags	STRICT_FLAGS script validation flags
+        @param[in] pvChecks	NULL If pvChecks is not NULL, script checks are pushed onto it instead of being performed inline.
         @return Returns true if all checks succeed
      */
-    bool ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
-                       std::map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
-                       const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash=true);
+    bool ConnectInputs(CTxDB& txdb, MapPrevTx inputs, std::map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx, const CBlockIndex* pindexBlock, 
+                     bool fBlock, bool fMiner, bool fScriptChecks=true, 
+                     unsigned int flags=STRICT_FLAGS, std::vector<CScriptCheck> *pvChecks = NULL);
     bool ClientConnectInputs();
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
@@ -718,6 +719,33 @@ protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
 };
 
+/** Closure representing one script verification
+ *  Note that this stores references to the spending transaction */
+class CScriptCheck
+{
+private:
+    CScript scriptPubKey;
+    const CTransaction *ptxTo;
+    unsigned int nIn;
+    unsigned int nFlags;
+    int nHashType;
+
+public:
+    CScriptCheck() {}
+    CScriptCheck(const CTransaction& txFromIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, int nHashTypeIn) :
+        scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
+        ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), nHashType(nHashTypeIn) { }
+
+    bool operator()() const;
+
+    void swap(CScriptCheck &check) {
+        scriptPubKey.swap(check.scriptPubKey);
+        std::swap(ptxTo, check.ptxTo);
+        std::swap(nIn, check.nIn);
+        std::swap(nFlags, check.nFlags);
+        std::swap(nHashType, check.nHashType);
+    }
+};
 
 
 
@@ -929,8 +957,6 @@ public:
         return Hash(BEGIN(nVersion), END(nNonce));
     }
 
-    
-
     int64 GetBlockTime() const
     {
         return (int64)nTime;
@@ -1109,7 +1135,7 @@ public:
     bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
     bool SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew);
     bool AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos);
-    bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true) const;
+    bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true, bool fCheckSig=true) const;
     bool AcceptBlock();
     bool GetCoinAge(uint64& nCoinAge) const; // ppcoin: calculate total coin age spent in block
     bool SignBlock(const CKeyStore& keystore);

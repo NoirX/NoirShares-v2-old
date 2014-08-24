@@ -39,7 +39,7 @@ public slots:
     void accept();
     SendCoinsEntry *addEntry();
     void updateRemoveEnabled();
-    void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+	void setBalance(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
 
 private:
     Ui::SendCoinsDialog *ui;
@@ -50,7 +50,6 @@ private slots:
     void on_sendButton_clicked();
     void removeEntry(SendCoinsEntry* entry);
     void updateDisplayUnit();
-
     void coinControlFeatureChanged(bool);
     void coinControlButtonClicked();
     void coinControlChangeChecked(int);
@@ -63,7 +62,7 @@ private slots:
     void coinControlClipboardBytes();
     void coinControlClipboardPriority();
     void coinControlClipboardLowOutput();
-    void coinControlClipboardChange(); 
+    void coinControlClipboardChange();
 };
 
 #endif // SENDCOINSDIALOG_H
