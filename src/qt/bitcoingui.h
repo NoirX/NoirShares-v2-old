@@ -17,11 +17,6 @@ class InvoicePage;
 class ReceiptPage;
 class SendCoinsDialog;
 class SendMessagesDialog;
-class LottoPage;
-class ViewalllistingsPage;
-class CreatenewlistingPage;
-class ViewmylistingPage;
-class DonatePage;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
@@ -90,14 +85,9 @@ private:
     InvoicePage *invoicePage;
     ReceiptPage *receiptPage;
     SendCoinsDialog *sendCoinsPage;
-    SendCoinsDialog *sendCoinsAnonPage;
     SendMessagesDialog *sendMessagesPage;
     SendMessagesDialog *sendMessagesAnonPage;
-    ViewalllistingsPage *viewalllistingsPage;
-    CreatenewlistingPage *createnewlistingPage;
-    ViewmylistingPage *viewmylistingPage;
-    DonatePage *donatePage;
-    LottoPage  *lottoPage;
+    SendCoinsDialog *sendCoinsAnonPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
@@ -119,11 +109,7 @@ private:
     QAction *messageAction;
     QAction *invoiceAction;
     QAction *receiptAction;
-    QAction *lottoAction;
-    QAction *createnewlistingAction;
-    QAction *viewmylistingAction;
-    QAction *viewalllistingsAction;
-    QAction *donateAction;
+    QAction *appAnonAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -200,19 +186,9 @@ private slots:
     /** Switch to view messages page */
     void gotoMessagesPage();
     /** Switch to invoices page */
-    void gotoInvoicesPage();    
+    void gotoInvoicesPage();
     /** Switch to receipt page */
-    void gotoReceiptPage();    
-    /** Switch to Lotto page */
-    void gotoLottoPage();    
-    /** Switch to Create New listing page */
-    void gotoCreatenewlistingPage();    
-    /** Switch to My listings page */
-    void gotoViewmylistingPage();    
-    /** Switch to All listings page */
-    void gotoViewalllistingsPage();    
-    /** Switch to Donate page */
-    void gotoDonatePage();
+    void gotoReceiptPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
