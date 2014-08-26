@@ -176,6 +176,14 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     sendMessagesPage     = new SendMessagesDialog(SendMessagesDialog::Encrypted, SendMessagesDialog::Page, this);
     sendMessagesAnonPage = new SendMessagesDialog(SendMessagesDialog::Anonymous, SendMessagesDialog::Page, this);
 
+/*
+	LottoPage     = new LottoDialog(LottoDialog::Play, LottoDialog::Page, this);
+    CreateListingPage = new CreateListingPage(CreateListingPage::New, CreateListingPage::Page, this);
+	ViewMyListingsPage     = new ViewMyListings();
+    AllListingsPage = new AllListings();
+	DonatePage     = new DonateDialog(DonateDialog::Encrypted, SendMessagesDialog::Page, this);
+
+*/
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
     centralWidget = new QStackedWidget(this);
@@ -191,6 +199,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(receiptPage);
     //centralWidget->addWidget(messageAnonPage);
     //centralWidget->addWidget(sendCoinsAnonPage);
+    //centralWidget->addWidget(LottoPage);
+    //centralWidget->addWidget(CreateListingPage);
+    //centralWidget->addWidget(ViewMyListingsPage);
+    //centralWidget->addWidget(AllListingsPage);
+    //centralWidget->addWidget(DonatePage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -343,15 +356,39 @@ void BitcoinGUI::createActions()
 
     sendCoinsAnonAction = new QAction(QIcon(":/icons/em"), tr("Send co&ins"), this);
     sendCoinsAnonAction->setToolTip(tr("Send Coins Anonymously"));
-    sendCoinsAnonAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
-    sendCoinsAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
+    sendCoinsAnonAction->setCheckable(false); // TODO: Set to true once Anonymous transactions have been implemented
+    sendCoinsAnonAction->setEnabled(false); // TODO: Remove once Anonymous transactions have been implemented
     tabGroup->addAction(sendCoinsAnonAction);
 
-    appAnonAction = new QAction(QIcon(":/icons/em"), tr("A&pplications"), this);
-    appAnonAction->setToolTip(tr("Anonymous Applications"));
-    appAnonAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
-    appAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
-    tabGroup->addAction(appAnonAction);
+    lottoAction = new QAction(QIcon(":/icons/em"), tr("A&pplications"), this);
+    lottoAction->setToolTip(tr("Play Lotto"));
+    lottoAction->setCheckable(false); // TODO: Set to true once Lotto has been implemented
+    lottoAction->setEnabled(false); // TODO: Remove once Lotto has been implemented
+    tabGroup->addAction(lottoAction);
+    
+    createnewlistingAction = new QAction(QIcon(":/icons/em"), tr("Send co&ins"), this);
+    createnewlistingAction->setToolTip(tr("Create a new Listing"));
+    createnewlistingAction->setCheckable(false); // TODO: Set to true once NoirStore has been implemented
+    createnewlistingAction->setEnabled(false); // TODO: Remove once NoirStore has been implemented
+    tabGroup->addAction(createnewlistingAction);
+
+    viewmylistingAction = new QAction(QIcon(":/icons/em"), tr("Send co&ins"), this);
+    viewmylistingAction->setToolTip(tr("View your Listing(s)"));
+    viewmylistingAction->setCheckable(false); // TODO: Set to true once NoirStore has been implemented
+    viewmylistingAction->setEnabled(false); // TODO: Remove once NoirStore has been implemented
+    tabGroup->addAction(viewmylistingAction);
+    
+    viewalllistingsAction = new QAction(QIcon(":/icons/em"), tr("Send co&ins"), this);
+    viewalllistingsAction->setToolTip(tr("View all Listings"));
+    viewalllistingsAction->setCheckable(false); // TODO: Set to true once NoirStore has been implemented
+    viewalllistingsAction->setEnabled(false); // TODO: Remove once NoirStore has been implemented
+    tabGroup->addAction(viewalllistingsAction);
+    
+    donateAction = new QAction(QIcon(":/icons/em"), tr("Send co&ins"), this);
+    donateAction->setToolTip(tr("Donate to the Developer fund"));
+    donateAction->setCheckable(false); // TODO: Set to true once NoirStore has been implemented
+    donateAction->setEnabled(false); // TODO: Remove once NoirStore has been implemented
+    tabGroup->addAction(donateAction);
 
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
@@ -375,8 +412,17 @@ void BitcoinGUI::createActions()
     connect(sendMessagesAnonAction, SIGNAL(triggered()), this, SLOT(gotoSendMessagesAnonPage()));
     connect(sendCoinsAnonAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAnonAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-    connect(appAnonAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(appAnonAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(lottoAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(lottoAction, SIGNAL(triggered()), this, SLOT(gotoLottoPage()));
+    connect(createnewlistingAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(createnewlistingAction, SIGNAL(triggered()), this, SLOT(gotoCreatenewlistingPage()));
+    connect(viewmylistingAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(viewmylistingAction, SIGNAL(triggered()), this, SLOT(gotoViewmylistingPage()));
+    connect(viewalllistingsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(viewalllistingsAction, SIGNAL(triggered()), this, SLOT(gotoViewalllistingsPage()));
+    connect(donateAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(donateAction, SIGNAL(triggered()), this, SLOT(gotoDonatePage()));
+    
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -504,11 +550,24 @@ void BitcoinGUI::createToolBars()
 
     toolbar->addAction(sendMessagesAnonAction);
     toolbar->addAction(sendCoinsAnonAction);
-    toolbar->addAction(appAnonAction);
+    toolbar->addAction(lottoAction);
+	
+	toolbar->addSeparator();
 
+    QLabel* store_lbl = new QLabel();
+    store_lbl->setText("NoirStore ");
+    store_lbl->setAlignment(Qt::AlignHCenter);
+    
+    toolbar->addWidget(store_lbl);
+    
+    toolbar->addAction(createnewlistingAction);
+    toolbar->addAction(viewmylistingAction);
+    toolbar->addAction(viewalllistingsAction);
+    	
     toolbar->addSeparator();
     toolbar->addAction(exportAction);
-
+	toolbar->addAction(donateAction);
+	
     foreach(QAction *action, toolbar->actions()) {
         toolbar->widgetForAction(action)->setFixedWidth(200);
     }
@@ -826,7 +885,7 @@ void BitcoinGUI::error(const QString &title, const QString &message, bool modal)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, const QString &detail)
 {
-    QString strTitle = tr("NovaCoin") + " - ";
+    QString strTitle = tr("NoirShares") + " - ";
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
@@ -910,12 +969,11 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
 void BitcoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
 {
     QString strMessage =
-        tr("This transaction is over the size limit.  You can still send it for a fee of %1, "
-          "which goes to the nodes that process your transaction and helps to support the network.  "
-          "Do you want to pay the fee?").arg(
+        tr("This transaction is huge!!!, lol,  You can still send it for a fee of %1, "
+                    "Do you want to pay the fee?").arg(
                 BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nFeeRequired));
     QMessageBox::StandardButton retval = QMessageBox::question(
-          this, tr("Confirm transaction fee"), strMessage,
+          this, tr("Confirm transaction fee for your HUGE tx, have a nice day"), strMessage,
           QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
     *payFee = (retval == QMessageBox::Yes);
 }
@@ -1092,6 +1150,51 @@ void BitcoinGUI::gotoVerifyMessageTab(QString addr)
 
     if(!addr.isEmpty())
         signVerifyMessageDialog->setAddress_VM(addr);
+}
+
+void BitcoinGUI::gotoLottoPage()
+{
+    lottoAction->setChecked(true);
+    centralWidget->setCurrentWidget(lottoPage);
+
+    exportAction->setEnabled(true);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoCreatenewlistingPage()
+{
+    createnewlistingAction->setChecked(true);
+    centralWidget->setCurrentWidget(createnewlistingPage);
+
+    exportAction->setEnabled(true);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoViewmylistingPage()
+{
+    viewmylistingAction->setChecked(true);
+    centralWidget->setCurrentWidget(viewmylistingPage);
+
+    exportAction->setEnabled(true);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoViewalllistingsPage()
+{
+    viewalllistingsAction->setChecked(true);
+    centralWidget->setCurrentWidget(viewalllistingsPage);
+
+    exportAction->setEnabled(true);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoDonatePage()
+{
+    donateAction->setChecked(true);
+    centralWidget->setCurrentWidget(donatePage);
+
+    exportAction->setEnabled(true);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
 void BitcoinGUI::dragEnterEvent(QDragEnterEvent *event)
