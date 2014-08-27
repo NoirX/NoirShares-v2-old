@@ -323,36 +323,42 @@ void BitcoinGUI::createActions()
     messageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(messageAction);
 
-    invoiceAction = new QAction(QIcon(":/icons/em"), tr("&Invoices"), this);
+    invoiceAction = new QAction(QIcon(":/icons/assets"), tr("&Invoices"), this);
     invoiceAction->setToolTip(tr("Encrypted Invoicing"));
     invoiceAction->setCheckable(true);
     invoiceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
     tabGroup->addAction(invoiceAction);
 
-    receiptAction = new QAction(QIcon(":/icons/em"), tr("Re&ceipts"), this);
+    receiptAction = new QAction(QIcon(":/icons/assets"), tr("Re&ceipts"), this);
     receiptAction->setToolTip(tr("Encrypted Receipting"));
     receiptAction->setCheckable(true);
     receiptAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
     tabGroup->addAction(receiptAction);
 
-    sendMessagesAnonAction = new QAction(QIcon(":/icons/em"), tr("S&end Messages"), this);
+    sendMessagesAnonAction = new QAction(QIcon(":/icons/em"), tr("NoirTal&k "), this);
     sendMessagesAnonAction->setToolTip(tr("Send Anonymous Message"));
     sendMessagesAnonAction->setCheckable(true);
     sendMessagesAnonAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_9));
     tabGroup->addAction(sendMessagesAnonAction);
 
-    sendCoinsAnonAction = new QAction(QIcon(":/icons/em"), tr("Send co&ins"), this);
-    sendCoinsAnonAction->setToolTip(tr("Send Coins Anonymously"));
+    sendCoinsAnonAction = new QAction(QIcon(":/icons/em"), tr("Zero Se&nd (coming soon)"), this);
+    sendCoinsAnonAction->setToolTip(tr("Send Coins Anonymously (being researched for stable viable implementation)"));
     sendCoinsAnonAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
     sendCoinsAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
     tabGroup->addAction(sendCoinsAnonAction);
 
-    appAnonAction = new QAction(QIcon(":/icons/em"), tr("A&pplications"), this);
-    appAnonAction->setToolTip(tr("Anonymous Applications"));
-    appAnonAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
-    appAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
-    tabGroup->addAction(appAnonAction);
-
+    lottoAction = new QAction(QIcon(":/icons/lotto"), tr("L&otto (coming soon)"), this);
+    lottoAction->setToolTip(tr("Play Lottey (still under development, likely to be part of phase two deployment)"));
+    lottoAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
+    lottoAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
+    tabGroup->addAction(lottoAction);
+    
+    donateAction = new QAction(QIcon(":/icons/donate"), tr("D&onate"), this);
+    donateAction->setToolTip(tr("Donate to the dev, incentivise development."));
+    donateAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
+    donateAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
+    tabGroup->addAction(donateAction);
+    
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -375,8 +381,10 @@ void BitcoinGUI::createActions()
     connect(sendMessagesAnonAction, SIGNAL(triggered()), this, SLOT(gotoSendMessagesAnonPage()));
     connect(sendCoinsAnonAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAnonAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-    connect(appAnonAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(appAnonAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(lottoAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(lottoAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(donateAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(donateAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -486,7 +494,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addSeparator();
 
     QLabel* enc_lbl = new QLabel();
-    enc_lbl->setText("Noircryption ");
+    enc_lbl->setText("NoirEncryption");
     enc_lbl->setAlignment(Qt::AlignHCenter);
 
     toolbar->addWidget(enc_lbl);
@@ -497,17 +505,18 @@ void BitcoinGUI::createToolBars()
     toolbar->addSeparator();
 
     QLabel* anon_lbl = new QLabel();
-    anon_lbl->setText("NoirSpace ");
+    anon_lbl->setText("NoirSpace");
     anon_lbl->setAlignment(Qt::AlignHCenter);
 
     toolbar->addWidget(anon_lbl);
 
     toolbar->addAction(sendMessagesAnonAction);
     toolbar->addAction(sendCoinsAnonAction);
-    toolbar->addAction(appAnonAction);
+    toolbar->addAction(lottoAction);
 
     toolbar->addSeparator();
     toolbar->addAction(exportAction);
+    toolbar->addAction(donateAction);
 
     foreach(QAction *action, toolbar->actions()) {
         toolbar->widgetForAction(action)->setFixedWidth(200);

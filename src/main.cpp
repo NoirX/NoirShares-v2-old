@@ -63,7 +63,7 @@ unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
 unsigned int nStakeTargetSpacing = 60 * 4;          // 4 min block spacing
 
 
-int nCoinbaseMaturity = 500;
+int nCoinbaseMaturity = 150;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 CBigNum bnBestChainTrust = 0;
@@ -3291,7 +3291,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-       /* if (pfrom->nVersion < 60010) // use when we need to disconnet older troublesome clients
+       /* if (pfrom->nVersion < 60010)
         {
             printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             pfrom->fDisconnect = true;

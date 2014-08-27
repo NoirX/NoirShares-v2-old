@@ -109,7 +109,8 @@ private:
     QAction *messageAction;
     QAction *invoiceAction;
     QAction *receiptAction;
-    QAction *appAnonAction;
+    QAction *lottoAction;
+    QAction *donateAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
