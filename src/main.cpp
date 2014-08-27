@@ -58,7 +58,7 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 2);
 
-unsigned int nStakeMinAge = 60 * 60 * 8;   // minimum age for coin age: 8h
+unsigned int nStakeMinAge = 60 * 60 * 24 * 7;   // minimum age for coin age: 8h
 unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
 unsigned int nStakeTargetSpacing = 60 * 4;          // 4 min block spacing
 
@@ -1024,15 +1024,13 @@ int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees)
 {
 	int64 nSubsidy = 10 * COIN;
 	
-	// Subsidy is reduced by 5% every 2000 blocks, 
+	// Subsidy is reduced by 5% every 3000 blocks, 
     int exponent=(nHeight / 3000);
     for(int i=0;i<exponent;i++){
         nSubsidy=nSubsidy*19;
 	nSubsidy=nSubsidy/20;
     }
-    
-    if (nHeight== 30) {nSubsidy= 1000000 *COIN;}
-    
+       
     return nSubsidy +( nFees * 0);
 }
 
