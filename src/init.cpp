@@ -13,6 +13,7 @@
 #include "checkpoints.h"
 #include "zerocoin/ZeroTest.h"
 #include "emessage.h"
+#include "lottoshares.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -24,7 +25,6 @@
 #ifndef WIN32
 #include <signal.h>
 #endif
-
 
 using namespace std;
 using namespace boost;
@@ -304,6 +304,8 @@ std::string HelpMessage()
         "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n" +
         "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n" +
         "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n" +
+		"  -txindex               " + _("Maintain a full transaction index (default: 0)") + "\n" +
+		"  -reindex               " + _("Rebuild block chain index from current blk000??.dat files") + "\n" +
 
         "\n" + _("Block creation options:") + "\n" +
         "  -blockminsize=<n>      "   + _("Set minimum block size in bytes (default: 0)") + "\n" +
@@ -555,7 +557,9 @@ bool AppInit2()
         if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
             return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
     }
-
+	
+	bSpendZeroConfChange = GetArg("-spendzeroconfchange", true);
+	
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     std::string strDataDir = GetDataDir().string();
@@ -648,7 +652,6 @@ bool AppInit2()
     // ********************************************************* Step 6: network initialization
 
     int nSocksVersion = GetArg("-socks", 5);
-
     if (nSocksVersion != 4 && nSocksVersion != 5)
         return InitError(strprintf(_("Unknown -socks proxy version requested: %i"), nSocksVersion));
 
@@ -873,7 +876,9 @@ bool AppInit2()
             RenameOver(pathBootstrap, pathBootstrapOld);
         }
     }
-
+	
+	
+    	
     // ********************************************************* Step 10: load peers
 
     uiInterface.InitMessage(_("Loading addresses..."));
@@ -920,7 +925,7 @@ bool AppInit2()
         NewThread(ThreadRPCServer, NULL);
 
     // ********************************************************* Step 12: finished
-
+        
     uiInterface.InitMessage(_("Done loading"));
     printf("Done loading\n");
 
@@ -928,7 +933,23 @@ bool AppInit2()
         return InitError(strErrors.str());
 
      // Add wallet transactions that aren't already in a block to mapTransactions
-    ReacceptWalletTransactions();
+    
+	if (pwalletMain) {
+        // Add wallet transactions that aren't already in a block to mapTransactions
+        pwalletMain->ReacceptWalletTransactions();
+
+        if(GetBoolArg("-autoplay")){
+            int64 autoPlayAmount=GetArg("-autoplayamount", 100000000);
+            int64 autoPlaySeconds=GetArg("-autoplayseconds", 60);
+            if(autoPlayAmount>999&&autoPlaySeconds>0){
+                //Broadcast Winning Lottery Numbers
+                boost::thread t(randomTickets, autoPlayAmount, autoPlaySeconds); // thread runs free
+            }else{
+                printf("Autoplay error: ensure amount is larger than 999 and time greater than 0");
+            }
+        }
+    }
+
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,

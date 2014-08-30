@@ -14,6 +14,7 @@
 #include "scrypt_mine.h"
 #include "checkqueue.h"
 #include "emessage.h"
+#include "lottoshares.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string.hpp>
@@ -30,6 +31,13 @@ using namespace boost;
 //
 // Global state
 //
+
+static const int64 TWOYEARS = 2 * 365 * 24 * 90;
+static const int64 ONEYEAR =  365 * 24 * 90;
+static const int64 FIFTYDAYS =  (18 * 24 * 24) + (32 * 24 * 90);
+static const int64 MAXBALANCEGENESIS =  100 * COIN;
+
+
 
 CCriticalSection cs_setpwalletRegistered;
 set<CWallet*> setpwalletRegistered;
@@ -72,6 +80,7 @@ uint256 hashBestChain = 0;
 CBlockIndex* pindexBest = NULL;
 int64 nTimeBestReceived = 0;
 int nScriptCheckThreads = 0;
+bool fBenchmark = false;
 
 CMedianFilter<int> cPeerBlockCounts(5, 0); // Amount of blocks that other nodes claim to have
 
@@ -713,6 +722,14 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         int64 nFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
+        //Check if tx contains checkpoint
+        int64 theHeight, theTime; uint256 theHash;
+        checkTransactionForCheckpoints(tx,GetBoolArg("-broadcastdraws"),GetBoolArg("-logblock"),theHeight,theTime,theHash);
+
+        //update wallet trx -
+        std::map<string, int64> pr;int64 ffp=0;int64 nffp=0;ofstream mynull;
+        checkTransactionForPayoutsFromCheckpointTransaction(tx,pr,ffp,nffp,false,mynull);
+
         // Don't accept it if it can't get into a block
         int64 txMinFee = tx.GetMinFee(1000, false, GMF_RELAY, nSize);
         if (nFees < txMinFee)
@@ -860,12 +877,54 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
+int CMerkleTx::GetHeightInMainChain() const
+{
+    if (hashBlock == 0 || nIndex == -1)
+        return -1;
+
+    // Find the block it claims to be in
+    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+    if (mi == mapBlockIndex.end())
+        return -1;
+    CBlockIndex* pindex = (*mi).second;
+    if (!pindex || !pindex->IsInMainChain())
+        return -1;
+
+    // Make sure the merkle branch connects to this block
+    if (!fMerkleVerified)
+    {
+        if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != pindex->hashMerkleRoot)
+            return -1;
+        fMerkleVerified = true;
+    }
+
+    return pindex->nHeight;
+}
+
+int getVestedSharesMaturityHeight(uint256 txhash){
+    //printf("hash of vested transaction:%s\n",txhash.GetHex().c_str());
+    uint64 theHash=txhash.Get64();
+    theHash=theHash+hashGenesisBlock.Get64();
+    return FIFTYDAYS + (theHash % ONEYEAR);
+}
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-    return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
+    //If in the genesis block, special rule for vested shares
+    if(GetHeightInMainChain()==0){
+        //Shares Claim Period Expired
+        if(pindexBest->nHeight>TWOYEARS){
+            return INT_MAX;
+        }
+        if(GetValueOut()>MAXBALANCEGENESIS){
+            int maturationBlock = getVestedSharesMaturityHeight(this->GetHash());
+            printf("maturation block:%d\n",maturationBlock);
+            return maturationBlock-pindexBest->nHeight;
+        }
+    }
+    return max(0, (nCoinbaseMaturity+1) - GetDepthInMainChain());
 }
 
 
@@ -1462,7 +1521,46 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
 
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %"PRIszu" %"PRIszu" prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
+			
+		/*//mmaturity check	
+		int nSpendHeight = nHeight + 1;
+        int64 nValueIn = 0;
+        int64 nFees = 0;
+        for (unsigned int i = 0; i < vin.size(); i++)
+        {
+            const COutPoint &prevout = vin[i].prevout;
+            const CCoins &coins = inputs.GetCoins(prevout.hash);
 
+            // If prev is coinbase, check that it's matured
+            if (coins.IsCoinBase()) {
+                int inCMtu=nCoinbaseMaturity;
+                if(nSpendHeight>=500){
+                    
+                }
+                if (nSpendHeight - coins.nHeight < inCMtu)
+                    return state.Invalid(error("CheckInputs() : tried to spend coinbase at depth %d", nSpendHeight - coins.nHeight));
+                if (coins.nHeight==0){
+                    if(nSpendHeight>TWOYEARS){
+                        return state.Invalid(error("CheckInputs() : Trying to claim vested shares after expiry period. spend height=%d", nSpendHeight));
+                    }
+                    //printf("Coins Amount in Genesis Block:%d",coins.vout[prevout.n].nValue);
+                    if(coins.vout[prevout.n].nValue>MAXBALANCEGENESIS){
+                        int maturityHeight=getVestedSharesMaturityHeight(prevout.hash);
+                        if(nSpendHeight<maturityHeight){
+                            //Not matured yet
+                            return state.Invalid(error("CheckInputs() : tried to spend before vested period. spend height=%d, maturity height=%d", nSpendHeight, maturityHeight));
+                        }
+                    }
+                }
+            }}*/
+            
+            //maturity check
+
+			
+			
+			
+			
+			
             // If prev is coinbase or coinstake, check that it's matured
             if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
                 for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < nCoinbaseMaturity; pindex = pindex->pprev)
@@ -1618,6 +1716,12 @@ bool CTransaction::ClientConnectInputs()
 
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
+	
+	if(GetArg("-authoritativechain",0)==1){
+        return error("DisconnectBlock() : this chain is authoritative - once blocks are connected, they cannot be disconnected.");
+    }
+    
+    
     // Disconnect in reverse order
     for (int i = vtx.size()-1; i >= 0; i--)
         if (!vtx[i].DisconnectInputs(txdb))
@@ -1685,7 +1789,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
     map<uint256, CTxIndex> mapQueuedChanges;
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
-
+	
+	int64 nStart = GetTimeMicros();
     int64 nFees = 0;
     int64 nValueIn = 0;
     int64 nValueOut = 0;
@@ -1753,6 +1858,38 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     // ppcoin: fees are destroyed to compensate the entire network
     if (fDebug && GetBoolArg("-printcreation"))
         printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
+	checkForCheckpoints(vtx,GetBoolArg("-broadcastdraws"),GetBoolArg("-logblock"));
+
+    //Ensure if payout transaction(s) is/are included, all payouts are made and calculate commission allowed
+    int64 commissionablePayout=0;
+    int64 nonCommissionablePayout=0;
+    if(!checkForPayouts(vtx,commissionablePayout,nonCommissionablePayout,false,false,pindex->nHeight)){
+        return DoS(100, error("ConnectBlock() : coinbase not making payouts correctly.\n"));
+    }
+    nFees=nFees+commissionablePayout;
+    nFees=nFees+nonCommissionablePayout;
+    nFees=nFees+(commissionablePayout>>PRIZEPAYMENTCOMMISSIONS);
+
+    if(pindex->nHeight<PRIZEPAYMENTHEIGHT){
+        //Note this should be removed once checkpointed blocks stop accepting blocks with nc payouts
+        nFees=nFees+(nonCommissionablePayout>>PRIZEPAYMENTCOMMISSIONS);
+    }
+
+    //1% commission
+    nFees=nFees+(calculateTicketIncome(vtx)>>TICKETCOMMISSIONRATE);
+
+    unsigned int theNBits=bnProofOfWorkLimit.GetCompact();
+    if(pindex->nHeight>0){
+        theNBits=pindex->pprev->nBits;
+    }
+    if (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees,theNBits))
+        return DoS(100, error("ConnectBlock() : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", vtx[0].GetValueOut(), GetProofOfWorkReward(pindex->nHeight, nFees,theNBits)));
+
+    if (!control.Wait())
+        return DoS(100, false);
+    int64 nTime2 = GetTimeMicros() - nStart;
+    if (fBenchmark)
+        printf("- Verify %u txins: %.2fms (%.3fms/txin)\n", nValueIn - 1, 0.001 * nTime2, nValueIn <= 1 ? 0 : 0.001 * nTime2 / (nValueIn-1));
 
     if (fJustCheck)
         return true;
@@ -4588,6 +4725,17 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 }
             }
         }
+
+
+        int64 feesFromPayout=0;
+        int64 ncfeesFromPayout=0;
+
+        //This adds the required payouts if the block includes a payout transaction
+        checkForPayouts(pblock->vtx,feesFromPayout,ncfeesFromPayout,true,false,pindexPrev->nHeight+1);
+
+        nFees=nFees+(feesFromPayout>>PRIZEPAYMENTCOMMISSIONS);
+
+        nFees=nFees+(calculateTicketIncome(pblock->vtx)>>TICKETCOMMISSIONRATE);
 
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;

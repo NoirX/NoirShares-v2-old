@@ -26,6 +26,9 @@
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
 
+// Settings
+extern bool bSpendZeroConfChange;
+
 class CWallet;
 extern bool fWalletUnlockMintOnly;
 extern bool fConfChange;
@@ -42,6 +45,7 @@ enum WalletFeature
 
     FEATURE_WALLETCRYPT = 40000, // wallet encryption
     FEATURE_COMPRPUBKEY = 60000, // compressed public keys
+
     FEATURE_LATEST = 60000
 };
 
@@ -208,6 +212,7 @@ public:
     void MarkDirty();
     bool AddToWallet(const CWalletTx& wtxIn);
     bool AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate = false, bool fFindBlock = false);
+	bool AddLotteryNumbersIfTransactionInvolvingMe(const uint256 &hash, const CTransaction& tx, std::string myNumbers);
     bool EraseFromWallet(uint256 hash);
     void WalletUpdateSpent(const CTransaction& prevout);
     int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
@@ -224,7 +229,7 @@ public:
     int64 GetNewMint() const;
     int64 GetWatchOnlyStake() const;
     int64 GetWatchOnlyNewMint() const;
-    bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl *coinControl=NULL);
+    bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl *coinControl=NULL, bool changeTransactionLast=false);
     bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl *coinControl=NULL);
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey);
     bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew);
@@ -361,7 +366,7 @@ public:
      * @note called with lock cs_wallet held.
      */
     boost::signals2::signal<void (CWallet *wallet, const uint256 &hashTx, ChangeType status)> NotifyTransactionChanged;
-    
+    boost::signals2::signal<void (CWallet *wallet, const uint256 &hashTx, std::string myNumbers)> NotifyLotteryNumbersReceived;
         
     // If the wallet is unlocked, schedule a job to lock it again after a number of seconds
     bool TimedLock(int64 seconds);

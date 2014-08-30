@@ -106,6 +106,14 @@ void WalletModel::checkBalanceChanged()
     }
 }
 
+void WalletModel::updateTransactionLottery(const QString &hash, const QString &numberString)
+{
+
+    if(transactionTableModel)
+        transactionTableModel->updateTransactionLotteryNumbers(hash, numberString);
+
+}
+
 void WalletModel::updateTransaction(const QString &hash, int status)
 {
     if(transactionTableModel)
@@ -134,7 +142,7 @@ bool WalletModel::validateAddress(const QString &address)
     return addressParsed.IsValid();
 }
 
-WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl)
+WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl, bool isTicket)
 {
     qint64 total = 0;
     QSet<QString> setAddress;
@@ -161,10 +169,10 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         total += rcp.amount;
     }
 
-    if(recipients.size() > setAddress.size())
+    /*if(recipients.size() > setAddress.size())
     {
         return DuplicateAddress;
-    }
+    }*/
 
     int64 nBalance = 0;
     std::vector<COutput> vCoins;
@@ -183,6 +191,12 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
     {
         return SendCoinsReturn(AmountWithFeeExceedsBalance, nTransactionFee);
     }
+	
+	if((isTicket) &&(total + nTransactionFee) == nBalance)
+    {
+        return SendCoinsReturn(SatoshiForChangeAddressRequired, 1);
+    }
+
 
     {
         LOCK2(cs_main, wallet->cs_wallet);
@@ -199,7 +213,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         CWalletTx wtx;
         CReserveKey keyChange(wallet);
         int64 nFeeRequired = 0;
-        bool fCreated = wallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, coinControl);
+        bool fCreated = wallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, coinControl, true);
 
         if(!fCreated)
         {
@@ -212,6 +226,9 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         if(!uiInterface.ThreadSafeAskFee(nFeeRequired, tr("Sending...").toStdString()))
         {
             return Aborted;
+        }
+		if(isTicket && wtx.vout.size()!=8){
+            return SendCoinsReturn(SatoshiForChangeAddressRequired, 1);
         }
         if(!wallet->CommitTransaction(wtx, keyChange))
         {
@@ -344,6 +361,13 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet, 
                               Q_ARG(int, status));
 }
 
+static void NotifyLotteryNumbersReceived(WalletModel *walletmodel, CWallet *wallet, const uint256 &hash, std::string myNumbers)
+{
+    OutputDebugStringF("NotifyLotteryNumbersReceived %s\n", hash.GetHex().c_str());
+    walletmodel->updateTransactionLottery(QString::fromStdString(hash.GetHex()),QString::fromStdString(myNumbers));
+}
+
+
 static void NotifyTransactionChanged(WalletModel *walletmodel, CWallet *wallet, const uint256 &hash, ChangeType status)
 {
     OutputDebugStringF("NotifyTransactionChanged %s status=%i\n", hash.GetHex().c_str(), status);
@@ -358,6 +382,7 @@ void WalletModel::subscribeToCoreSignals()
     wallet->NotifyStatusChanged.connect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5));
     wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
+    wallet->NotifyLotteryNumbersReceived.connect(boost::bind(NotifyLotteryNumbersReceived, this, _1, _2, _3));
 }
 
 void WalletModel::unsubscribeFromCoreSignals()
@@ -366,6 +391,7 @@ void WalletModel::unsubscribeFromCoreSignals()
     wallet->NotifyStatusChanged.disconnect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5));
     wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
+    wallet->NotifyLotteryNumbersReceived.disconnect(boost::bind(NotifyLotteryNumbersReceived, this, _1, _2, _3));
 }
 
 // WalletModel::UnlockContext implementation
@@ -426,6 +452,7 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 {
     std::vector<COutput> vCoins;
     wallet->AvailableCoins(vCoins);
+    
     std::vector<COutPoint> vLockedCoins;
 
     // add locked coins
@@ -435,11 +462,11 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
         COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, wallet->mapWallet[outpoint.hash].GetDepthInMainChain(), true);
         vCoins.push_back(out);
     }
-
+       
     BOOST_FOREACH(const COutput& out, vCoins)
     {
         COutput cout = out;
-
+        
         while (wallet->IsChange(cout.tx->vout[cout.i]) && cout.tx->vin.size() > 0 && wallet->IsMine(cout.tx->vin[0]))
         {
             if (!wallet->mapWallet.count(cout.tx->vin[0].prevout.hash)) break;

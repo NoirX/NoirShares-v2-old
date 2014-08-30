@@ -17,6 +17,9 @@
 using namespace std;
 extern int nStakeMaxAge;
 
+// Settings
+bool bSpendZeroConfChange = true;
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // mapWallet
@@ -534,6 +537,21 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn)
 
     }
     return true;
+}
+
+
+bool CWallet::AddLotteryNumbersIfTransactionInvolvingMe(const uint256 &hash, const CTransaction& tx, std::string myNumbers)
+{
+    {
+        LOCK(cs_wallet);
+        bool fExisted = mapWallet.count(hash);
+        if (fExisted){
+            CWalletTx wtx(this,tx);
+            NotifyLotteryNumbersReceived(this, hash, myNumbers);
+            return true;
+        }
+    }
+    return false;
 }
 
 // Add a transaction to the wallet, or update it.
@@ -1383,7 +1401,7 @@ bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<
 
     return (SelectCoinsMinConf(nTargetValue, nSpendTime, 1, 6, vCoins, setCoinsRet, nValueRet) ||
             SelectCoinsMinConf(nTargetValue, nSpendTime, 1, 1, vCoins, setCoinsRet, nValueRet) ||
-            SelectCoinsMinConf(nTargetValue, nSpendTime, 0, 1, vCoins, setCoinsRet, nValueRet));
+            (bSpendZeroConfChange && SelectCoinsMinConf(nTargetValue, nSpendTime, 0, 1, vCoins, setCoinsRet, nValueRet)));
 }
 
 // Select some coins without random shuffle or best subset approximation
@@ -1436,7 +1454,7 @@ bool CWallet::SelectCoinsSimple(int64 nTargetValue, unsigned int nSpendTime, int
     return true;
 }
 
-bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl* coinControl)
+bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl* coinControl, bool changeTransactionLast)
 {
     int64 nValue = 0;
     BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
@@ -1497,18 +1515,19 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     nFeeRet += nChange;
                     nChange = 0;
                 }
-
+			
+				
                 if (nChange > 0)
                 {
                     // Fill a vout to ourself
                     // TODO: pass in scriptChange instead of reservekey so
                     // change transaction isn't always pay-to-bitcoin-address
                     CScript scriptChange;
-
+                    
                     // coin control: send change to custom address
                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
                         scriptChange.SetDestination(coinControl->destChange);
-
+                        
                     // no coin control: send change to newly generated address
                     else
                     {
@@ -1523,6 +1542,12 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                         CPubKey vchPubKey = reservekey.GetReservedKey();
 
                         scriptChange.SetDestination(vchPubKey.GetID());
+                    }
+                    if(changeTransactionLast){
+                        // Insert change at end:
+                        vector<CTxOut>::iterator position = wtxNew.vout.begin()+wtxNew.vout.size();
+                        wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
+
                     }
 
                     // Insert change txn at random position:

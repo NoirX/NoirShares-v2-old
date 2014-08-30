@@ -16,6 +16,7 @@ class MessagePage;
 class InvoicePage;
 class ReceiptPage;
 class SendCoinsDialog;
+class VoteCoinsDialog;
 class SendMessagesDialog;
 class SignVerifyMessageDialog;
 class Notificator;
@@ -88,6 +89,7 @@ private:
     SendMessagesDialog *sendMessagesPage;
     SendMessagesDialog *sendMessagesAnonPage;
     SendCoinsDialog *sendCoinsAnonPage;
+	VoteCoinsPage *voteCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
@@ -109,7 +111,7 @@ private:
     QAction *messageAction;
     QAction *invoiceAction;
     QAction *receiptAction;
-    QAction *lottoAction;
+    QAction *voteCoinsAction;
     QAction *donateAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
@@ -190,6 +192,8 @@ private slots:
     void gotoInvoicesPage();
     /** Switch to receipt page */
     void gotoReceiptPage();
+    /** Switch to votecoins page */
+    void gotoVoteCoinsPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

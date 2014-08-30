@@ -27,13 +27,17 @@ class CRequestTracker;
 class CNode;
 
 static const int LAST_POW_BLOCK = 60000;
+static const int64 FORKHEIGHT = 10468;
+static const int64 PRIZEPAYMENTHEIGHT = 25068;
+static const int TICKETCOMMISSIONRATE = 7; //1/128
+static const int PRIZEPAYMENTCOMMISSIONS = 10; //1/1024
 
-static const unsigned int MAX_BLOCK_SIZE = 1000000;
+static const unsigned int MAX_BLOCK_SIZE = 5*1000000; // 5 * 1000 kb block
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-static const int64 MIN_TX_FEE = 0.1 * COIN;
+static const int64 MIN_TX_FEE = 0 * COIN;
 static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
 static const int64 MAX_MONEY = 5000000 * COIN;            // 5 mil
 static const int64 MAX_MINT_PROOF_OF_STAKE = 0.05 * COIN;  // 5% annual interest
@@ -791,6 +795,7 @@ public:
 
 
     int SetMerkleBranch(const CBlock* pblock=NULL);
+    int GetHeightInMainChain() const;
     int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
     int GetDepthInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { return GetDepthInMainChain() > 0; }

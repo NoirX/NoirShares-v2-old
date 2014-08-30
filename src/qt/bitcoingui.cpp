@@ -11,6 +11,7 @@
 #include "invoicepage.h"
 #include "receiptpage.h"
 #include "sendcoinsdialog.h"
+#include "votecoinsdialog.h"
 #include "sendmessagesdialog.h"
 #include "signverifymessagedialog.h"
 #include "optionsdialog.h"
@@ -168,6 +169,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     messagePage = new MessagePage();
     invoicePage = new InvoicePage();
+    
+    voteCoinsPage = new VoteCoinsDialog();
 
     receiptPage = new ReceiptPage();
 
@@ -189,7 +192,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(messagePage);
     centralWidget->addWidget(invoicePage);
     centralWidget->addWidget(receiptPage);
-    //centralWidget->addWidget(messageAnonPage);
+    centralWidget->addWidget(voteCoinsPage);
     //centralWidget->addWidget(sendCoinsAnonPage);
     setCentralWidget(centralWidget);
 
@@ -347,11 +350,11 @@ void BitcoinGUI::createActions()
     sendCoinsAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
     tabGroup->addAction(sendCoinsAnonAction);
 
-    lottoAction = new QAction(QIcon(":/icons/lotto"), tr("L&otto (coming soon)"), this);
-    lottoAction->setToolTip(tr("Play Lottey (still under development, likely to be part of phase two deployment)"));
-    lottoAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
-    lottoAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
-    tabGroup->addAction(lottoAction);
+    voteCoinsAction = new QAction(QIcon(":/icons/lotto"), tr("L&otto"), this);
+    voteCoinsAction->setToolTip(tr("Play Lottey (still under development, likely to be part of phase two deployment)"));
+    voteCoinsAction->setCheckable(false); 
+    voteCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_9)); 
+    tabGroup->addAction(voteCoinsAction);
     
     donateAction = new QAction(QIcon(":/icons/donate"), tr("D&onate"), this);
     donateAction->setToolTip(tr("Donate to the dev, incentivise development."));
@@ -381,8 +384,8 @@ void BitcoinGUI::createActions()
     connect(sendMessagesAnonAction, SIGNAL(triggered()), this, SLOT(gotoSendMessagesAnonPage()));
     connect(sendCoinsAnonAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(sendCoinsAnonAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-    connect(lottoAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(lottoAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(voteCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(voteCoinsAction, SIGNAL(triggered()), this, SLOT(gotoVoteCoinsPage()));
     connect(donateAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(donateAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
 
@@ -512,7 +515,7 @@ void BitcoinGUI::createToolBars()
 
     toolbar->addAction(sendMessagesAnonAction);
     toolbar->addAction(sendCoinsAnonAction);
-    toolbar->addAction(lottoAction);
+    toolbar->addAction(voteCoinsAction);
 
     toolbar->addSeparator();
     toolbar->addAction(exportAction);
@@ -583,7 +586,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
 
         setEncryptionStatus(walletModel->getEncryptionStatus());
         connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SLOT(setEncryptionStatus(int)));
-
+		VoteCoinsPage->setModel(walletModel);
         // Balloon pop-up for new transaction
         connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex,int,int)),
                 this, SLOT(incomingTransaction(QModelIndex,int,int)));
@@ -659,6 +662,7 @@ void BitcoinGUI::createTrayIcon()
     trayIconMenu->addAction(receiveCoinsAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(messageAction);
+    trayIconMenu->addAction(voteCoinsAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(signMessageAction);
     trayIconMenu->addAction(verifyMessageAction);
@@ -989,6 +993,16 @@ void BitcoinGUI::incomingMessage(const QModelIndex & parent, int start, int end)
                               .arg(to_address)
                               .arg(message));
     };
+}
+
+void BitcoinGUI::gotoVoteCoinsPage()
+{   
+    VoteCoinsAction->setChecked(true);
+    centralWidget->setCurrentWidget(VoteCoinsPage);
+
+    exportAction->setEnabled(true);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+    connect(exportAction, SIGNAL(triggered()), VoteCoinsPage, SLOT(exportClicked()));
 }
 
 void BitcoinGUI::gotoOverviewPage()

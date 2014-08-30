@@ -79,6 +79,17 @@ public:
         }
     }
 
+    void updateWalletLotteryNumbers(const uint256 &hash, std::string numberString){
+        std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(hash);
+        for(int idx = 0; idx<cachedWallet.size();idx++){
+            TransactionRecord *rec = &cachedWallet[idx];
+            if(rec->hash==hash && mi != wallet->mapWallet.end()){
+                printf("mi update wallet lottery numbers \n");
+                rec->updateLotteryNumbers(numberString);
+            }
+        }
+    }
+
     /* Update our model of the wallet incrementally, to synchronize our model of the wallet
        with that of the core.
 
@@ -240,6 +251,13 @@ TransactionTableModel::~TransactionTableModel()
     delete priv;
 }
 
+void TransactionTableModel::updateTransactionLotteryNumbers(const QString &hash, const QString &numberString)
+{
+    uint256 updated;
+    updated.SetHex(hash.toStdString());
+    priv->updateWalletLotteryNumbers(updated, numberString.toStdString());
+}
+
 void TransactionTableModel::updateTransaction(const QString &hash, int status)
 {
     uint256 updated;
@@ -363,6 +381,8 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
     case TransactionRecord::StakeMint:
     case TransactionRecord::Generated:
         return tr("Mined");
+	case TransactionRecord::LotteryTicket:
+        return tr("Noir Lotto");
     default:
         return QString();
     }
@@ -372,6 +392,10 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
 {
     switch(wtx->type)
     {
+    case TransactionRecord::LotteryTicket:
+        return QIcon(":/icons/tx_lottery");
+    case TransactionRecord::DiceGame:
+        return QIcon(":/icons/tx_lottery");
     case TransactionRecord::Generated:
     case TransactionRecord::StakeMint:
 		{
@@ -395,6 +419,10 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
 {
     switch(wtx->type)
     {
+    case TransactionRecord::LotteryTicket:
+        return QString::fromStdString(wtx->address);
+    case TransactionRecord::DiceGame:
+        return QString::fromStdString(wtx->address);
     case TransactionRecord::RecvFromOther:
         return QString::fromStdString(wtx->address);
     case TransactionRecord::RecvWithAddress:
@@ -570,6 +598,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         return QDateTime::fromTime_t(static_cast<uint>(rec->time));
     case LongDescriptionRole:
         return priv->describe(rec);
+    case TheHashRole:
+        return QString::fromStdString(rec->hash.ToString());
     case AddressRole:
         return QString::fromStdString(rec->address);
     case LabelRole:
