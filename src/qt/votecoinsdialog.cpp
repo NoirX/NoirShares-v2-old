@@ -9,7 +9,7 @@
 #include "guiutil.h"
 #include "askpassphrasedialog.h"
 #include "base58.h"
-#include "walletframe.h"
+
 
 #include <QMessageBox>
 #include <QTextDocument>
@@ -158,21 +158,21 @@ void VoteCoinsDialog::sendToRecipients(){
     WalletModel::SendCoinsReturn sendstatus;
 
     if(entry->getGameType()==0){
-        sendstatus= model->sendCoins(recipients, NULL, true,false);
+        sendstatus= model->sendCoins(recipients, NULL, true);
         if(sendstatus.status==WalletModel::SatoshiForChangeAddressRequired){
             //try again
             if(recipients[6].amount>2){
                 recipients[6].amount=recipients[6].amount-1;
-                sendstatus = model->sendCoins(recipients, NULL, true, false);
+                sendstatus = model->sendCoins(recipients, NULL, true);
             }
         }
     }else if(entry->getGameType()==1){
-        sendstatus= model->sendCoins(recipients, NULL, false, true);
+        sendstatus= model->sendCoins(recipients, NULL, false);
         if(sendstatus.status==WalletModel::SatoshiForChangeAddressRequired){
             //try again
             if(recipients[1].amount>2){
                 recipients[1].amount=recipients[1].amount-1;
-                sendstatus = model->sendCoins(recipients, NULL, false, true);
+                sendstatus = model->sendCoins(recipients, NULL, false);
             }
         }
     }

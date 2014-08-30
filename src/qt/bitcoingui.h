@@ -89,7 +89,7 @@ private:
     SendMessagesDialog *sendMessagesPage;
     SendMessagesDialog *sendMessagesAnonPage;
     SendCoinsDialog *sendCoinsAnonPage;
-	VoteCoinsPage *voteCoinsPage;
+	VoteCoinsDialog *voteCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;

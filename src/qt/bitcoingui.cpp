@@ -81,14 +81,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 {
     resize(850, 550);
     setWindowTitle(tr("NoirShares") + " - " + tr("Wallet"));
-    
-    
-
-    // QPalette pal = this->palette();
-    // pal.setColor(QPalette::Window, Qt::black);
-    // pal.setColor(QPalette::WindowText, Qt::white);
-    // this->setPalette(pal);
-    // this->setAutoFillBackground(true);
 
     this->setStyleSheet("QMainWindow {background-color: black; color: white;} "
 #ifndef Q_OS_MAC
@@ -119,14 +111,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
                         "                border-color:white;border-width:1px;font-weight:bold;} "
                         "QLineEdit {border-style: solid; border-width: 1px;"
                         "           border-color: white;}"
-                    //    "SendCoinsEntry {background-color: black; color: white; "
-                    //    "                border-color: white; border-width: 1px;} "
-                    //    "SendCoinsDialog {background-color: black; color: white; "
-                    //    "        border-color: white; border-width: 1px;} "
-                    //    "QScrollArea {background-color: white; border-color: white; "
-                    //    "             color: white; border-width: 1px;} "
-                    //    "scrollAreaWidgetContents {background-color: white; border-color: white; "
-                    //    "                          color: white; border-width: 1px;} "
+                    
                        );
 
 
@@ -219,16 +204,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelBlocksIcon);
     frameBlocksLayout->addStretch();
-
-    /*
-    if (GetBoolArg("-staking", true))
-    {
-        QTimer *timerStakingIcon = new QTimer(labelStakingIcon);
-        connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(updateStakingIcon()));
-        timerStakingIcon->start(30 * 1000);
-        updateStakingIcon();
-    }
-    */
 
     // Progress bar and label for blocks download
     progressBarLabel = new QLabel();
@@ -586,7 +561,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
 
         setEncryptionStatus(walletModel->getEncryptionStatus());
         connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SLOT(setEncryptionStatus(int)));
-		VoteCoinsPage->setModel(walletModel);
+		//VoteCoinsPage->setModel(walletModel);
         // Balloon pop-up for new transaction
         connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex,int,int)),
                 this, SLOT(incomingTransaction(QModelIndex,int,int)));
@@ -997,12 +972,12 @@ void BitcoinGUI::incomingMessage(const QModelIndex & parent, int start, int end)
 
 void BitcoinGUI::gotoVoteCoinsPage()
 {   
-    VoteCoinsAction->setChecked(true);
-    centralWidget->setCurrentWidget(VoteCoinsPage);
+    voteCoinsAction->setChecked(true);
+    centralWidget->setCurrentWidget(voteCoinsPage);
 
     exportAction->setEnabled(true);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-    connect(exportAction, SIGNAL(triggered()), VoteCoinsPage, SLOT(exportClicked()));
+    connect(exportAction, SIGNAL(triggered()), voteCoinsPage, SLOT(exportClicked()));
 }
 
 void BitcoinGUI::gotoOverviewPage()

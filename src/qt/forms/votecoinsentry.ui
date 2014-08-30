@@ -25,22 +25,31 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(0, 0, 0);</string>
+  </property>
   <property name="frameShape">
    <enum>QFrame::StyledPanel</enum>
   </property>
   <property name="frameShadow">
    <enum>QFrame::Sunken</enum>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
     <number>12</number>
    </property>
-   <item row="3" column="0">
+   <item>
     <widget class="QTabWidget" name="gamePanel">
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);</string>
+     </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px;</string>
+      </property>
       <attribute name="title">
        <string>Lottery</string>
       </attribute>
@@ -50,15 +59,24 @@
          <x>10</x>
          <y>10</y>
          <width>591</width>
-         <height>25</height>
+         <height>29</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="9">
-         <widget class="BitcoinAmountField" name="payAmount"/>
-        </item>
         <item row="0" column="4">
          <widget class="QComboBox" name="number1_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>66</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -279,6 +297,18 @@
         </item>
         <item row="0" column="2">
          <widget class="QComboBox" name="number1">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>66</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -499,6 +529,18 @@
         </item>
         <item row="0" column="6">
          <widget class="QComboBox" name="number1_5">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>66</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -719,6 +761,18 @@
         </item>
         <item row="0" column="3">
          <widget class="QComboBox" name="number1_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>67</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -935,243 +989,451 @@
             <string notr="true">42</string>
            </property>
           </item>
-         </widget>
-        </item>
-        <item row="0" column="7">
-         <widget class="QComboBox" name="number1_6">
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <property name="maxVisibleItems">
-           <number>9</number>
-          </property>
-          <item>
-           <property name="text">
-            <string notr="true">1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">2</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">3</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">4</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">5</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">6</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">7</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">8</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">9</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">10</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">11</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">12</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">13</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">14</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">15</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">16</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">17</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">18</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">19</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">20</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">21</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">22</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">23</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">24</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">25</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">26</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">27</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">28</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">29</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">30</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">31</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">32</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">33</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">34</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">35</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">36</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">37</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">38</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">39</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">40</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">41</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string notr="true">42</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="0" column="8">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Amount:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
          </widget>
         </item>
         <item row="0" column="0">
          <widget class="QPushButton" name="QuickPick">
-          <property name="text">
-           <string>Quick Pick</string>
+          <property name="palette">
+           <palette>
+            <active>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Text">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="AlternateBase">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>85</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Text">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="AlternateBase">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>85</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="WindowText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Button">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Text">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ButtonText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Base">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="Window">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="AlternateBase">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>0</red>
+                <green>0</green>
+                <blue>85</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
           </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
+          </property>
+          <property name="text">
+           <string>Random</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="7">
+         <widget class="QComboBox" name="number1_6">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>67</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <property name="maxVisibleItems">
+           <number>9</number>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+          </property>
+          <item>
+           <property name="text">
+            <string notr="true">1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">4</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">5</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">6</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">7</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">8</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">9</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">10</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">11</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">12</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">13</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">14</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">15</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">16</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">17</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">18</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">19</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">20</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">21</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">22</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">23</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">24</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">25</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">26</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">27</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">28</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">29</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">30</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">31</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">32</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">33</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">34</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">35</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">36</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">37</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">38</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">39</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">40</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">41</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string notr="true">42</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="0" column="1">
@@ -1186,6 +1448,18 @@
         </item>
         <item row="0" column="5">
          <widget class="QComboBox" name="number1_4">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>67</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -1406,157 +1680,60 @@
         </item>
        </layout>
       </widget>
+      <widget class="BitcoinAmountField" name="payAmount">
+       <property name="geometry">
+        <rect>
+         <x>670</x>
+         <y>10</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>610</x>
+         <y>10</y>
+         <width>59</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Amount:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_2">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px;</string>
+      </property>
       <attribute name="title">
-       <string>Dice</string>
+       <string>Reserved</string>
       </attribute>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>310</x>
-         <y>10</y>
-         <width>381</width>
-         <height>22</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="1">
-         <widget class="BitcoinAmountField" name="payAmount_2"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Amount:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QComboBox" name="gameType">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>291</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <property name="maxVisibleItems">
-        <number>9</number>
-       </property>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1                      (Snowball X1024)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 or 2              (SFA chance of X512)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 4              (Slim chance of X256)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 8              (.78125% win X128)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 16            (1.5625% win X64)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 32            (3.125% win X32)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 64            (6.25% win X16)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 128          (12.5% win X8)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 256          (25% win X4)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 512          (50% win X2)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 768          (75% win X1.33)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 896          (87.5% win X1.14)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 960          (93.75% win X1.067)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 992          (96.87% win X1.032)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 1008        (98.44% win X1.016)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 1016        (99.22% win X 1.008)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 1020        (Guarantee)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 1022        (Dead Cert)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll 1 to 1023        (Everytime)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll Odd                (50% win X2)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string notr="true">Roll Even               (50% win X2)</string>
-        </property>
-       </item>
-      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px;</string>
+      </property>
+      <attribute name="title">
+       <string>Reserved</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <property name="styleSheet">
+       <string notr="true">color:black;background-color:black;border-width:1px;</string>
+      </property>
+      <attribute name="title">
+       <string>Reserved</string>
+      </attribute>
      </widget>
     </widget>
    </item>

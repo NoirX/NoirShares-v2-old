@@ -27,10 +27,10 @@ VoteCoinsEntry::VoteCoinsEntry(QWidget *parent) :
 #endif
     setFocusPolicy(Qt::TabFocus);
     setFocusProxy(ui->payAmount);
-    ui->gameType->setCurrentIndex(9);
+    //ui->gameType->setCurrentIndex(9);
     this->on_QuickPick_clicked();
     ui->payAmount->setValue(1000000000);
-    ui->payAmount_2->setValue(1000000000);
+    //ui->payAmount_2->setValue(1000000000);
 
     //GUIUtil::setupAddressWidget(ui->payTo, this);
 }
@@ -164,7 +164,7 @@ bool VoteCoinsEntry::validateDice(){
     // Check input validity
     bool retval = true;
 
-    if(!ui->payAmount_2->validate())
+    /*if(!ui->payAmount_2->validate())
     {
         retval = false;
     }
@@ -176,7 +176,7 @@ bool VoteCoinsEntry::validateDice(){
             ui->payAmount_2->setValid(false);
             retval = false;
         }
-    }
+    }*/
 
     return retval;
 }
@@ -185,7 +185,7 @@ SendCoinsRecipient VoteCoinsEntry::getDiceGame(){
     SendCoinsRecipient rv;
     rv.address = "LTSLTSLTSLTSLTSLTSLTSLTSFJWz2ixwtN";
     rv.label = "Dice Game";
-    rv.amount =  ui->gameType->currentIndex()+1;
+    //rv.amount =  ui->gameType->currentIndex()+1;
     return rv;
 }
 
@@ -193,7 +193,7 @@ SendCoinsRecipient VoteCoinsEntry::getDiceAmount(){
     SendCoinsRecipient rv;
     rv.address = "LTSLTSLTSLTSLTSLTSLTSLTSFJWz2ixwtN";
     rv.label = "Dice Game";
-    rv.amount=ui->payAmount_2->value()-(ui->gameType->currentIndex()+1);
+    //rv.amount=ui->payAmount_2->value()-(ui->gameType->currentIndex()+1);
     return rv;
 }
 

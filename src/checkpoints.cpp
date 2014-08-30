@@ -15,48 +15,23 @@ namespace Checkpoints
 {
     typedef std::map<int, uint256> MapCheckpoints;
 
-    // How many times we expect transactions after the last checkpoint to
-    // be slower. This number is a compromise, as it can't be accurate for
-    // every system. When reindexing from a fast disk with a slow CPU, it
-    // can be up to 20, while when downloading from a slow network with a
-    // fast multicore CPU, it won't be much higher than 1.
-    static const double fSigcheckVerificationFactor = 5.0;
-
-    struct CCheckpointData {
-        const MapCheckpoints *mapCheckpoints;
-        int64 nTimeLastCheckpoint;
-        int64 nTransactionsLastCheckpoint;
-        double fTransactionsPerDay;
-    };
-
+    //
     // What makes a good checkpoint block?
     // + Is surrounded by blocks with reasonable timestamps
     //   (no blocks before with a timestamp after, none after with
     //    timestamp before)
     // + Contains no strange transactions
+    //
     static MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
         (       0, hashGenesisBlock )
 
         ;
-	static const CCheckpointData data = {
-        &mapCheckpoints,
-        1408563876, // * UNIX timestamp of last checkpoint block
-        1,    // * total number of transactions between genesis and last checkpoint
-                  //   (the tx=... number in the SetBestChain debug.log lines)
-        600.0     // * estimated number of transactions per day after checkpoint
-    };
 
     static MapCheckpoints mapCheckpointsTestnet =
         boost::assign::map_list_of
         ( 0, hashGenesisBlockTestNet )
         ;
-	static const CCheckpointData dataTestnet = {
-        &mapCheckpointsTestnet,
-        0,
-        0,
-        960.0
-    };
 
     bool CheckHardened(int nHeight, const uint256& hash)
     {

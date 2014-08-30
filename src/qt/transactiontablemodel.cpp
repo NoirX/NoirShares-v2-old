@@ -394,8 +394,6 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     {
     case TransactionRecord::LotteryTicket:
         return QIcon(":/icons/tx_lottery");
-    case TransactionRecord::DiceGame:
-        return QIcon(":/icons/tx_lottery");
     case TransactionRecord::Generated:
     case TransactionRecord::StakeMint:
 		{
@@ -420,8 +418,6 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
     switch(wtx->type)
     {
     case TransactionRecord::LotteryTicket:
-        return QString::fromStdString(wtx->address);
-    case TransactionRecord::DiceGame:
         return QString::fromStdString(wtx->address);
     case TransactionRecord::RecvFromOther:
         return QString::fromStdString(wtx->address);
