@@ -159,6 +159,21 @@ inline bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRe
     return true;
 }
 
+inline bool getValidAddress(const char* psz, std::vector<unsigned char>& vchRet)
+{
+    if (!DecodeBase58(psz, vchRet))
+        return false;
+    if (vchRet.size() < 4)
+    {
+        vchRet.clear();
+        return false;
+    }
+    uint256 hash = Hash(vchRet.begin(), vchRet.end()-4);
+    memcpy(&vchRet.end()[-4], &hash, 4);
+    return true;
+}
+
+
 // Decode a base58-encoded string str that includes a checksum, into byte vector vchRet
 // returns true if decoding is successful
 inline bool DecodeBase58Check(const std::string& str, std::vector<unsigned char>& vchRet)

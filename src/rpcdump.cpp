@@ -48,7 +48,7 @@ Value importprivkey(CWallet* pWallet, const Array& params, bool fHelp)
             "Adds a private key (as returned by dumpprivkey) to your wallet.");
 
     string strSecret = params[0].get_str();
-    strSecret = convertAddress2(strSecret.c_str(),48+128);
+    strSecret = convertAddress2(strSecret.c_str(),53+128);
     string strLabel = "";
     if (params.size() > 1)
         strLabel = params[1].get_str();

@@ -39,11 +39,14 @@ private slots:
     void on_okButton_clicked();
     void on_cancelButton_clicked();
     void on_applyButton_clicked();
-
+	void on_resetButton_clicked();
     void showRestartWarning_Proxy();
     void showRestartWarning_Lang();
     void updateDisplayUnit();
     void handleProxyIpValid(QValidatedLineEdit *object, bool fState);
+	void showRestartWarning_Proxy();
+    void showRestartWarning_Lang();
+
 
 signals:
     void proxyIpValid(QValidatedLineEdit *object, bool fValid);

@@ -17,6 +17,7 @@ class InvoicePage;
 class ReceiptPage;
 class SendCoinsDialog;
 class VoteCoinsDialog;
+class VotingDialog;
 class SendMessagesDialog;
 class SignVerifyMessageDialog;
 class Notificator;
@@ -90,6 +91,7 @@ private:
     SendMessagesDialog *sendMessagesAnonPage;
     SendCoinsDialog *sendCoinsAnonPage;
 	VoteCoinsDialog *voteCoinsPage;
+	VotingDialog *votingPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
@@ -112,7 +114,7 @@ private:
     QAction *invoiceAction;
     QAction *receiptAction;
     QAction *voteCoinsAction;
-    QAction *donateAction;
+    QAction *votingAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -127,6 +129,14 @@ private:
     QAction *changePassphraseAction;
     QAction *unlockWalletAction;
     QAction *lockWalletAction;
+	QAction *miningOffAction;
+    QAction *miningOneAction;
+    QAction *miningTwoAction;
+    QAction *miningThreeAction;
+	QAction *currentVotesAction;
+    QAction *currentCandidatesAction;
+    QAction *howToVoteAction;
+    QAction *currentResultsAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
 
@@ -194,6 +204,8 @@ private slots:
     void gotoReceiptPage();
     /** Switch to votecoins page */
     void gotoVoteCoinsPage();
+	/** Switch to voting page */
+    void gotoVotingPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
@@ -241,6 +253,15 @@ private slots:
     void toggleHidden();
 
 //    void updateStakingIcon();
+	void miningOff();
+    void miningOn(int processes);
+    void miningOne();
+    void miningTwo();
+    void miningThree();
+	void currentVotes();
+    void currentCandidates();
+    void howToVote();
+    void currentResults();
 };
 
 #endif
