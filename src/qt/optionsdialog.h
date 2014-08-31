@@ -44,8 +44,7 @@ private slots:
     void showRestartWarning_Lang();
     void updateDisplayUnit();
     void handleProxyIpValid(QValidatedLineEdit *object, bool fState);
-	void showRestartWarning_Proxy();
-    void showRestartWarning_Lang();
+	
 
 
 signals:

@@ -101,6 +101,7 @@ double dhashespermin;
 int64 nHPSTimerStart;
 
 // Settings
+CCriticalSection grantdb;
 int64 nTransactionFee = MIN_TX_FEE;
 int64 nMinimumInputValue = MIN_TX_FEE;
 std::map<int, std::string > awardWinners;
@@ -1128,13 +1129,13 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 randomSeed)
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    return GetBlockSubsidy(nHeight) + nFees;
+    return GetProofOfWorkReward(nHeight, 0,0) + nFees ;
 }
 
 int64 static GetGrantValue(int64 nHeight)
 {
-	int64 grantaward=GetBlockSubsidy(nHeight);
-	return grantaward/10;
+	int64 grantaward=GetProofOfWorkReward(nHeight, 0, 0);
+	return grantaward/5;
 }
 
 
@@ -1889,11 +1890,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         nFees=nFees+(nonCommissionablePayout>>PRIZEPAYMENTCOMMISSIONS);
 	
     }
-	
+	LOCK(grantdb);
+    int64 grantAward=0;
 	//Memorycoin grant awards
     if(isGrantAwardBlock(pindex->nHeight)){
 	if(!getGrantAwards(pindex->nHeight)){
-		return state.DoS(100, error("ConnectBlock() : grant awards error"));
+		return DoS(100, error("ConnectBlock() : grant awards error"));
 	}
 			
 	//Ensure fees are going to award winners
@@ -1935,7 +1937,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     }else if (vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees+grantAward)){
         return DoS(100, error("ConnectBlock() %d : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", pindex->nHeight, vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
     }
-}
+
 
     //1% commission
     nFees=nFees+(calculateTicketIncome(vtx)>>TICKETCOMMISSIONRATE);
@@ -1951,7 +1953,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         return DoS(100, false);
     int64 nTime2 = GetTimeMicros() - nStart;
     if (fBenchmark)
-        printf("- Verify %u txins: %.2fms (%.3fms/txin)\n", nValueIn - 1, 0.001 * nTime2, nValueIn <= 1 ? 0 : 0.001 * nTime2 / (nValueIn-1));
+        printf("- Verify %lld txins: %.2fms (%.3fms/txin)\n", nValueIn - 1, 0.001 * nTime2, nValueIn <= 1 ? 0 : 0.001 * nTime2 / (nValueIn-1));
 
     if (fJustCheck)
         return true;
@@ -4557,7 +4559,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
 	for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
 		printf("Add %s %llu\n",gait->first.c_str(),gait->second);
 	
-		CMemorycoinAddress address(gait->first);
+		CBitcoinAddress address(gait->first);
 		txNew.vout[i+1].scriptPubKey.SetDestination( address.Get() );
 		txNew.vout[i+1].nValue = gait->second;
 		i++;		
@@ -5443,7 +5445,7 @@ int getOfficeNumberFromAddress(string grantVoteAddress, int64 nHeight){
 	}
     for(int i=0;i<numberOfOffices+1;i++){
 		//printf("substring %s\n",grantVoteAddress.substr(4,3).c_str());
-		if(grantVoteAddress.substr(nHeight > V3FORKHEIGHT ? 3 : 4,3)==electedOffices[i]){
+		if(grantVoteAddress.substr(4,3)==electedOffices[i]){
 			return i;
 		}
 	}
@@ -5513,7 +5515,7 @@ void processNextBlockIntoGrantDatabase(){
 			balances[receiveAddress]=balances[receiveAddress]+theAmount;				
 			
 			//Note any voting preferences made in the outputs
-			if(startsWith(receiveAddress.c_str(),GRANTPREFIX).c_str()) && theAmount<10 && theAmount>0){
+			if(startsWith(receiveAddress.c_str(),(GRANTPREFIX).c_str()) && theAmount<10 && theAmount>0){
 				//printf("Vote found Amount: %llu\n",theAmount);
 				//Voting output - if the same address is voted a number of times in the same transaction, only the last one is counted
 				votes[receiveAddress]=theAmount;
@@ -5544,7 +5546,7 @@ void processNextBlockIntoGrantDatabase(){
 					if(electedOfficeNumber>-1){
                         printf("Vote added: %d %s, %llu\n",electedOfficeNumber,votesit->first.c_str(),votesit->second);
                         votingPreferences[electedOfficeNumber][spendAddress][votesit->second] = grantVoteAddress;
-                        printf("Size: %d \n",votingPreferences[electedOfficeNumber].size());
+                        printf("Size: %lu \n",votingPreferences[electedOfficeNumber].size());
                     }
 				}
 	
@@ -5944,5 +5946,5 @@ bool startsWith(const char *str, const char *pre)
            lenstr = strlen(str);
     return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
 }
-    }
+
 

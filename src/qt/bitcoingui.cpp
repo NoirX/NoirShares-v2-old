@@ -34,6 +34,9 @@
 #include "guiutil.h"
 #include "ui_interface.h"
 #include "rpcconsole.h"
+#include "wallet.h"
+#include "init.h"
+#include "bitcoinrpc.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -80,9 +83,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     miningTwoAction(0),
     miningThreeAction(0),
     miningFourAction(0),
-    miningFiveAction(0),
-    miningSixAction(0),
-	currentVotesAction(0),
+    currentVotesAction(0),
     currentCandidatesAction(0),
     howToVoteAction(0),
     currentResultsAction(0),
@@ -190,7 +191,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(invoicePage);
     centralWidget->addWidget(receiptPage);
     centralWidget->addWidget(voteCoinsPage);
-    centralWidget->addWidget(VotingPage);
+    centralWidget->addWidget(votingPage);
     setCentralWidget(centralWidget);
 
     // Create status bar
@@ -414,7 +415,8 @@ void BitcoinGUI::createActions()
     miningTwoAction->setStatusTip(tr("Mine with 2 processes. ~2GB Required."));
     miningThreeAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (3.5GB Required)"), this);
     miningThreeAction->setStatusTip(tr("Mine MemoryCoin with 4 processes. ~3.5GB Required."));
-    
+    miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine all cores/threads Processes (~750MB Required per thread)"), this);
+    miningFourAction->setStatusTip(tr("Mine with all cores/threads. ~750MB Required per thread."));
 	currentVotesAction = new QAction(QIcon(":/icons/voting_prefs"), tr("Current Voting Preferences"), this);
     currentVotesAction->setStatusTip(tr("Show who or what you are currently voting for. (Web)"));
     currentCandidatesAction = new QAction(QIcon(":/icons/voting_candidates"), tr("Current Candidates"), this);
@@ -447,7 +449,7 @@ void BitcoinGUI::createActions()
     connect(miningOneAction, SIGNAL(triggered()), this, SLOT(miningOne()));
     connect(miningTwoAction, SIGNAL(triggered()), this, SLOT(miningTwo()));
     connect(miningThreeAction, SIGNAL(triggered()), this, SLOT(miningThree()));
-    
+    connect(miningFourAction, SIGNAL(triggered()), this, SLOT(miningFour()));
 	connect(currentVotesAction, SIGNAL(triggered()), this, SLOT(currentVotes()));    
     connect(currentCandidatesAction, SIGNAL(triggered()), this, SLOT(currentCandidates()));    
     connect(howToVoteAction, SIGNAL(triggered()), this, SLOT(howToVote()));    
@@ -491,7 +493,8 @@ void BitcoinGUI::createMenuBar()
     mining->addAction(miningOneAction);
     mining->addAction(miningOffAction);
     mining->addAction(miningTwoAction);
-    settings->addAction(miningThreeAction);
+    mining->addAction(miningThreeAction);
+    mining->addAction(miningFourAction);
     
 	QMenu *voting = appMenuBar->addMenu(tr("&Voting"));
     voting->addAction(currentVotesAction);
@@ -1389,19 +1392,21 @@ GenerateBitcoins(processes!=0?true:false, pwalletMain);
 void BitcoinGUI::miningOne(){miningOn(1);}
 void BitcoinGUI::miningTwo(){miningOn(2);}
 void BitcoinGUI::miningThree(){miningOn(4);}
+void BitcoinGUI::miningFour(){miningOn(-1);}
+
 void BitcoinGUI::currentVotes(){
-	openWebsite("http://mmcvotes.com/address/"+getDefaultWalletAddress());
+	openWebsite("http://noirds.com/");
 }
 
 void BitcoinGUI::howToVote(){
-	openWebsite("http://memorycoin.org/how-to-vote/");
+	openWebsite("http://noirds.com/how-to-vote/");
 }
 
 void BitcoinGUI::currentCandidates(){
-	openWebsite("http://memorycoin.org/candidates/");
+	openWebsite("http://noirds.com/");
 }
 
 void BitcoinGUI::currentResults(){
-	openWebsite("http://mmcvotes.com/");
+	openWebsite("http://noirds.com/");
 }
-}
+

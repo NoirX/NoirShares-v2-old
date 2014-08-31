@@ -49,7 +49,7 @@ public:
 	 */
 	PublicCoin( const Params* p, const Bignum& coin, const CoinDenomination d = ZQ_PEDERSEN);
 	const Bignum& getValue() const;
-	const CoinDenomination getDenomination() const;
+	CoinDenomination getDenomination() const;
 	bool operator==(const PublicCoin& rhs) const;
 	bool operator!=(const PublicCoin& rhs) const;
 	/** Checks that a coin prime
