@@ -25,6 +25,16 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include "momentum.h"
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <sys/stat.h>
+#include <stdio.h>
+/*
+#ifdef WIN32
+    #include <windows.h>
+#endif
+*/
 using namespace std;
 using namespace boost;
 
@@ -68,8 +78,8 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 2);
 
 unsigned int nStakeMinAge = 60 * 60 * 24 * 7;   // minimum age for coin age: 8h
 unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
-unsigned int nStakeTargetSpacing = 60 * 4;          // 4 min block spacing
-
+unsigned int nStakeTargetSpacing = 60 * 2;          // 4 min block spacing
+int nTargetSpacing = 60 *4;
 
 int nCoinbaseMaturity = 150;
 CBlockIndex* pindexGenesisBlock = NULL;

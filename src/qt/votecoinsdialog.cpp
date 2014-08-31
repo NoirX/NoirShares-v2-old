@@ -294,7 +294,6 @@ VoteCoinsEntry *VoteCoinsDialog::addEntry()
 void VoteCoinsDialog::updateRemoveEnabled()
 {
     // Remove buttons are enabled as soon as there is more than one send-entry
-    bool enabled = (ui->entries->count() > 1);
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         VoteCoinsEntry *entry = qobject_cast<VoteCoinsEntry*>(ui->entries->itemAt(i)->widget());

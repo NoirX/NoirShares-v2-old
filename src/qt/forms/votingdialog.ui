@@ -67,7 +67,7 @@
         <string>Add &amp;Vote</string>
        </property>
        <property name="icon">
-        <iconset resource="../memorycoin.qrc">
+        <iconset resource="../bitcoin.qrc">
          <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
        </property>
        <property name="autoDefault">
@@ -90,7 +90,7 @@
         <string>Clear &amp;All</string>
        </property>
        <property name="icon">
-        <iconset resource="../memorycoin.qrc">
+        <iconset resource="../bitcoin.qrc">
          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
        <property name="autoRepeatDelay">
@@ -137,7 +137,7 @@
         <string>Sweep</string>
        </property>
        <property name="icon">
-        <iconset resource="../memorycoin.qrc">
+        <iconset resource="../bitcoin.qrc">
          <normaloff>:/icons/send</normaloff>:/icons/send</iconset>
        </property>
       </widget>
@@ -157,7 +157,7 @@
         <string>C&amp;ast Vote(s)</string>
        </property>
        <property name="icon">
-        <iconset resource="../memorycoin.qrc">
+        <iconset resource="../bitcoin.qrc">
          <normaloff>:/icons/send</normaloff>:/icons/send</iconset>
        </property>
        <property name="default">
@@ -170,7 +170,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../memorycoin.qrc"/>
+  <include location="../bitcoin.qrc"/>
  </resources>
  <connections/>
 </ui>

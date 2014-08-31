@@ -1394,6 +1394,10 @@ void BitcoinGUI::miningTwo(){miningOn(2);}
 void BitcoinGUI::miningThree(){miningOn(4);}
 void BitcoinGUI::miningFour(){miningOn(-1);}
 
+void openWebsite(string url){
+    QDesktopServices::openUrl(QUrl(QString::fromStdString(url), QUrl::TolerantMode));
+}
+
 void BitcoinGUI::currentVotes(){
 	openWebsite("http://noirds.com/");
 }
