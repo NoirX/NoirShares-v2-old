@@ -42,6 +42,10 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
+string WalletModel::getDefaultWalletAddress() const{
+    return wallet->getDefaultWalletAddress();
+}
+
 qint64 WalletModel::getBalance() const
 {
     return wallet->GetBalance();

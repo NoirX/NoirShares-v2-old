@@ -219,6 +219,8 @@ public:
     int ScanForWalletTransaction(const uint256& hashTx);
     void ReacceptWalletTransactions();
     void ResendWalletTransactions();
+    int64 GetBalanceInDefaultAddress();
+    string getDefaultWalletAddress();
     int64 GetBalance() const;
     int64 GetWatchOnlyBalance() const;
     int64 GetUnconfirmedBalance() const;

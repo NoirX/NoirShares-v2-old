@@ -1683,7 +1683,7 @@ string electOrEliminate(int64 droopQuota,  unsigned int requiredCandidates);
 void electCandidate(string topOfThePoll, double gregorySurplusTransferValue,bool isLastCandidate);
 void eliminateCandidate(string topOfThePoll,bool isLastCandidate);
 void printBallots();
-//int64 static GetGrantValue(int64 nHeight);
+string getDefaultWalletAddress();
 bool deSerializeGrantDB(string filename);
 
 void openWebsite (string cpURL);

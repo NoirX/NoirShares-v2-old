@@ -5957,4 +5957,6 @@ bool startsWith(const char *str, const char *pre)
     return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
 }
 
-
+string getDefaultWalletAddress(){
+    return pwalletMain->getDefaultWalletAddress();
+}

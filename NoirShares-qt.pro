@@ -259,6 +259,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/ui_interface.h \
     src/qt/rpcconsole.h \
     src/version.h \
+    src/lottoshares.h \
     src/hash.h \
     src/netbase.h \
     src/clientversion.h \
@@ -273,7 +274,6 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/invoicepage.h \
     src/qt/invoiceviewpage.h \
     src/qt/receiptpage.h \
-    src/qt/lottoshares.h \
     src/qt/votecoinsdialog.h \
     src/qt/votecoinsentry.h \
     src/qt/votingdialog.h \
@@ -359,6 +359,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-x86_64.S \
     src/scrypt_mine.cpp \
     src/pbkdf2.cpp \
+    src/lottoshares.cpp \
     src/emessage.cpp \
     src/rpcemessage.cpp \
     src/qt/sendmessagesentry.cpp \
@@ -370,7 +371,6 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/invoicepage.cpp \
     src/qt/invoiceviewpage.cpp \
     src/qt/receiptpage.cpp \
-    src/qt/lottoshares.h \
     src/qt/votecoinsdialog.cpp \
     src/qt/votecoinsentry.cpp \
     src/qt/votingdialog.cpp \

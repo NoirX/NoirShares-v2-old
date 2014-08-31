@@ -66,7 +66,7 @@ VotingDialog::~VotingDialog()
     delete ui;
 }
 
-void VotingDialog::checkSweep(){
+/*void VotingDialog::checkSweep(){
     if(model->NeedsSweep()){
         ui->sendButton->setEnabled(false);
         ui->sweepLabel->setVisible(true);
@@ -76,7 +76,7 @@ void VotingDialog::checkSweep(){
         ui->sweepLabel->setVisible(false);
         ui->sweepButton->setVisible(false);
     }
-}
+}*/
 
 
 
@@ -106,7 +106,7 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
 
         for(int i = 0; i < ui->entries->count(); ++i)
         {
-            VoteCoinsEntry *entry = qobject_cast<Voting*>(ui->entries->itemAt(i)->widget());
+            VotingEntry *entry = qobject_cast<VotingEntry*>(ui->entries->itemAt(i)->widget());
             if(entry)
             {
                 if(entry->validate())
@@ -184,7 +184,7 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
         }
         QMessageBox::warning(this, tr("Send Coins"),
             tr("The total exceeds your balance when the %1 transaction fee is included.").
-            arg(MemorycoinUnits::formatWithUnit(MemorycoinUnits::BTC, sendstatus.fee)),
+            arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, sendstatus.fee)),
             QMessageBox::Ok, QMessageBox::Ok);
         break;
     case WalletModel::DuplicateAddress:
@@ -345,38 +345,4 @@ void VotingDialog::pasteEntry(const SendCoinsRecipient &rv)
     entry->setValue(rv);
 }
 
-/*bool VoteCoinsDialog::handleURI(const QString &uri)
-{
-    SendCoinsRecipient rv;
-    // URI has to be valid
-    if (GUIUtil::parseMemorycoinURI(uri, &rv))
-    {
-        CMemorycoinAddress address(rv.address.toStdString());
-        if (!address.IsValid())
-            return false;
-        pasteEntry(rv);
-        return true;
-    }
 
-    return false;
-}*/
-
-/*void VoteCoinsDialog::setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance)
-{
-    Q_UNUSED(unconfirmedBalance);
-    Q_UNUSED(immatureBalance);
-    if(!model || !model->getOptionsModel())
-        return;
-
-    int unit = model->getOptionsModel()->getDisplayUnit();
-    ui->labelBalance->setText(MemorycoinUnits::formatWithUnit(unit, balance));
-}
-
-void VoteCoinsDialog::updateDisplayUnit()
-{
-    if(model && model->getOptionsModel())
-    {
-        // Update labelBalance with the current balance and the current unit
-        ui->labelBalance->setText(MemorycoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), model->getBalance()));
-    }
-}*/

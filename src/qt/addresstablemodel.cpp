@@ -59,6 +59,7 @@ public:
         cachedAddressTable.clear();
         {
             LOCK(wallet->cs_wallet);
+            string mainAddress = wallet->getDefaultWalletAddress();
             BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& item, wallet->mapAddressBook)
             {
                 const CBitcoinAddress& address = item.first;

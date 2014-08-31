@@ -63,7 +63,8 @@ public:
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
-
+	
+	std::string getDefaultWalletAddress() const;
     qint64 getBalance() const;
     qint64 getBalanceWatchOnly() const;
     qint64 getStake() const;
