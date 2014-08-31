@@ -16,22 +16,22 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabMain">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Main </string>
-       </attribute>
-       <property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
+      </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_Main">
        <item>
         <widget class="QLabel" name="transactionFeeInfoLabel">
@@ -161,12 +161,12 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabNetwork">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Network</string>
       </attribute>
-      <property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Network">
        <item>
         <widget class="QCheckBox" name="mapPortUpnp">
@@ -293,12 +293,12 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabWindow">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Window</string>
       </attribute>
-      <property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Window">
        <item>
         <widget class="QCheckBox" name="minimizeToTray">
@@ -336,12 +336,12 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabDisplay">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Display</string>
       </attribute>
-      <property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
       <layout class="QVBoxLayout" name="verticalLayout_Display">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_1_Display">
@@ -427,12 +427,12 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabComms">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Noir +</string>
       </attribute>
-      <property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="groupBoxEM">

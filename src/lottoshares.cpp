@@ -34,7 +34,7 @@ string TICKETADDRESS                ="NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
 
 
 char* mPUBKey="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1blo14f8xTPJUlfo0YVy\nLcixUMVfbbtoa6QCdLOaW27rlnm4zOjuFXCpFpUw3I8GvVkvqLev0Y5wE4SySUZ8\n4q3Y4YQv/7QPl9GK3jGw99c9NHnTR01xaSqymYfocgxH0OEQ2NS15E9hS6pPkRQT\nlm0k4sYr3sKHBKe+DPKBACo7az6QvpXwncFiUW7yGEZPwhzcbVAQo8E6609B00nB\nfkBrzYc6u5/IcbRV+gygYbN0EjiV9AHQtMSzkMHsA3X0T5IGRZPWOtfnfmpxzaiO\nWWXJ6nfABZXE4fqnfBcISdo2Hp701t86FnSRuuIpFGFrfKueQwEaeJps9RFyAMhA\nuwIDAQAB\n-----END PUBLIC KEY-----";
-string TIMEKEEPERRSABROADCASTADDRESS ="LRSAKerUAXYS7nk5cwcCbDMrgp1nsFn5ik";
+string TIMEKEEPERRSABROADCASTADDRESS ="NfhRziXsDv1QfN9dFmGVmKRHSr81AaGNii";
 
 lottoshares::lottoshares()
 {
@@ -859,7 +859,7 @@ bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requi
     {
         CBitcoinAddress address(addresses[i]);
         if (!address.IsValid()){
-            printf("Invalid LottoShares address: %s\n",addresses[i].c_str());
+            printf("Invalid NoirShares address: %s\n",addresses[i].c_str());
             return false;
         }
 

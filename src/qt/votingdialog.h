@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-// Copyright (c) 2013-2014 Noir Group
+// Copyright (c) 2013-2014 Memorycoin Dev Team
 
 #ifndef VOTINGDIALOG_H
 #define VOTINGDIALOG_H
@@ -21,7 +21,7 @@ QT_BEGIN_NAMESPACE
 class QUrl;
 QT_END_NAMESPACE
 
-/** Dialog for sending NoirShares */
+/** Dialog for sending memorycoins */
 class VotingDialog : public QDialog
 {
     Q_OBJECT

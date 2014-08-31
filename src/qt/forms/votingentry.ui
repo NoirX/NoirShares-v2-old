@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>747</width>
-    <height>44</height>
+    <height>49</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
   </property>
   <property name="frameShape">
    <enum>QFrame::StyledPanel</enum>

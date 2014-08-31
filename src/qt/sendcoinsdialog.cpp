@@ -34,7 +34,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
 
 #if QT_VERSION >= 0x040700
      /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-     ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a NoirShares address (e.g. JMvigJMT42fPWQ4MG5q4fYCsRttKGCoFB1)"));
+     ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a valid address (e.g. NfhRziXsDv1QfN9dFmGVmKRHSr81AaGNii)"));
  #endif
 
     addEntry();
@@ -177,7 +177,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     {
     case WalletModel::InvalidAddress:
         QMessageBox::warning(this, tr("Send Coins"),
-            tr("The recipient address is not valid, please recheck."),
+            tr("Invalid recipient address, please recheck."),
             QMessageBox::Ok, QMessageBox::Ok);
         break;
     case WalletModel::InvalidAmount:

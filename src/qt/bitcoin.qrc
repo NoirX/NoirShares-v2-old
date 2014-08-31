@@ -48,6 +48,7 @@
         <file alias="invoice">res/icons/invoice.png</file>
         <file alias="metacontact_unknown">res/icons/metacontact_unknown.png</file>
         <file alias="ksayit_talking">res/icons/ksayit_talking.png</file>
+        <file alias="voting_prefs">res/icons/voting_prefs.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>

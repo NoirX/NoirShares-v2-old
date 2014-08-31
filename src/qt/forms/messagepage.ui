@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Address Book</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(0, 0, 0);
+color: rgb(255, 255, 255);</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QLabel" name="labelExplanation">
@@ -153,6 +157,9 @@
         </item>
         <item>
          <widget class="QPlainTextEdit" name="message">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="readOnly">
            <bool>true</bool>
           </property>
@@ -168,6 +175,10 @@
          <property name="toolTip">
           <string>Sign a message to prove you own a NoirShares address</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+         </property>
          <property name="text">
           <string>&amp;Reply</string>
          </property>
@@ -181,6 +192,10 @@
         <widget class="QPushButton" name="copyFromAddressButton">
          <property name="toolTip">
           <string>Copy the currently selected address to the system clipboard</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
          </property>
          <property name="text">
           <string>&amp;Copy From Address</string>
@@ -196,6 +211,10 @@
          <property name="toolTip">
           <string>Copy the currently selected address to the system clipboard</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+         </property>
          <property name="text">
           <string>Copy To &amp;Address</string>
          </property>
@@ -209,6 +228,10 @@
         <widget class="QPushButton" name="deleteButton">
          <property name="toolTip">
           <string>Delete the currently selected address from the list</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
          </property>
          <property name="text">
           <string>&amp;Delete</string>

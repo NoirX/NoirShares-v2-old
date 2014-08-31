@@ -44,7 +44,7 @@
       <string notr="true">background-color: rgb(0, 0, 0);</string>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <property name="styleSheet">
@@ -1710,30 +1710,6 @@ color: rgb(0, 0, 0);</string>
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <property name="styleSheet">
-       <string notr="true">color:white;background-color:black;border-width:1px;</string>
-      </property>
-      <attribute name="title">
-       <string>Reserved</string>
-      </attribute>
-     </widget>
-     <widget class="QWidget" name="tab_4">
-      <property name="styleSheet">
-       <string notr="true">color:white;background-color:black;border-width:1px;</string>
-      </property>
-      <attribute name="title">
-       <string>Reserved</string>
-      </attribute>
-     </widget>
-     <widget class="QWidget" name="tab_3">
-      <property name="styleSheet">
-       <string notr="true">color:black;background-color:black;border-width:1px;</string>
-      </property>
-      <attribute name="title">
-       <string>Reserved</string>
-      </attribute>
      </widget>
     </widget>
    </item>

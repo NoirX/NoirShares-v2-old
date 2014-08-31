@@ -92,8 +92,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     notificator(0),
     rpcConsole(0)
 {
-    resize(850, 550);
-    setWindowTitle(tr("NoirShares") + " - " + tr("Wallet"));
+    resize(950, 575);
+    setWindowTitle(tr("NoirShares-QT") + " - " + tr("Noir-Group"));
 
     this->setStyleSheet("QMainWindow {background-color: black; color: white;} "
 #ifndef Q_OS_MAC
@@ -333,7 +333,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(sendMessagesAnonAction);
 
     sendCoinsAnonAction = new QAction(QIcon(":/icons/metacontact_unknown"), tr("Zero Se&nd (coming soon)"), this);
-    sendCoinsAnonAction->setToolTip(tr("Send Coins Anonymously (being researched for stable viable implementation)"));
+    sendCoinsAnonAction->setToolTip(tr("Send Coins Anonymously (Coming Soon)"));
     sendCoinsAnonAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
     sendCoinsAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
     tabGroup->addAction(sendCoinsAnonAction);
@@ -868,7 +868,7 @@ void BitcoinGUI::error(const QString &title, const QString &message, bool modal)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, const QString &detail)
 {
-    QString strTitle = tr("NovaCoin") + " - ";
+    QString strTitle = tr("NoirShares") + " - ";
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
