@@ -326,13 +326,13 @@ void BitcoinGUI::createActions()
     receiptAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
     tabGroup->addAction(receiptAction);
 
-    sendMessagesAnonAction = new QAction(QIcon(":/icons/em"), tr("NoirTal&k "), this);
+    sendMessagesAnonAction = new QAction(QIcon(":/icons/ksayit_talking"), tr("NoirTal&k "), this);
     sendMessagesAnonAction->setToolTip(tr("Send Anonymous Message"));
     sendMessagesAnonAction->setCheckable(true);
     sendMessagesAnonAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_9));
     tabGroup->addAction(sendMessagesAnonAction);
 
-    sendCoinsAnonAction = new QAction(QIcon(":/icons/em"), tr("Zero Se&nd (coming soon)"), this);
+    sendCoinsAnonAction = new QAction(QIcon(":/icons/metacontact_unknown"), tr("Zero Se&nd (coming soon)"), this);
     sendCoinsAnonAction->setToolTip(tr("Send Coins Anonymously (being researched for stable viable implementation)"));
     sendCoinsAnonAction->setCheckable(false); // TODO: Set to true once Anonymous messaging and transactions have been implemented
     sendCoinsAnonAction->setEnabled(false); // TODO: Remove once Anonymous messaging and transactions have been implemented
@@ -414,7 +414,7 @@ void BitcoinGUI::createActions()
     miningTwoAction = new QAction(QIcon(":/icons/mining"), tr("Mine 2 Processes ( ~1.5GB Required)"), this);
     miningTwoAction->setStatusTip(tr("Mine with 2 processes. ~2GB Required."));
     miningThreeAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (3.5GB Required)"), this);
-    miningThreeAction->setStatusTip(tr("Mine MemoryCoin with 4 processes. ~3.5GB Required."));
+    miningThreeAction->setStatusTip(tr("Mine with 4 processes. ~3.5GB Required."));
     miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine all cores/threads Processes (~750MB Required per thread)"), this);
     miningFourAction->setStatusTip(tr("Mine with all cores/threads. ~750MB Required per thread."));
 	currentVotesAction = new QAction(QIcon(":/icons/voting_prefs"), tr("Current Voting Preferences"), this);

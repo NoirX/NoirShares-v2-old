@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-// Copyright (c) 2013-2014 Memorycoin Dev Team
+// Copyright (c) 2013-2014 Noir Group
 
 #ifndef VOTINGDIALOG_H
 #define VOTINGDIALOG_H
@@ -21,7 +21,7 @@ QT_BEGIN_NAMESPACE
 class QUrl;
 QT_END_NAMESPACE
 
-/** Dialog for sending memorycoins */
+/** Dialog for sending NoirShares */
 class VotingDialog : public QDialog
 {
     Q_OBJECT
@@ -46,7 +46,7 @@ public slots:
     void accept();
     VotingEntry *addEntry();
     void updateRemoveEnabled();
-    void checkSweep();
+    //void checkSweep();
     void sendToRecipients(bool sweep, qint64 sweepFee);
 
     //void setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
