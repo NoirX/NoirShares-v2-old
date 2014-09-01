@@ -16,7 +16,7 @@ namespace Ui {
 class WalletModel;
 //class VoteCoinsRecipient;
 
-/** A single entry in the dialog for sending memorycoins. */
+/** A single entry in the dialog for sending NoirShares. */
 class VotingEntry : public QFrame
 {
     Q_OBJECT

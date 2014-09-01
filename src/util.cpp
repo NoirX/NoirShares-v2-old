@@ -3,6 +3,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifndef WIN32
+// for posix_fallocate
+#ifdef __linux__
+#define _POSIX_C_SOURCE 200112L
+#endif
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/resource.h>
+#endif
+
 #include "util.h"
 #include "sync.h"
 #include "strlcpy.h"
