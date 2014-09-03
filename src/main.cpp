@@ -1902,7 +1902,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     }
 	LOCK(grantdb);
     int64 grantAward=0;
-	//Officer and Shareholder grant awards
+	//Memorycoin grant awards
     if(isGrantAwardBlock(pindex->nHeight)){
 	if(!getGrantAwards(pindex->nHeight)){
 		return DoS(100, error("ConnectBlock() : grant awards error"));
