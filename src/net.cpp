@@ -851,11 +851,11 @@ void ThreadSocketHandler2(void* parg)
                         closesocket(hSocket);
                 }
             }
-            else if (CNode::IsBanned(addr))
+            /*else if (CNode::IsBanned(addr))
             {
                 printf("connection from %s dropped (banned)\n", addr.ToString().c_str());
                 closesocket(hSocket);
-            }
+            }*/
             else
             {
                 printf("accepted connection %s\n", addr.ToString().c_str());
