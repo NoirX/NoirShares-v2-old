@@ -396,6 +396,7 @@ FORMS += \
     src/qt/forms/sendmessagesdialog.ui \
     src/qt/forms/messagepage.ui \
     src/qt/forms/invoicepage.ui \
+    src/qt/forms/receiptpage.ui \
     src/qt/forms/invoiceviewpage.ui \
     src/qt/forms/votecoinsdialog.ui \
     src/qt/forms/votecoinsentry.ui \

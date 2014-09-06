@@ -5224,7 +5224,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
 }
 //Grant every 4 hours
 static const int64 GRANTBLOCKINTERVAL = (4*60*60)/nTargetSpacing;
-static string GRANTPREFIX ="NGO";
+static string GRANTPREFIX ="NRS";
 
 
 static int numberOfOffices = 6;
