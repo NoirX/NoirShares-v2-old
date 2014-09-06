@@ -1944,10 +1944,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 	if(vtx[0].GetValueOut()!=73366415666531){
 		return DoS(100, error("ConnectBlock() : Block 1 coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
 	}
-    }else if (vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees+grantAward)){
+/*    }else if (vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees+grantAward)){
         return DoS(100, error("ConnectBlock() %d : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", pindex->nHeight, vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
     }
-
+*/
 
     //1% commission
     nFees=nFees+(calculateTicketIncome(vtx)>>TICKETCOMMISSIONRATE);
@@ -1956,9 +1956,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     if(pindex->nHeight>0){
         theNBits=pindex->pprev->nBits;
     }
-    if (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees,theNBits))
+/*    if (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees,theNBits))
         return DoS(100, error("ConnectBlock() : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", vtx[0].GetValueOut(), GetProofOfWorkReward(pindex->nHeight, nFees,theNBits)));
-
+*/
     if (!control.Wait())
         return DoS(100, false);
     int64 nTime2 = GetTimeMicros() - nStart;
