@@ -41,7 +41,7 @@ using namespace boost;
 //
 // Global state
 //
-
+static const int64 ONEDAY= 60*60*24;
 static const int64 TWOYEARS = 2 * 365 * 24 * 90;
 static const int64 ONEYEAR =  365 * 24 * 90;
 static const int64 FIFTYDAYS =  (18 * 24 * 24) + (32 * 24 * 90);
@@ -81,7 +81,7 @@ unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
 unsigned int nStakeTargetSpacing = 60 * 2;          // 4 min block spacing
 int nTargetSpacing = 60 *4;
 
-int nCoinbaseMaturity = 150;
+int nCoinbaseMaturity = 20;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 CBigNum bnBestChainTrust = 0;
@@ -919,7 +919,7 @@ int getVestedSharesMaturityHeight(uint256 txhash){
     //printf("hash of vested transaction:%s\n",txhash.GetHex().c_str());
     uint64 theHash=txhash.Get64();
     theHash=theHash+hashGenesisBlock.Get64();
-    return FIFTYDAYS + (theHash % ONEYEAR);
+    return ONEDAY + (theHash % ONEDAY);
 }
 
 int CMerkleTx::GetBlocksToMaturity() const
@@ -1547,46 +1547,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %"PRIszu" %"PRIszu" prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
 			
-		/*//mmaturity check	
-		int nSpendHeight = nHeight + 1;
-        int64 nValueIn = 0;
-        int64 nFees = 0;
-        for (unsigned int i = 0; i < vin.size(); i++)
-        {
-            const COutPoint &prevout = vin[i].prevout;
-            const CCoins &coins = inputs.GetCoins(prevout.hash);
-
-            // If prev is coinbase, check that it's matured
-            if (coins.IsCoinBase()) {
-                int inCMtu=nCoinbaseMaturity;
-                if(nSpendHeight>=500){
-                    
-                }
-                if (nSpendHeight - coins.nHeight < inCMtu)
-                    return state.Invalid(error("CheckInputs() : tried to spend coinbase at depth %d", nSpendHeight - coins.nHeight));
-                if (coins.nHeight==0){
-                    if(nSpendHeight>TWOYEARS){
-                        return state.Invalid(error("CheckInputs() : Trying to claim vested shares after expiry period. spend height=%d", nSpendHeight));
-                    }
-                    //printf("Coins Amount in Genesis Block:%d",coins.vout[prevout.n].nValue);
-                    if(coins.vout[prevout.n].nValue>MAXBALANCEGENESIS){
-                        int maturityHeight=getVestedSharesMaturityHeight(prevout.hash);
-                        if(nSpendHeight<maturityHeight){
-                            //Not matured yet
-                            return state.Invalid(error("CheckInputs() : tried to spend before vested period. spend height=%d, maturity height=%d", nSpendHeight, maturityHeight));
-                        }
-                    }
-                }
-            }}*/
-            
-            //maturity check
-
-			
-			
-			
-			
-			
-            // If prev is coinbase or coinstake, check that it's matured
+	            // If prev is coinbase or coinstake, check that it's matured
             if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
                 for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < nCoinbaseMaturity; pindex = pindex->pprev)
                     if (pindex->nBlockPos == txindex.pos.nBlockPos && pindex->nFile == txindex.pos.nFile)
@@ -1920,8 +1881,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 			ExtractDestination(vtx[0].vout[j].scriptPubKey,address);
 			string receiveAddress=CBitcoinAddress(address).ToString().c_str();
 			int64 theAmount=vtx[0].vout[j].nValue;
-			//printf("Compare %llu, %llu\n",theAmount,gait->second);
-			//printf("Compare %s, %s\n",receiveAddress.c_str(),gait->first.c_str());
+			printf("Compare %llu, %llu\n",theAmount,gait->second);
+			printf("Compare %s, %s\n",receiveAddress.c_str(),gait->first.c_str());
 		
 			if(theAmount==gait->second && receiveAddress==gait->first){
 				awardFound++;
@@ -1930,7 +1891,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 		}
 	}
 	
-	//printf("Grant award in block %d, %d\n",awardFound,grantAwards.size());
+	printf("Grant award in block %d, %d\n",awardFound,grantAwards.size());
 	/*for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
 		printf("Grant award in block %s, %llu\n",gait->first.c_str(),gait->second);
 	}*/			
