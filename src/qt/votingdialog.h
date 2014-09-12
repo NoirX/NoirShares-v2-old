@@ -21,7 +21,7 @@ QT_BEGIN_NAMESPACE
 class QUrl;
 QT_END_NAMESPACE
 
-/** Dialog for sending NoirShares */
+/** Dialog for sending memorycoins */
 class VotingDialog : public QDialog
 {
     Q_OBJECT

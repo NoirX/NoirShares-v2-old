@@ -2357,7 +2357,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // that can be verified before saving an orphan block.
 
     // Size limits
-    if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (nHeight>0 && (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CheckBlock() : size limits failed"));
 
     // Check proof of work matches claimed amount
@@ -3417,6 +3417,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return true;
     }
 
+
+
+
+
     if (strCommand == "version")
     {
         // Each connection can only send one version message
@@ -4361,9 +4365,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (fSecMsgEnabled)
             SecureMsgSendData(pto, fSendTrickle); // should be in cs_main?
     }
-    
-    
-    
     return true;
 }
 
@@ -4503,7 +4504,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     
     if(pindexBest->nHeight+1==25){
 	//Block 25 - add balances for Shareholders and NRS 
-    	std::map<std::string,int64> genesisBalances= getGenesisBalances();
+    std::map<std::string,int64> genesisBalances= getGenesisBalances();
 	std::map<std::string,int64>::iterator balit;
 	int i=1;
 	int64 total=0;

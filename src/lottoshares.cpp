@@ -629,7 +629,7 @@ bool checkForPayouts(std::vector<CTransaction> &vtx, int64 &feesFromPayout, int6
             //feesFromPayout=feesFromPayout+it->second;
         }
         //feesFromPayout=feesFromPayout/1000;
-        printf("1 Fees From Payout - Calculated - %llu\n",feesFromPayout);
+       // printf("1 Fees From Payout - Calculated - %llu\n",feesFromPayout);
 
         return true;
     }else if(logTickets){
@@ -799,47 +799,45 @@ void addShareDrops(CBlock &block){
     std::string line;
     int dgCount=0;
     char intStr [10];
+    char * pEnd;
     int64 runningTotalCoins=0;
     //load from disk - distribute with exe
     ifstream myfile;
-
-    myfile.open(getShareDropsPath("protoshares.txt").string().c_str());
+    
+    myfile.open(getShareDropsPath("shares.txt").string().c_str());
     if (myfile.is_open()){
                 while ( myfile.good() ){
                     std::getline (myfile,line);
                     std::vector<std::string> strs;
-                    boost::split(strs, line, boost::is_any_of(":"));
+                    boost::split(strs, line, boost::is_any_of(","));
+                    std::map<std::string,int64>::iterator balit;
+                    std::map<std::string,int64> genesisBalances;
+                    genesisBalances[strs[0]]=strtoll(strs[1].c_str(),&pEnd,10);
+                    for(balit=genesisBalances.begin(); balit!=genesisBalances.end(); ++balit){
                     if(strs.size()==2){
-                        int64 distributionAmount = atoi64(strs[1].c_str());
-                        while(distributionAmount>0){
-                            dgCount++;
-                            sprintf(intStr,"%d",dgCount);
+                                                    
                             CTransaction txNew;
                             txNew.vin.resize(1);
+                            txNew.nTime = 1410447822;
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
-                            if(distributionAmount>10000*COIN){
-                                txNew.vout[0].nValue =10000*COIN;
-                                distributionAmount=distributionAmount-txNew.vout[0].nValue;
-                            }else{
-                                txNew.vout[0].nValue =distributionAmount;
-                                distributionAmount=0;
-                            }
+                            txNew.vout[0].nValue= balit->second;
                             runningTotalCoins+=txNew.vout[0].nValue;
-                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x30));
+                            CBitcoinAddress address(convertAddress((balit->first).c_str(),0x5B));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
                             block.vtx.push_back(txNew);
+                            
                         }
-                    }else{
-                        printf("protoshares.txt - %s line parse failed\n",line.c_str());
+                        else{
+                        printf("shares.txt - %s line parse failed\n",line.c_str());
+                    }
                     }
                 }
                 myfile.close();
             }else{
-                printf("protoshares.txt - required for distribution, not found\n");
+                printf("shares.txt - required for distribution, not found\n");
             }
-    printf("after pts, total coins :%llu\n",runningTotalCoins);
-
+    printf("after nrs+nrb, total coins :%llu\n",runningTotalCoins);
 }
 
 bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requireChange)

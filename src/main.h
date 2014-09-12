@@ -100,12 +100,15 @@ extern int nScriptCheckThreads;
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64 nMinDiskSpace = 52428800;
 
+
 class CReserveKey;
 class CTxDB;
 class CTxIndex;
 class CScriptCheck;
 
+/** Register a wallet to receive updates from core */
 void RegisterWallet(CWallet* pwalletIn);
+/** Unregister a wallet from core */
 void UnregisterWallet(CWallet* pwalletIn);
 void UnregisterAllWallets();
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
@@ -429,7 +432,6 @@ public:
 
 
 
-
 enum GetMinFee_mode
 {
     GMF_BLOCK,
@@ -440,7 +442,7 @@ enum GetMinFee_mode
 typedef std::map<uint256, std::pair<CTxIndex, CTransaction> > MapPrevTx;
 
 /** The basic transaction that is broadcasted on the network and contained in
- * blocks.  A transaction can contain multiple inputs and outputs.
+ * blocks. A transaction can contain multiple inputs and outputs.
  */
 class CTransaction
 {
@@ -751,9 +753,6 @@ public:
         std::swap(nHashType, check.nHashType);
     }
 };
-
-
-
 
 /** A transaction with a merkle branch linking it to the block chain. */
 class CMerkleTx : public CTransaction
@@ -1166,8 +1165,13 @@ private:
 class CBlockIndex
 {
 public:
+    // pointer to the hash of the block, if any. memory is owned by this CBlockIndex
     const uint256* phashBlock;
+
+    // pointer to the index of the predecessor of this block
     CBlockIndex* pprev;
+
+    // (memory only) pointer to the index of the *active* successor of this block
     CBlockIndex* pnext;
     unsigned int nFile;
     unsigned int nBlockPos;
