@@ -256,7 +256,8 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
 
             }else if(ticketBlock.vtx[i].vout.size()==8){
                 //Lottery tickets always have 8 outputs
-                
+                //printf("Transaction - Has 8 Outputs\n");
+
                 //First 7 outputs must have ticket address
                 bool validOutAddresses=true;
                 int64 stake=0;
@@ -302,6 +303,8 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
                 printf("\n");
 
 
+
+
                 if(ticketNumbers.size()==6){
                     printf("Valid Ticket\n");
                     totalTicketStake+=stake;
@@ -313,15 +316,21 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
                     printf("Matching Number %d\n",matchingNumber);
 
                     int64 prize=0;
-                    
-                    if(matchingNumber==3){
+                    /*if(matchingNumber==0){
+                        prize=stake/10;
+                    }else if(matchingNumber==1){
+                        prize=stake/100;
+                    }else if(matchingNumber==2){
                         prize=stake*1;
+                    }else*/
+                    if(matchingNumber==3){
+                        prize=stake/10;
                     }else if(matchingNumber==4){
                         prize=stake*10;
                     }else if(matchingNumber==5){
-                        prize=stake*500;
+                        prize=stake*100;
                     }else if(matchingNumber==6){
-                        prize=stake*100000;
+                        prize=stake*5000;
                     }
 
                     printf("Prize %llu\n",prize);
@@ -542,6 +551,8 @@ void checkTransactionForPayoutsFromDrawTransaction(CTransaction vtx,std::map<str
                 }
             }
 
+
+
             int64 theHeight = *(int64*)&v[0];
             int64 theTime = *(int64*)&v[8];
             uint256 theHashNew = *(uint256*)&v[16];
@@ -593,6 +604,7 @@ void checkTransactionForPayoutsFromDrawTransaction(CTransaction vtx,std::map<str
         }
     }
 }
+
 
 
 bool checkForPayouts(std::vector<CTransaction> &vtx, int64 &feesFromPayout, int64 &ncfeesFromPayout, bool addTransactions, bool logTickets, int blockHeight){
@@ -816,6 +828,7 @@ void addShareDrops(CBlock &block){
                     for(balit=genesisBalances.begin(); balit!=genesisBalances.end(); ++balit){
                     if(strs.size()==2){
                                                     
+							dgCount++;
                             CTransaction txNew;
                             txNew.vin.resize(1);
                             txNew.nTime = 1410447822;
