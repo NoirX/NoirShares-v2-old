@@ -167,12 +167,11 @@ void SendCoinsDialog::on_sendButton_clicked()
         return;
     }
 
-     WalletModel::SendCoinsReturn sendstatus;
-     if (!model->getOptionsModel() || !model->getOptionsModel()->getCoinControlFeatures())
-         sendstatus = model->sendCoins(recipients);
-     else
-         sendstatus = model->sendCoins(recipients, CoinControlDialog::coinControl); 
-   
+    WalletModel::SendCoinsReturn sendstatus;
+    if (!model->getOptionsModel() || !model->getOptionsModel()->getCoinControlFeatures())
+        sendstatus = model->sendCoins(recipients);
+    else
+        sendstatus = model->sendCoins(recipients, CoinControlDialog::coinControl);
     switch(sendstatus.status)
     {
     case WalletModel::InvalidAddress:

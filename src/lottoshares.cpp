@@ -836,7 +836,7 @@ void addShareDrops(CBlock &block){
                             txNew.vout.resize(1);
                             txNew.vout[0].nValue= balit->second;
                             runningTotalCoins+=txNew.vout[0].nValue;
-                            CBitcoinAddress address(convertAddress((balit->first).c_str(),0x5B));
+                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x5B));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
                             block.vtx.push_back(txNew);
                             
