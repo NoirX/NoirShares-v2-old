@@ -259,7 +259,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/ui_interface.h \
     src/qt/rpcconsole.h \
     src/version.h \
-    src/lottoshares.h \
+    src/lotto.h \
     src/hash.h \
     src/netbase.h \
     src/clientversion.h \
@@ -359,7 +359,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-x86_64.S \
     src/scrypt_mine.cpp \
     src/pbkdf2.cpp \
-    src/lottoshares.cpp \
+    src/lotto.cpp \
     src/emessage.cpp \
     src/rpcemessage.cpp \
     src/qt/sendmessagesentry.cpp \

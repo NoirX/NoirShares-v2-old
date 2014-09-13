@@ -124,7 +124,7 @@ OBJS= \
     obj/keystore.o \
     obj/main.o \
     obj/momentum.o \
-    obj/lottoshares.o \
+    obj/lotto.o \
     obj/net.o \
     obj/protocol.o \
     obj/bitcoinrpc.o \

@@ -1,5 +1,5 @@
 #include "main.h"
-#include "lottoshares.h"
+#include "lotto.h"
 #include "alert.h"
 #include "checkpoints.h"
 #include "db.h"
@@ -492,7 +492,7 @@ uint256 checkTransactionForCheckpoints(CTransaction tx, bool makeFileQueue, bool
             unsigned char hash[SHA256_DIGEST_LENGTH];
             unsigned int signLen=256;
             unsigned char sign[256];
-            for(int i=0;i<signLen;i++){
+            for(unsigned int i=0;i<signLen;i++){
                 sign[i]=signature[i];
             }
             SHA256((unsigned char*)messageToSign, strlen(messageToSign), hash);
@@ -688,7 +688,7 @@ int64 calculateTicketIncome(std::vector<CTransaction> vtx){
         }else{
             //Sum outputs sent to ticket address
             CTxDestination address;
-            for(int k=0;k<vtx[i].vout.size();k++){
+            for(unsigned int k=0;k<vtx[i].vout.size();k++){
                 ExtractDestination(vtx[i].vout[k].scriptPubKey,address);
                 std::string outputAddress=CBitcoinAddress(address).ToString().c_str();
                 if(outputAddress==TICKETADDRESS){
@@ -741,7 +741,7 @@ void writeLogInfoForBlock(uint256 logBlockHash){
     myfile.open ((GetDataDir() / "log-operatingstatement.txt").string().c_str(), ios::app);
 
     int64 coinbaseAward=0;
-    for(int j=0;j<ticketBlock.vtx[0].vout.size();j++){
+    for(unsigned int j=0;j<ticketBlock.vtx[0].vout.size();j++){
         coinbaseAward+=ticketBlock.vtx[0].vout[j].nValue;
     }
     double dcoin=100000000.0;
@@ -807,50 +807,78 @@ boost::filesystem::path getShareDropsPath(const char *fileName)
 }
 
 void addShareDrops(CBlock &block){
-    //Add airdrops to genesis block
+	 //Add airdrops to genesis block
     std::string line;
     int dgCount=0;
     char intStr [10];
-    char * pEnd;
     int64 runningTotalCoins=0;
     //load from disk - distribute with exe
     ifstream myfile;
-    
-    myfile.open(getShareDropsPath("shares.txt").string().c_str());
+    const char* pszTimestamp = "NoirBits - Future in hand.";
+	myfile.open(getShareDropsPath("shares.txt").string().c_str());
     if (myfile.is_open()){
                 while ( myfile.good() ){
                     std::getline (myfile,line);
                     std::vector<std::string> strs;
                     boost::split(strs, line, boost::is_any_of(","));
-                    std::map<std::string,int64>::iterator balit;
-                    std::map<std::string,int64> genesisBalances;
-                    genesisBalances[strs[0]]=strtoll(strs[1].c_str(),&pEnd,10);
-                    for(balit=genesisBalances.begin(); balit!=genesisBalances.end(); ++balit){
+                    
                     if(strs.size()==2){
-                                                    
-							dgCount++;
+							long l = atol(strs[1].c_str());
+                            dgCount++;
+                            sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
+                            txNew.nTime = 1410609937;
                             txNew.vin.resize(1);
-                            txNew.nTime = 1410447822;
-                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
+                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
-                            txNew.vout[0].nValue= balit->second;
+                            txNew.vout[0].nValue =l;
                             runningTotalCoins+=txNew.vout[0].nValue;
                             CBitcoinAddress address(convertAddress(strs[0].c_str(),0x5B));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
                             block.vtx.push_back(txNew);
-                            
-                        }
-                        else{
+                        
+                    }else{
                         printf("shares.txt - %s line parse failed\n",line.c_str());
-                    }
                     }
                 }
                 myfile.close();
             }else{
                 printf("shares.txt - required for distribution, not found\n");
             }
-    printf("after nrs+nrb, total coins :%llu\n",runningTotalCoins);
+    printf("shares.txt, total coins :%llu\n",runningTotalCoins);
+    
+    myfile.open(getShareDropsPath("shares2.txt").string().c_str());
+    if (myfile.is_open()){
+                while ( myfile.good() ){
+                    std::getline (myfile,line);
+                    std::vector<std::string> strs;
+                    boost::split(strs, line, boost::is_any_of(","));
+                    
+                    if(strs.size()==2){
+							long l = atol(strs[1].c_str());
+                            dgCount++;
+                            sprintf(intStr,"%d",dgCount);
+                            CTransaction txNew;
+                            txNew.nTime = 1410609937;
+                            txNew.vin.resize(1);
+                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
+                            txNew.vout.resize(1);
+                            txNew.vout[0].nValue =(l/10);
+                            runningTotalCoins+=txNew.vout[0].nValue;
+                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x5B));
+                            txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
+                            block.vtx.push_back(txNew);
+                        
+                    }else{
+                        printf("shares2.txt - %s line parse failed\n",line.c_str());
+                    }
+                }
+                myfile.close();
+            }else{
+                printf("shares2.txt - required for distribution, not found\n");
+            }
+    printf("shares2.txt, total coins :%llu\n",runningTotalCoins);
+  
 }
 
 bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requireChange)
@@ -905,7 +933,7 @@ bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requi
         return false;
     }
 
-    printf("number of outputs:%d %d\n",numberAddresses,wtx.vout.size());
+    printf("number of outputs:%d %lu\n",numberAddresses,wtx.vout.size());
 
     if(requireChange && wtx.vout.size()!=numberAddresses+1){
         printf("Transaction failed - would create a transaction with no change which may be invalid\n");

@@ -13,7 +13,7 @@
 #include "checkpoints.h"
 #include "zerocoin/ZeroTest.h"
 #include "emessage.h"
-#include "lottoshares.h"
+#include "lotto.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>

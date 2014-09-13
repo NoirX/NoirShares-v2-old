@@ -14,7 +14,7 @@
 #include "scrypt_mine.h"
 #include "checkqueue.h"
 #include "emessage.h"
-#include "lottoshares.h"
+#include "lotto.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string.hpp>
@@ -45,7 +45,7 @@ static const int64 ONEDAY= 60*60*24;
 static const int64 TWOYEARS = 2 * 365 * 24 * 90;
 static const int64 ONEYEAR =  365 * 24 * 90;
 static const int64 FIFTYDAYS =  (18 * 24 * 24) + (32 * 24 * 90);
-static const int64 MAXBALANCEGENESIS =  100 * COIN;
+static const int64 MAXBALANCEGENESIS =  1000000 * COIN;
 
 
 
@@ -63,12 +63,12 @@ libzerocoin::Params* ZCParams;
 
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-uint256 merkleRootGenesisBlock("0x4ed35a3349ab2f6adc0b710d6df899a0f7cdfaec49ef7515da9ea8a63eaf2218");
-uint256 rseedGenesisBlock("0x2dcd1c9a6f9c79342224611cebc701eacc8a670086a4acd7cb7d3fea528d9693");
-const int64 nChainStartTime = 1408563876; 
-const unsigned long nChainStartNonce = 11;
-const unsigned long nChainStartBirthdayA = 6715920;
-const unsigned long nChainStartBirthdayB = 16567824;
+uint256 merkleRootGenesisBlock("0xfc76f41eeddc41f593fc279197aa2fa3d74de4a5bb2e2fcd736f32557c44edb8");
+uint256 rseedGenesisBlock("0x62794ac26e62e44e53694a4575e22ad314fa350299a0cecc84d29e7a8cefd7ba");
+const int64 nChainStartTime = 1410609937; 
+const unsigned long nChainStartNonce = 3;
+const unsigned long nChainStartBirthdayA = 47447148;
+const unsigned long nChainStartBirthdayB = 64962011;
 
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
@@ -1322,16 +1322,8 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
  uint256 CBlock::GetHash() const
      {
  
- 		// uint256 midHash = GetMidHash();
- 		    
- 		//printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
- 		//printf("GetHash - Birthday A %u hash \n", nBirthdayA);
- 		//printf("GetHash - Birthday B %u hash \n", nBirthdayB);
-		
-		
-		    uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
- //    fprintf( stderr, "init hash %s\n", r.ToString().c_str() );
- 
+ 		uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
+  
      return r; //Hash(BEGIN(nVersion), END(nBirthdayB));
  }
 
@@ -1891,7 +1883,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 		}
 	}
 	
-	printf("Grant award in block %d, %d\n",awardFound,grantAwards.size());
+	printf("Grant award in block %d, %lu\n",awardFound,grantAwards.size());
 	/*for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
 		printf("Grant award in block %s, %llu\n",gait->first.c_str(),gait->second);
 	}*/			
@@ -2313,7 +2305,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
     pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
     pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
     if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
-        return error("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016"PRI64x, pindexNew->nHeight, nStakeModifier);
+       return error("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016"PRI64x, pindexNew->nHeight, nStakeModifier);
 
     // Add to mapBlockIndex
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
@@ -2357,7 +2349,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // that can be verified before saving an orphan block.
 
     // Size limits
-    if (nHeight>0 && (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if ((vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE))
         return DoS(100, error("CheckBlock() : size limits failed"));
 
     // Check proof of work matches claimed amount
@@ -2371,8 +2363,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     if (vtx.empty() || !vtx[0].IsCoinBase())
         return DoS(100, error("CheckBlock() : first tx is not coinbase"));
     for (unsigned int i = 1; i < vtx.size(); i++)
-        if (vtx[i].IsCoinBase())
-            return DoS(100, error("CheckBlock() : more than one coinbase"));
+       /* if (vtx[i].IsCoinBase())
+            return DoS(100, error("CheckBlock() : more than one coinbase"));*/
 
     // Validate last stage of PoW only
     if (fCheckPOW && IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
@@ -3047,16 +3039,10 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis block
-        const char* pszTimestamp = "NoirBits - Future in hand.";
-        CTransaction txNew;
-        txNew.nTime = nChainStartTime;
-        txNew.vin.resize(1);
-        txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].SetEmpty();
+                
         CBlock block;
-        block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
+        addShareDrops(block);
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
         block.nTime    = nChainStartTime;
@@ -3065,10 +3051,11 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashRandomSeed = rseedGenesisBlock;
         block.nBirthdayA   = nChainStartBirthdayA;
         block.nBirthdayB   = nChainStartBirthdayB;
-        
-        //// debug print
         uint256 hash = block.GetHash();
-        printf("block.nBits = %u \n", block.nBits);
+        //block.print();
+       //// debug print
+        
+     /*   printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
@@ -3077,11 +3064,9 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("RSEED: %s\n", block.hashRandomSeed.ToString().c_str());
 		printf("birthdayA=%u;\n",block.nBirthdayA);
 		printf("birthdayB=%u;\n",block.nBirthdayB);
-        block.print();
+        
 
-
-
-      /* {
+      {
 		printf("Generating new genesis block...\n");
 		uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
 		uint256 testHash;
@@ -3094,8 +3079,8 @@ bool LoadBlockIndex(bool fAllowNew)
 				block.nNonce=block.nNonce+1;
 			}
 			// Amount calculation not needed for genesis block - all outputs are zero
-			//block.hashMerkleRoot = block.BuildMerkleTree();
-			block.hashMerkleRoot = merkleRootGenesisBlock;
+			block.hashMerkleRoot = block.BuildMerkleTree();
+			//block.hashMerkleRoot = merkleRootGenesisBlock;
 			testHash=block.GetHash();
 			printf("testHash %s\n", testHash.ToString().c_str());
 			printf("Hash Target %s\n", hashTarget.ToString().c_str());
@@ -3113,7 +3098,7 @@ bool LoadBlockIndex(bool fAllowNew)
 	}*/
 
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
-        block.print();
+        //block.print();
         assert(hash == hashGenesisBlock);
         assert(block.CheckBlock());
 
@@ -4502,23 +4487,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     txNew.vout.resize(1);
     printf("Create Block, %d\n",pindexBest->nHeight+1); 
     
-    if(pindexBest->nHeight+1==25){
-	//Block 25 - add balances for Shareholders and NRS 
-    std::map<std::string,int64> genesisBalances= getGenesisBalances();
-	std::map<std::string,int64>::iterator balit;
-	int i=1;
-	int64 total=0;
-	txNew.vout.resize(genesisBalances.size()+1);
-	for(balit=genesisBalances.begin(); balit!=genesisBalances.end(); ++balit){
-		//printf("gb:%s,%llu",balit->first.c_str(),balit->second);
-		CBitcoinAddress address(balit->first);
-		txNew.vout[i].scriptPubKey.SetDestination( address.Get() );
-		txNew.vout[i].nValue = balit->second;
-		total=total+balit->second;
-		i++;
-	}
-	printf("Total ...%llu\n",total);  
-	} 
+
 	{
     LOCK(grantdb);
     //For grant award block, add grants to coinbase

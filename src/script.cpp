@@ -1925,3 +1925,5 @@ void CScript::SetMultisig(int nRequired, const std::vector<CKey>& keys)
         *this << key.GetPubKey();
     *this << EncodeOP_N(keys.size()) << OP_CHECKMULTISIG;
 }
+
+

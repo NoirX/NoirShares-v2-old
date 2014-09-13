@@ -32,7 +32,7 @@ static const int64 PRIZEPAYMENTHEIGHT = 25068;
 static const int TICKETCOMMISSIONRATE = 7; //1/128
 static const int PRIZEPAYMENTCOMMISSIONS = 10; //1/1024
 
-static const unsigned int MAX_BLOCK_SIZE = 5*1000000; // 5 * 1000 kb block
+static const unsigned int MAX_BLOCK_SIZE = 10*1000000; // 10 * 1000 kb block
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
@@ -56,7 +56,7 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlockOfficial ("0x0049c08c53287b3249e136f95275f0b533fd75c81136878abf0ee51d6e9a436a");
+static const uint256 hashGenesisBlockOfficial ("0x0dfab2d14db9988484f77ee16b9d5b849d528f7714c134ac1dc065666c68923d");
 
 
 static const uint256 hashGenesisBlockTestNet("0x");
@@ -419,8 +419,9 @@ public:
     std::string ToString() const
     {
         if (IsEmpty()) return "CTxOut(empty)";
-        if (scriptPubKey.size() < 6)
-            return "CTxOut(error)";
+        if (scriptPubKey.size() < 6){
+           return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)", FormatMoney(nValue).c_str(), scriptPubKey.ToString().c_str());
+        }
         return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)", FormatMoney(nValue).c_str(), scriptPubKey.ToString().c_str());
     }
 
@@ -1140,7 +1141,7 @@ public:
     bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
     bool SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew);
     bool AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos);
-    bool CheckBlock(int nHeight, bool fCheckPOW=true, bool fCheckMerkleRoot=true, bool fCheckSig=true) const;
+    bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true, bool fCheckSig=true) const;
     bool AcceptBlock();
     bool GetCoinAge(uint64& nCoinAge) const; // ppcoin: calculate total coin age spent in block
     bool SignBlock(const CKeyStore& keystore);
