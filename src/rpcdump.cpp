@@ -32,6 +32,13 @@ public:
     }
 };
 
+string convertAddress2(const char address[], char newVersionByte){
+    std::vector<unsigned char> v;
+    DecodeBase58Check(address,v);
+    v[0]=newVersionByte;
+    string result = EncodeBase58Check(v);
+    return result;
+}
 
 Value importprivkey(CWallet* pWallet, const Array& params, bool fHelp)
 {
@@ -41,7 +48,9 @@ Value importprivkey(CWallet* pWallet, const Array& params, bool fHelp)
             "Adds a private key (as returned by dumpprivkey) to your wallet.");
 
     string strSecret = params[0].get_str();
-   
+    printf("before %s",strSecret.c_str());
+    strSecret = convertAddress2(strSecret.c_str(),53+128);
+    printf("after %s",strSecret.c_str());
     string strLabel = "";
     if (params.size() > 1)
         strLabel = params[1].get_str();

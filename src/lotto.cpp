@@ -5,6 +5,7 @@
 #include "db.h"
 #include "net.h"
 #include "init.h"
+#include "base58.h"
 #include "ui_interface.h"
 #include "checkqueue.h"
 #include <boost/algorithm/string.hpp>
@@ -247,7 +248,7 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
                     sprintf(str, "| Rolled: %d", diceRoll);
                     std::string myNumbers=str;
                     BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered){
-                        printf("lottoshares.cpp addlnitim\n");
+                        printf("lotto.cpp addlnitim\n");
                         pwallet->AddLotteryNumbersIfTransactionInvolvingMe(ticketBlock.vtx[i].GetHash(), ticketBlock.vtx[i], myNumbers);
                     }
 
@@ -376,7 +377,7 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
                     sprintf(str, "| Match: %d", matchingNumber);
                     myNumbers=myNumbers+str;
                     BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered){
-                        printf("lottoshares.cpp addlnitim\n");
+                        printf("lotto.cpp addlnitim\n");
 
                         pwallet->AddLotteryNumbersIfTransactionInvolvingMe(ticketBlock.vtx[i].GetHash(), ticketBlock.vtx[i], myNumbers);
                     }
@@ -827,13 +828,13 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410609937;
+                            txNew.nTime = 1410697345;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
                             txNew.vout[0].nValue =l;
                             runningTotalCoins+=txNew.vout[0].nValue;
-                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x5B));
+                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x35));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
                             block.vtx.push_back(txNew);
                         
@@ -859,13 +860,13 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410609937;
+                            txNew.nTime = 1410697345;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
                             txNew.vout[0].nValue =(l/10);
                             runningTotalCoins+=txNew.vout[0].nValue;
-                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x5B));
+                            CBitcoinAddress address(convertAddress(strs[0].c_str(),0x35));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
                             block.vtx.push_back(txNew);
                         

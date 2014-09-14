@@ -63,12 +63,12 @@ libzerocoin::Params* ZCParams;
 
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-uint256 merkleRootGenesisBlock("0xfc76f41eeddc41f593fc279197aa2fa3d74de4a5bb2e2fcd736f32557c44edb8");
-uint256 rseedGenesisBlock("0x62794ac26e62e44e53694a4575e22ad314fa350299a0cecc84d29e7a8cefd7ba");
-const int64 nChainStartTime = 1410609937; 
-const unsigned long nChainStartNonce = 3;
-const unsigned long nChainStartBirthdayA = 47447148;
-const unsigned long nChainStartBirthdayB = 64962011;
+uint256 merkleRootGenesisBlock("0x03310d955b0e2cbf69d10e7511907593435b5d9e248aa6a747eb306143f1779b");
+uint256 rseedGenesisBlock("0x76e3ad4ba1f362bf577e81efd918252e9298dfdcf0b876a2e4926678b0084611");
+const int64 nChainStartTime = 1410697345; 
+const unsigned long nChainStartNonce = 32;
+const unsigned long nChainStartBirthdayA = 38052953;
+const unsigned long nChainStartBirthdayB = 45415997;
 
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
@@ -3052,10 +3052,12 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nBirthdayA   = nChainStartBirthdayA;
         block.nBirthdayB   = nChainStartBirthdayB;
         uint256 hash = block.GetHash();
-        //block.print();
+       
+        
+     /*  //block.print();
        //// debug print
         
-     /*   printf("block.nBits = %u \n", block.nBits);
+        printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
@@ -3098,7 +3100,7 @@ bool LoadBlockIndex(bool fAllowNew)
 	}*/
 
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
-        //block.print();
+      //  block.print();
         assert(hash == hashGenesisBlock);
         assert(block.CheckBlock());
 
