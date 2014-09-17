@@ -824,15 +824,15 @@ void addShareDrops(CBlock &block){
                     boost::split(strs, line, boost::is_any_of(","));
                     
                     if(strs.size()==2){
-							long l = atol(strs[1].c_str());
+							
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410697345;
+                            txNew.nTime = 1410918978;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
-                            txNew.vout[0].nValue =l;
+                            txNew.vout[0].nValue = atoi64(strs[1].c_str());
                             runningTotalCoins+=txNew.vout[0].nValue;
                             CBitcoinAddress address(convertAddress(strs[0].c_str(),0x35));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
@@ -860,11 +860,11 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410697345;
+                            txNew.nTime = 1410918978;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
-                            txNew.vout[0].nValue =(l/10);
+                            txNew.vout[0].nValue =((atoi64(strs[1].c_str()))/10);
                             runningTotalCoins+=txNew.vout[0].nValue;
                             CBitcoinAddress address(convertAddress(strs[0].c_str(),0x35));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );

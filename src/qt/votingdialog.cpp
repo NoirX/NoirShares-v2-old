@@ -66,21 +66,6 @@ VotingDialog::~VotingDialog()
     delete ui;
 }
 
-/*void VotingDialog::checkSweep(){
-    if(model->NeedsSweep()){
-        ui->sendButton->setEnabled(false);
-        ui->sweepLabel->setVisible(true);
-        ui->sweepButton->setVisible(true);
-    }else{
-        ui->sendButton->setEnabled(true);
-        ui->sweepLabel->setVisible(false);
-        ui->sweepButton->setVisible(false);
-    }
-}*/
-
-
-
-
 void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
 
     QList<SendCoinsRecipient> recipients;
@@ -96,8 +81,8 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
 
         //Change button states
         ui->sendButton->setEnabled(true);
-        ui->sweepLabel->setVisible(false);
-        ui->sweepButton->setVisible(false);
+        //ui->sweepLabel->setVisible(false);
+        //ui->sweepButton->setVisible(false);
     }else{
         bool valid = true;
 
@@ -139,17 +124,7 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
 
     fNewRecipientAllowed = false;
 
-    /*QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send coins"),
-                          tr("Are you sure you want to send %1?").arg(formatted.join(tr(" and "))),
-          QMessageBox::Yes|QMessageBox::Cancel,
-          QMessageBox::Cancel);
-
-    if(retval != QMessageBox::Yes)
-    {
-        fNewRecipientAllowed = true;
-        return;
-    }*/
-
+    
     WalletModel::UnlockContext ctx(model->requestUnlock());
     if(!ctx.isValid())
     {
@@ -209,12 +184,6 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
         break;
     }
     fNewRecipientAllowed = true;
-}
-
-void VotingDialog::on_sweepButton_clicked(){
-
-    sendToRecipients(true,0);
-
 }
 
 void VotingDialog::on_sendButton_clicked()

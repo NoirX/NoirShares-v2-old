@@ -63,12 +63,12 @@ libzerocoin::Params* ZCParams;
 
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-uint256 merkleRootGenesisBlock("0x03310d955b0e2cbf69d10e7511907593435b5d9e248aa6a747eb306143f1779b");
-uint256 rseedGenesisBlock("0x76e3ad4ba1f362bf577e81efd918252e9298dfdcf0b876a2e4926678b0084611");
-const int64 nChainStartTime = 1410697345; 
-const unsigned long nChainStartNonce = 32;
-const unsigned long nChainStartBirthdayA = 38052953;
-const unsigned long nChainStartBirthdayB = 45415997;
+uint256 merkleRootGenesisBlock("0x377d1908fe0f8b8b245f9a0a46846cb3b11ece52f59eef6b88719f241029ba28");
+uint256 rseedGenesisBlock("0x3501227d3a0dd01957e58bcb25ca732ee7155b2ecc1e1b232576ad2cb340abcd");
+const int64 nChainStartTime = 1410918978; 
+const unsigned long nChainStartNonce = 3;
+const unsigned long nChainStartBirthdayA = 3485519;
+const unsigned long nChainStartBirthdayB = 9863792;
 
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
@@ -76,7 +76,7 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 2);
 
-unsigned int nStakeMinAge = 60 * 60 * 24 * 7;   // minimum age for coin age: 8h
+unsigned int nStakeMinAge = 60 * 60 * 24 * 7;   // minimum age for coin age
 unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
 unsigned int nStakeTargetSpacing = 60 * 2;          // 4 min block spacing
 int nTargetSpacing = 60 *4;
@@ -3052,12 +3052,12 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nBirthdayA   = nChainStartBirthdayA;
         block.nBirthdayB   = nChainStartBirthdayB;
         uint256 hash = block.GetHash();
-       
+      
         
-     /*  //block.print();
+       //block.print();
        //// debug print
         
-        printf("block.nBits = %u \n", block.nBits);
+ /*       printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());

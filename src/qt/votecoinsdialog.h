@@ -41,7 +41,7 @@ public slots:
     void accept();
     VoteCoinsEntry *addEntry();
     void updateRemoveEnabled();
-    //void checkSweep();
+   
     void sendToRecipients();
 
     //void setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
@@ -53,7 +53,7 @@ private:
 
 private slots:
     void on_sendButton_clicked();
-    void on_sweepButton_clicked();
+    
     void removeEntry(VoteCoinsEntry* entry);
     //void updateDisplayUnit();
 };

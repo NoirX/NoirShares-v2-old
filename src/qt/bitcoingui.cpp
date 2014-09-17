@@ -490,8 +490,8 @@ void BitcoinGUI::createMenuBar()
 
 	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
     mining->addSeparator();
-    mining->addAction(miningOneAction);
     mining->addAction(miningOffAction);
+    mining->addAction(miningOneAction);
     mining->addAction(miningTwoAction);
     mining->addAction(miningThreeAction);
     mining->addAction(miningFourAction);
