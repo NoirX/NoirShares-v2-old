@@ -5159,7 +5159,7 @@ static string GRANTPREFIX ="NRS";
 static int numberOfOffices = 6;
 string electedOffices[7];
 //= {"ceo","cdo","cfo","cmo","coo","cbf","XFT"};
-//= Current Shareholders 
+
 //Chief Executive Officer
 //Chief Development Officer
 //Chief Operations Officer
@@ -5384,7 +5384,7 @@ int getOfficeNumberFromAddress(string grantVoteAddress, int64 nHeight){
 	}
     for(int i=0;i<numberOfOffices+1;i++){
 		//printf("substring %s\n",grantVoteAddress.substr(4,3).c_str());
-		if(grantVoteAddress.substr(4,3)==electedOffices[i]){
+		if(grantVoteAddress.substr(3)==electedOffices[i]){
 			return i;
 		}
 	}
