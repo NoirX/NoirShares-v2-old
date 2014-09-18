@@ -183,7 +183,7 @@ bool VoteCoinsEntry::validateDice(){
 
 SendCoinsRecipient VoteCoinsEntry::getDiceGame(){
     SendCoinsRecipient rv;
-    rv.address = "NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
+    rv.address = "NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
     rv.label = "Dice Game";
     //rv.amount =  ui->gameType->currentIndex()+1;
     return rv;
@@ -191,7 +191,7 @@ SendCoinsRecipient VoteCoinsEntry::getDiceGame(){
 
 SendCoinsRecipient VoteCoinsEntry::getDiceAmount(){
     SendCoinsRecipient rv;
-    rv.address = "NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
+    rv.address = "NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
     rv.label = "Dice Game";
     //rv.amount=ui->payAmount_2->value()-(ui->gameType->currentIndex()+1);
     return rv;
@@ -200,7 +200,7 @@ SendCoinsRecipient VoteCoinsEntry::getDiceAmount(){
 SendCoinsRecipient VoteCoinsEntry::getValue(int ballNumber)
 {
     SendCoinsRecipient rv;
-    rv.address = "NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
+    rv.address = "NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
     rv.label = "Lottery Ticket";
     int totalBallCost=0;
     switch (ballNumber){

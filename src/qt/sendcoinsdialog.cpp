@@ -117,7 +117,7 @@ void SendCoinsDialog::on_sendButton_clicked()
 
     if(!model)
         return;
-	
+
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
@@ -280,6 +280,7 @@ void SendCoinsDialog::updateRemoveEnabled()
         }
     }
     setupTabChain(0);
+
     coinControlUpdateLabels();
 }
 
@@ -302,6 +303,26 @@ QWidget *SendCoinsDialog::setupTabChain(QWidget *prev)
     QWidget::setTabOrder(prev, ui->addButton);
     QWidget::setTabOrder(ui->addButton, ui->sendButton);
     return ui->sendButton;
+}
+
+void SendCoinsDialog::setAddress(const QString &address)
+{
+    SendCoinsEntry *entry = 0;
+    // Replace the first entry if it is still unused
+    if(ui->entries->count() == 1)
+    {
+        SendCoinsEntry *first = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(0)->widget());
+        if(first->isClear())
+        {
+            entry = first;
+        }
+    }
+    if(!entry)
+    {
+        entry = addEntry();
+    }
+
+    entry->setAddress(address);
 }
 
 void SendCoinsDialog::pasteEntry(const SendCoinsRecipient &rv)
@@ -416,7 +437,7 @@ void SendCoinsDialog::coinControlClipboardChange()
 void SendCoinsDialog::coinControlFeatureChanged(bool checked)
 {
     ui->frameCoinControl->setVisible(checked);
-
+    
     if (!checked && model) // coin control features disabled
         CoinControlDialog::coinControl->SetNull();
 }
@@ -440,7 +461,7 @@ void SendCoinsDialog::coinControlChangeChecked(int state)
         else
             CoinControlDialog::coinControl->destChange = CNoDestination();
     }
-
+    
     ui->lineEditCoinControlChange->setEnabled((state == Qt::Checked));
     ui->labelCoinControlChangeLabel->setEnabled((state == Qt::Checked));
 }
@@ -488,7 +509,7 @@ void SendCoinsDialog::coinControlUpdateLabels()
 {
     if (!model || !model->getOptionsModel() || !model->getOptionsModel()->getCoinControlFeatures())
         return;
-
+    
     // set pay amounts
     CoinControlDialog::payAmounts.clear();
     for(int i = 0; i < ui->entries->count(); ++i)
@@ -497,12 +518,12 @@ void SendCoinsDialog::coinControlUpdateLabels()
         if(entry)
             CoinControlDialog::payAmounts.append(entry->getValue().amount);
     }
-
+        
     if (CoinControlDialog::coinControl->HasSelected())
     {
         // actual coin control calculation
         CoinControlDialog::updateLabels(model, this);
-
+        
         // show coin control stats
         ui->labelCoinControlAutomaticallySelected->hide();
         ui->widgetCoinControl->show();
@@ -515,3 +536,4 @@ void SendCoinsDialog::coinControlUpdateLabels()
         ui->labelCoinControlInsuffFunds->hide();
     }
 }
+

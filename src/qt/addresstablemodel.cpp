@@ -245,7 +245,6 @@ bool AddressTableModel::setData(const QModelIndex & index, const QVariant & valu
             }
             break;
         }
-
         return true;
     }
     return false;
@@ -346,6 +345,7 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
     {
         return QString();
     }
+
     // Add entry
     {
         LOCK(wallet->cs_wallet);

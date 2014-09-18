@@ -14,6 +14,7 @@ class WalletModel;
 class AddressTableModel : public QAbstractTableModel
 {
     Q_OBJECT
+
 public:
     explicit AddressTableModel(CWallet *wallet, WalletModel *parent = 0);
     ~AddressTableModel();
@@ -36,8 +37,8 @@ public:
         KEY_GENERATION_FAILURE /**< Generating a new public key for a receiving address failed */
     };
 
-    static const QString Send; /**< Specifies send address */
-    static const QString Receive; /**< Specifies receive address */
+    static const QString Send;      /**< Specifies send address */
+    static const QString Receive;   /**< Specifies receive address */
 
     /** @name Methods overridden from QAbstractTableModel
         @{*/

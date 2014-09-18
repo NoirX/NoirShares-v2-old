@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <sendcoinsdialog.h>
 
-
 namespace Ui {
     class VoteCoinsDialog;
 }

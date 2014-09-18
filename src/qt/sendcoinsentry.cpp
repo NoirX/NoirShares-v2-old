@@ -1,5 +1,6 @@
 #include "sendcoinsentry.h"
 #include "ui_sendcoinsentry.h"
+
 #include "guiutil.h"
 #include "bitcoinunits.h"
 #include "addressbookpage.h"
@@ -44,10 +45,8 @@ void SendCoinsEntry::on_pasteButton_clicked()
 
 void SendCoinsEntry::on_addressBookButton_clicked()
 {
-
     if(!model)
         return;
-
     AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::SendingTab, this);
     dlg.setModel(model->getAddressTableModel());
     if(dlg.exec())
@@ -73,7 +72,9 @@ void SendCoinsEntry::setModel(WalletModel *model)
 
     if(model && model->getOptionsModel())
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
-    connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged())); 
+
+    connect(ui->payAmount, SIGNAL(textChanged()), this, SIGNAL(payAmountChanged()));
+
     clear();
 }
 
@@ -139,13 +140,12 @@ SendCoinsRecipient SendCoinsEntry::getValue()
 
 QWidget *SendCoinsEntry::setupTabChain(QWidget *prev)
 {
-	QWidget::setTabOrder(prev, ui->payTo);
+    QWidget::setTabOrder(prev, ui->payTo);
     QWidget::setTabOrder(ui->payTo, ui->addressBookButton);
     QWidget::setTabOrder(ui->addressBookButton, ui->pasteButton);
     QWidget::setTabOrder(ui->pasteButton, ui->deleteButton);
     QWidget::setTabOrder(ui->deleteButton, ui->addAsLabel);
-
-	return ui->payAmount->setupTabChain(ui->addAsLabel);
+    return ui->payAmount->setupTabChain(ui->addAsLabel);
 }
 
 void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
@@ -153,6 +153,12 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
     ui->payTo->setText(value.address);
     ui->addAsLabel->setText(value.label);
     ui->payAmount->setValue(value.amount);
+}
+
+void SendCoinsEntry::setAddress(const QString &address)
+{
+    ui->payTo->setText(address);
+    ui->payAmount->setFocus();
 }
 
 bool SendCoinsEntry::isClear()

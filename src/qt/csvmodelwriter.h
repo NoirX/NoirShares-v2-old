@@ -14,6 +14,7 @@ QT_END_NAMESPACE
 class CSVModelWriter : public QObject
 {
     Q_OBJECT
+
 public:
     explicit CSVModelWriter(const QString &filename, QObject *parent = 0);
 

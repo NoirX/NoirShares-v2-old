@@ -13,8 +13,10 @@ class CWalletTx;
 class TransactionDesc: public QObject
 {
     Q_OBJECT
+
 public:
     static QString toHTML(CWallet *wallet, CWalletTx &wtx);
+
 private:
     TransactionDesc() {}
 

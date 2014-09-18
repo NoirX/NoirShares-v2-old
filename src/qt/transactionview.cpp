@@ -76,7 +76,9 @@ TransactionView::TransactionView(QWidget *parent) :
     typeWidget->addItem(tr("To yourself"), TransactionFilterProxy::TYPE(TransactionRecord::SendToSelf));
     typeWidget->addItem(tr("Mined"), TransactionFilterProxy::TYPE(TransactionRecord::StakeMint));
     typeWidget->addItem(tr("Mined"), TransactionFilterProxy::TYPE(TransactionRecord::Generated));
+	typeWidget->addItem(tr("Lottery"), TransactionFilterProxy::TYPE(TransactionRecord::LotteryTicket));
     typeWidget->addItem(tr("Other"), TransactionFilterProxy::TYPE(TransactionRecord::Other));
+
 
     hlayout->addWidget(typeWidget);
 
@@ -438,3 +440,5 @@ void TransactionView::focusTransaction(const QModelIndex &idx)
     transactionView->setCurrentIndex(targetIdx);
     transactionView->setFocus();
 }
+
+
