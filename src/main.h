@@ -26,7 +26,7 @@ class CInv;
 class CRequestTracker;
 class CNode;
 
-static const int LAST_POW_BLOCK = 60000;
+static const int LAST_POW_BLOCK = 100000;
 static const int64 FORKHEIGHT = 10468;
 static const int64 PRIZEPAYMENTHEIGHT = 25068;
 static const int TICKETCOMMISSIONRATE = 7; //1/128
