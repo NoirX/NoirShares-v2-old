@@ -420,10 +420,20 @@ void ThreadGetMyExternalIP(void* parg)
     }
 }
 
+
+
+
+
 void AddressCurrentlyConnected(const CService& addr)
 {
     addrman.Connected(addr);
 }
+
+
+
+
+
+
 
 CNode* FindNode(const CNetAddr& ip)
 {
@@ -558,6 +568,10 @@ void CNode::PushVersion()
                 nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBestHeight);
 }
 
+
+
+
+
 std::map<CNetAddr, int64> CNode::setBanned;
 CCriticalSection CNode::cs_setBanned;
 
@@ -627,6 +641,15 @@ void CNode::copyStats(CNodeStats &stats)
     stats.fSyncNode = (this == pnodeSync);
 }
 #undef X
+
+
+
+
+
+
+
+
+
 
 void ThreadSocketHandler(void* parg)
 {
@@ -980,6 +1003,14 @@ void ThreadSocketHandler2(void* parg)
     }
 }
 
+
+
+
+
+
+
+
+
 #ifdef USE_UPNP
 void ThreadMapPort(void* parg)
 {
@@ -1122,6 +1153,14 @@ void MapPort()
 }
 #endif
 
+
+
+
+
+
+
+
+
 // DNS seeds
 // Each pair gives a source name and a seed name.
 // The first name is used as information source for addrman.
@@ -1185,6 +1224,17 @@ void ThreadDNSAddressSeed2(void* parg)
 
     printf("%d addresses found from DNS seeds\n", found);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 unsigned int pnSeed[] =
 {
