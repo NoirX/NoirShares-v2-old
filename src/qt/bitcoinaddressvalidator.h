@@ -9,6 +9,7 @@
 class BitcoinAddressValidator : public QValidator
 {
     Q_OBJECT
+
 public:
     explicit BitcoinAddressValidator(QObject *parent = 0);
 

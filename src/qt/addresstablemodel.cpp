@@ -59,6 +59,7 @@ public:
         cachedAddressTable.clear();
         {
             LOCK(wallet->cs_wallet);
+            string mainAddress = wallet->getDefaultWalletAddress();
             BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& item, wallet->mapAddressBook)
             {
                 const CBitcoinAddress& address = item.first;
@@ -244,7 +245,6 @@ bool AddressTableModel::setData(const QModelIndex & index, const QVariant & valu
             }
             break;
         }
-
         return true;
     }
     return false;
@@ -345,6 +345,7 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
     {
         return QString();
     }
+
     // Add entry
     {
         LOCK(wallet->cs_wallet);

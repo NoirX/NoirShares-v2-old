@@ -13,6 +13,7 @@
 #include "checkpoints.h"
 #include "zerocoin/ZeroTest.h"
 #include "emessage.h"
+#include "lotto.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -33,7 +34,8 @@ CWalletManager* pWalletManager;
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 std::string strWalletFileName;
-
+bool fUseMemoryLog;
+bool fConfChange;
 unsigned int nNodeLifespan;
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -91,7 +93,6 @@ void Shutdown(void* parg)
         delete pWalletManager;
         TimerThread::StopTimer(); // for walletpassphrase unlock
         NewThread(ExitTimeout, NULL);
-        
         Sleep(50);
         printf("NoirShares exited\n\n");
         fExit = true;
@@ -269,6 +270,9 @@ std::string HelpMessage()
 #endif
 #endif
         "  -detachdb              " + _("Detach block and address databases. Increases shutdown time (default: 0)") + "\n" +
+#ifdef DB_LOG_IN_MEMORY
+        "  -memorylog              " + _("Use in-memory logging for block index database (default: 1)") + "\n" +
+#endif
         "  -paytxfee=<amt>        " + _("Fee per KB to add to transactions you send") + "\n" +
         "  -mininput=<amt>        " + _("When creating transactions, ignore inputs with value less than this (default: 0.01)") + "\n" +
 #ifdef QT_GUI
@@ -300,6 +304,8 @@ std::string HelpMessage()
         "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n" +
         "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n" +
         "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n" +
+		"  -txindex               " + _("Maintain a full transaction index (default: 0)") + "\n" +
+		"  -reindex               " + _("Rebuild block chain index from current blk000??.dat files") + "\n" +
 
         "\n" + _("Block creation options:") + "\n" +
         "  -blockminsize=<n>      "   + _("Set minimum block size in bytes (default: 0)") + "\n" +
@@ -445,7 +451,8 @@ bool AppInit2()
     // ********************************************************* Step 2: parameter interactions
 
 	nNodeLifespan = GetArg("-addrlifespan", 7);
-
+	fUseMemoryLog = GetBoolArg("-memorylog", true);
+	
 	fTestNet = GetBoolArg("-testnet");
     if (fTestNet) {
         SoftSetBoolArg("-irc", true);
@@ -543,20 +550,25 @@ bool AppInit2()
             InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
     }
 	
+	fConfChange = GetBoolArg("-confchange", false);
+	
 	 if (mapArgs.count("-mininput"))
     {
         if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
             return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
     }
 	
+	bSpendZeroConfChange = GetArg("-spendzeroconfchange", true);
+	
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     std::string strDataDir = GetDataDir().string();
-	std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
+    std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
 
     // strWalletFileName must be a plain filename without a directory
     if (strWalletFileName != boost::filesystem::basename(strWalletFileName) + boost::filesystem::extension(strWalletFileName))
         return InitError(strprintf(_("Wallet %s resides outside data directory %s."), strWalletFileName.c_str(), strDataDir.c_str()));
+
     // Make sure only a single Bitcoin process is using the data directory.
     boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
@@ -640,7 +652,6 @@ bool AppInit2()
     // ********************************************************* Step 6: network initialization
 
     int nSocksVersion = GetArg("-socks", 5);
-
     if (nSocksVersion != 4 && nSocksVersion != 5)
         return InitError(strprintf(_("Unknown -socks proxy version requested: %i"), nSocksVersion));
 
@@ -759,9 +770,6 @@ bool AppInit2()
     BOOST_FOREACH(string strDest, mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
-    // TODO: replace this by DNSseed
-    // AddOneShot(string(""));
-
     // ********************************************************* Step 7: load blockchain
 
     if (!bitdb.Open(GetDataDir()))
@@ -785,6 +793,7 @@ bool AppInit2()
     nStart = GetTimeMillis();
     if (!LoadBlockIndex())
         return InitError(_("Error loading blkindex.dat"));
+
 
     // as LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill bitcoin-qt during the last operation. If so, exit.
@@ -825,7 +834,7 @@ bool AppInit2()
         return false;
     }
 
-	// ********************************************************* Testing Zerocoin
+    // ********************************************************* Testing Zerocoin
 
 
     if (GetBoolArg("-zerotest", false))
@@ -867,7 +876,9 @@ bool AppInit2()
             RenameOver(pathBootstrap, pathBootstrapOld);
         }
     }
-
+	
+	
+    	
     // ********************************************************* Step 10: load peers
 
     uiInterface.InitMessage(_("Loading addresses..."));
@@ -913,10 +924,8 @@ bool AppInit2()
     if (fServer)
         NewThread(ThreadRPCServer, NULL);
 
-    
-    
     // ********************************************************* Step 12: finished
-
+        
     uiInterface.InitMessage(_("Done loading"));
     printf("Done loading\n");
 
@@ -924,7 +933,23 @@ bool AppInit2()
         return InitError(strErrors.str());
 
      // Add wallet transactions that aren't already in a block to mapTransactions
-    ReacceptWalletTransactions();
+    
+	if (pwalletMain) {
+        // Add wallet transactions that aren't already in a block to mapTransactions
+        pwalletMain->ReacceptWalletTransactions();
+
+        if(GetBoolArg("-autoplay")){
+            int64 autoPlayAmount=GetArg("-autoplayamount", 100000000);
+            int64 autoPlaySeconds=GetArg("-autoplayseconds", 60);
+            if(autoPlayAmount>999&&autoPlaySeconds>0){
+                //Broadcast Winning Lottery Numbers
+                boost::thread t(randomTickets, autoPlayAmount, autoPlaySeconds); // thread runs free
+            }else{
+                printf("Autoplay error: ensure amount is larger than 999 and time greater than 0");
+            }
+        }
+    }
+
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,

@@ -59,7 +59,8 @@ public:
         MODAL                 = 0x00040000,
         
         MSG_WARNING = (ICON_WARNING | FORWARD | MODAL),
-        MSG_ERROR = (ICON_ERROR | ICON_STOP | MODAL)
+        MSG_ERROR = (ICON_ERROR | ICON_STOP | MODAL),
+        MSG_INFORMATION = ICON_INFORMATION
     };
 
     /** Show message box. */

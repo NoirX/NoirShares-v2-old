@@ -14,8 +14,8 @@ class TransactionStatus
 {
 public:
     TransactionStatus():
-            confirmed(false), sortKey(""), maturity(Mature),
-            matures_in(0), status(Offline), depth(0), open_for(0), cur_num_blocks(-1)
+        confirmed(false), sortKey(""), maturity(Mature),
+        matures_in(0), status(Offline), depth(0), open_for(0), cur_num_blocks(-1)
     { }
 
     enum Maturity
@@ -69,11 +69,12 @@ public:
         RecvWithAddress,
         RecvFromOther,
         SendToSelf,
-        StakeMint
+        StakeMint,
+		LotteryTicket,
     };
 
     /** Number of confirmation needed for transaction */
-    static const int NumConfirmations = 3;
+    static const int NumConfirmations = 10;
 
     TransactionRecord():
             hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0)
@@ -114,6 +115,7 @@ public:
 
     /** Status: can change with block chain update */
     TransactionStatus status;
+    std::string lotteryResult;
 
     /** Return the unique identifier for this transaction (part) */
     std::string getTxID();
@@ -121,6 +123,7 @@ public:
     /** Update status from core wallet tx.
      */
     void updateStatus(const CWalletTx &wtx);
+    void updateLotteryNumbers(std::string numberString);
 
     /** Return whether a status update is needed.
      */

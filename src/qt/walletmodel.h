@@ -3,8 +3,10 @@
 
 #include <QObject>
 #include <vector>
-#include "allocators.h" /* for SecureString */
 #include <map>
+
+#include "allocators.h" /* for SecureString */
+
 class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
@@ -15,6 +17,7 @@ class COutput;
 class COutPoint;
 class uint256;
 class CCoinControl;
+
 QT_BEGIN_NAMESPACE
 class QTimer;
 QT_END_NAMESPACE
@@ -46,7 +49,8 @@ public:
         DuplicateAddress,
         TransactionCreationFailed, // Error returned when wallet is still locked
         TransactionCommitFailed,
-        Aborted
+        Aborted,
+        SatoshiForChangeAddressRequired
     };
 
     enum EncryptionStatus
@@ -59,8 +63,10 @@ public:
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
-
+	
+	std::string getDefaultWalletAddress() const;
     qint64 getBalance() const;
+    qint64 getBalanceWatchOnly() const;
     qint64 getStake() const;
     qint64 getUnconfirmedBalance() const;
     qint64 getImmatureBalance() const;
@@ -83,7 +89,7 @@ public:
     };
 
     // Send coins to a list of recipients
-    SendCoinsReturn sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl=NULL);
+    SendCoinsReturn sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl=NULL, bool isTicket=false);
 
     // Wallet encryption
     bool setWalletEncrypted(bool encrypted, const SecureString &passphrase);
@@ -93,6 +99,9 @@ public:
     // Wallet backup
     bool backupWallet(const QString &filename);
 
+    bool dumpWallet(const QString &filename);
+    bool importWallet(const QString &filename);
+    
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
     {
@@ -114,14 +123,16 @@ public:
     };
 
     UnlockContext requestUnlock();
+
     bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
-     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
-     void listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const;
- 
-     bool isLockedCoin(uint256 hash, unsigned int n) const;
-     void lockCoin(COutPoint& output);
-     void unlockCoin(COutPoint& output);
-     void listLockedCoins(std::vector<COutPoint>& vOutpts);
+    void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
+    void listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const;
+
+    bool isLockedCoin(uint256 hash, unsigned int n) const;
+    void lockCoin(COutPoint& output);
+    void unlockCoin(COutPoint& output);
+    void listLockedCoins(std::vector<COutPoint>& vOutpts);
+
 private:
     CWallet *wallet;
 
@@ -153,6 +164,8 @@ public slots:
     void updateStatus();
     /* New transaction, or transaction changed status */
     void updateTransaction(const QString &hash, int status);
+	/* New transaction, or transaction changed status */
+    void updateTransactionLottery(const QString &hash, const QString &numberString);
     /* New, updated or removed address book entry */
     void updateAddressBook(const QString &address, const QString &label, bool isMine, int status);
     /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
@@ -160,7 +173,7 @@ public slots:
 
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void balanceChanged(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
 
     // Number of transactions in wallet changed
     void numTransactionsChanged(int count);

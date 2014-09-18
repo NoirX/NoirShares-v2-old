@@ -11,7 +11,8 @@
 #include "allocators.h"
 #include "serialize.h"
 #include "uint256.h"
-#include "util.h"
+#include "hash.h"
+#include "bignum.h"
 
 #include <openssl/ec.h> // for EC_KEY definition
 
@@ -113,10 +114,10 @@ protected:
     bool fSet;
     bool fCompressedPubKey;
 
-    
-
 public:
+    
     void SetCompressedPubKey();
+    
     void SetUnCompressedPubKey();
     
     EC_KEY* GetECKey();
@@ -161,6 +162,9 @@ public:
     bool VerifyCompact(uint256 hash, const std::vector<unsigned char>& vchSig);
 
     bool IsValid();
+
+    // Check whether an element of a signature (r or s) is valid.
+    static bool CheckSignatureElement(const unsigned char *vch, int len, bool half);
 };
 
 #endif

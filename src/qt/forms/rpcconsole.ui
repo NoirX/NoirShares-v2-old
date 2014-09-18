@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>740</width>
-    <height>450</height>
+    <height>490</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,12 +20,12 @@
       <number>0</number>
      </property>
      <widget class="QWidget" name="tab_info">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Information</string>
       </attribute>
-	  <property name="styleSheet">
-          <string notr="true">color:white;background-color:black;border-width:1px</string>
-         </property>
       <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
        <property name="horizontalSpacing">
         <number>12</number>
@@ -327,6 +327,9 @@
          <property name="toolTip">
           <string>Open the NoirShares debug log file from the current data directory. This can take a few seconds for large log files.</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 0, 0);</string>
+         </property>
          <property name="text">
           <string>&amp;Open</string>
          </property>
@@ -352,6 +355,9 @@
         <widget class="QPushButton" name="showCLOptionsButton">
          <property name="toolTip">
           <string>Show the NoirShares-Qt help message to get a list with possible NoirShares command-line options.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 0, 0);</string>
          </property>
          <property name="text">
           <string>&amp;Show</string>

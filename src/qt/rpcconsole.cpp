@@ -39,9 +39,11 @@ const struct {
 class RPCExecutor: public QObject
 {
     Q_OBJECT
+
 public slots:
     void start();
     void request(const QString &command);
+
 signals:
     void reply(int category, const QString &command);
 };
@@ -398,6 +400,7 @@ void RPCConsole::startExecutor()
     connect(executor, SIGNAL(reply(int,QString)), this, SLOT(message(int,QString)));
     // Requests from this object must go to executor
     connect(this, SIGNAL(cmdRequest(QString)), executor, SLOT(request(QString)));
+
     // On stopExecutor signal
     // - queue executor for deletion (in execution thread)
     // - quit the Qt event loop in the execution thread

@@ -16,6 +16,8 @@ class MessagePage;
 class InvoicePage;
 class ReceiptPage;
 class SendCoinsDialog;
+class VoteCoinsDialog;
+class VotingDialog;
 class SendMessagesDialog;
 class SignVerifyMessageDialog;
 class Notificator;
@@ -88,6 +90,8 @@ private:
     SendMessagesDialog *sendMessagesPage;
     SendMessagesDialog *sendMessagesAnonPage;
     SendCoinsDialog *sendCoinsAnonPage;
+	VoteCoinsDialog *voteCoinsPage;
+	VotingDialog *votingPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     QLabel *labelEncryptionIcon;
@@ -109,7 +113,8 @@ private:
     QAction *messageAction;
     QAction *invoiceAction;
     QAction *receiptAction;
-    QAction *appAnonAction;
+    QAction *voteCoinsAction;
+    QAction *votingAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -119,9 +124,20 @@ private:
     QAction *exportAction;
     QAction *encryptWalletAction;
     QAction *backupWalletAction;
+    QAction *dumpWalletAction;
+    QAction *importWalletAction;
     QAction *changePassphraseAction;
     QAction *unlockWalletAction;
     QAction *lockWalletAction;
+	QAction *miningOffAction;
+    QAction *miningOneAction;
+    QAction *miningTwoAction;
+    QAction *miningThreeAction;
+    QAction *miningFourAction;
+	QAction *currentVotesAction;
+    QAction *currentCandidatesAction;
+    QAction *howToVoteAction;
+    QAction *currentResultsAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
 
@@ -154,6 +170,7 @@ public slots:
 
     /** Notify the user of an error in the network or transaction handling code. */
     void error(const QString &title, const QString &message, bool modal);
+    void message(const QString &title, const QString &message, unsigned int style, const QString &detail=QString());
     /** Asks the user whether to pay the transaction fee or to cancel the transaction.
        It is currently not possible to pass a return value to another thread through
        BlockingQueuedConnection, so an indirected pointer is used.
@@ -186,6 +203,10 @@ private slots:
     void gotoInvoicesPage();
     /** Switch to receipt page */
     void gotoReceiptPage();
+    /** Switch to votecoins page */
+    void gotoVoteCoinsPage();
+	/** Switch to voting page */
+    void gotoVotingPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
@@ -217,6 +238,10 @@ private slots:
     /** Backup the wallet */
     void backupWallet();
     /** Change encrypted wallet passphrase */
+    
+    void dumpWallet();
+    void importWallet();
+    
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
     void unlockWallet();
@@ -229,6 +254,16 @@ private slots:
     void toggleHidden();
 
 //    void updateStakingIcon();
+	void miningOff();
+    void miningOn(int processes);
+    void miningOne();
+    void miningTwo();
+    void miningThree();
+    void miningFour();
+	void currentVotes();
+    void currentCandidates();
+    void howToVote();
+    void currentResults();
 };
 
 #endif

@@ -57,6 +57,10 @@ bool DecodeAddress(string str, CService& addr)
 }
 
 
+
+
+
+
 static bool Send(SOCKET hSocket, const char* pszSend)
 {
     if (strstr(pszSend, "PONG") != pszSend)

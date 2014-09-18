@@ -7,13 +7,14 @@
 #include "checkpoints.h"
 #include "db.h"
 #include "net.h"
-#include "init.h" 
+#include "init.h"
 #include "ui_interface.h"
 #include "kernel.h"
 #include "zerocoin/Zerocoin.h"
 #include "scrypt_mine.h"
-
+#include "checkqueue.h"
 #include "emessage.h"
+#include "lotto.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string.hpp>
@@ -24,15 +25,32 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include "momentum.h"
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <sys/stat.h>
+#include <stdio.h>
+/*
+#ifdef WIN32
+    #include <windows.h>
+#endif
+*/
 using namespace std;
 using namespace boost;
 
 //
 // Global state
 //
+static const int64 ONEDAY= 60*60*24;
+static const int64 TWOYEARS = 2 * 365 * 24 * 90;
+static const int64 ONEYEAR =  365 * 24 * 90;
+static const int64 FIFTYDAYS =  (18 * 24 * 24) + (32 * 24 * 90);
+static const int64 MAXBALANCEGENESIS =  1000000 * COIN;
+
+
 
 CCriticalSection cs_setpwalletRegistered;
-set<CWallet*> setpwalletRegistered; 
+set<CWallet*> setpwalletRegistered;
 
 CCriticalSection cs_main;
 
@@ -45,12 +63,12 @@ libzerocoin::Params* ZCParams;
 
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-uint256 merkleRootGenesisBlock("0x4ed35a3349ab2f6adc0b710d6df899a0f7cdfaec49ef7515da9ea8a63eaf2218");
-uint256 rseedGenesisBlock("0x2dcd1c9a6f9c79342224611cebc701eacc8a670086a4acd7cb7d3fea528d9693");
-const int64 nChainStartTime = 1408563876; 
-const unsigned long nChainStartNonce = 11;
-const unsigned long nChainStartBirthdayA = 6715920;
-const unsigned long nChainStartBirthdayB = 16567824;
+uint256 merkleRootGenesisBlock("0x377d1908fe0f8b8b245f9a0a46846cb3b11ece52f59eef6b88719f241029ba28");
+uint256 rseedGenesisBlock("0x3501227d3a0dd01957e58bcb25ca732ee7155b2ecc1e1b232576ad2cb340abcd");
+const int64 nChainStartTime = 1410918978; 
+const unsigned long nChainStartNonce = 3;
+const unsigned long nChainStartBirthdayA = 3485519;
+const unsigned long nChainStartBirthdayB = 9863792;
 
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
@@ -58,12 +76,12 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 2);
 
-unsigned int nStakeMinAge = 60 * 60 * 8;   // minimum age for coin age: 8h
+unsigned int nStakeMinAge = 60 * 60 * 24 * 7;   // minimum age for coin age
 unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
-unsigned int nStakeTargetSpacing = 60 * 4;          // 4 min block spacing
+unsigned int nStakeTargetSpacing = 60 * 2;          // 4 min block spacing
+int nTargetSpacing = 60 *4;
 
-
-int nCoinbaseMaturity = 30;
+int nCoinbaseMaturity = 20;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 CBigNum bnBestChainTrust = 0;
@@ -71,6 +89,8 @@ CBigNum bnBestInvalidTrust = 0;
 uint256 hashBestChain = 0;
 CBlockIndex* pindexBest = NULL;
 int64 nTimeBestReceived = 0;
+int nScriptCheckThreads = 0;
+bool fBenchmark = false;
 
 CMedianFilter<int> cPeerBlockCounts(5, 0); // Amount of blocks that other nodes claim to have
 
@@ -85,14 +105,18 @@ map<uint256, map<uint256, CDataStream*> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "InfomationCoin Signed Message:\n";
+const string strMessageMagic = "NoirShares Signed Message:\n";
 
 double dhashespermin;
 int64 nHPSTimerStart;
 
 // Settings
+CCriticalSection grantdb;
 int64 nTransactionFee = MIN_TX_FEE;
 int64 nMinimumInputValue = MIN_TX_FEE;
+std::map<int, std::string > awardWinners;
+std::map<std::string,int64 > grantAwards;
+std::map<std::string,int64>::iterator gait;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -355,6 +379,8 @@ bool CTransaction::IsStandard() const
     if (nVersion > CTransaction::CURRENT_VERSION)
         return false;
 
+    unsigned int nDataOut = 0;
+    txnouttype whichType;
     BOOST_FOREACH(const CTxIn& txin, vin)
     {
         // Biggest 'standard' txin is a 3-signature 3-of-3 CHECKMULTISIG
@@ -364,13 +390,31 @@ bool CTransaction::IsStandard() const
             return false;
         if (!txin.scriptSig.IsPushOnly())
             return false;
+        if (!txin.scriptSig.HasCanonicalPushes()) {
+            return false;
+        }
     }
     BOOST_FOREACH(const CTxOut& txout, vout) {
-        if (!::IsStandard(txout.scriptPubKey))
+        if (!::IsStandard(txout.scriptPubKey, whichType)) {
             return false;
-        if (txout.nValue == 0)
-            return false;
+        }
+        if (whichType == TX_NULL_DATA)
+            nDataOut++;
+        else {
+            if (txout.nValue == 0) {
+                return false;
+            }
+            if (!txout.scriptPubKey.HasCanonicalPushes()) {
+                return false;
+            }
+        }
     }
+
+    // only one OP_RETURN txout is permitted
+    if (nDataOut > 1) {
+        return false;
+    }
+
     return true;
 }
 
@@ -410,7 +454,7 @@ bool CTransaction::AreInputsStandard(const MapPrevTx& mapInputs) const
         // beside "push data" in the scriptSig the
         // IsStandard() call returns false
         vector<vector<unsigned char> > stack;
-        if (!EvalScript(stack, vin[i].scriptSig, *this, i, 0))
+        if (!EvalScript(stack, vin[i].scriptSig, *this, i, false, 0))
             return false;
 
         if (whichType == TX_SCRIPTHASH)
@@ -598,6 +642,7 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
 
     if (!MoneyRange(nMinFee))
         nMinFee = MAX_MONEY;
+
     return nMinFee;
 }
 
@@ -690,6 +735,14 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
 
         int64 nFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+
+        //Check if tx contains checkpoint
+        int64 theHeight, theTime; uint256 theHash;
+        checkTransactionForCheckpoints(tx,GetBoolArg("-broadcastdraws"),GetBoolArg("-logblock"),theHeight,theTime,theHash);
+
+        //update wallet trx -
+        std::map<string, int64> pr;int64 ffp=0;int64 nffp=0;ofstream mynull;
+        checkTransactionForPayoutsFromCheckpointTransaction(tx,pr,ffp,nffp,false,mynull);
 
         // Don't accept it if it can't get into a block
         int64 txMinFee = tx.GetMinFee(1000, false, GMF_RELAY, nSize);
@@ -838,12 +891,54 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
+int CMerkleTx::GetHeightInMainChain() const
+{
+    if (hashBlock == 0 || nIndex == -1)
+        return -1;
+
+    // Find the block it claims to be in
+    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+    if (mi == mapBlockIndex.end())
+        return -1;
+    CBlockIndex* pindex = (*mi).second;
+    if (!pindex || !pindex->IsInMainChain())
+        return -1;
+
+    // Make sure the merkle branch connects to this block
+    if (!fMerkleVerified)
+    {
+        if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != pindex->hashMerkleRoot)
+            return -1;
+        fMerkleVerified = true;
+    }
+
+    return pindex->nHeight;
+}
+
+int getVestedSharesMaturityHeight(uint256 txhash){
+    //printf("hash of vested transaction:%s\n",txhash.GetHex().c_str());
+    uint64 theHash=txhash.Get64();
+    theHash=theHash+hashGenesisBlock.Get64();
+    return ONEDAY + (theHash % ONEDAY);
+}
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-    return max(0, (nCoinbaseMaturity+20) - GetDepthInMainChain());
+    //If in the genesis block, special rule for vested shares
+    if(GetHeightInMainChain()==0){
+        //Shares Claim Period Expired
+        if(pindexBest->nHeight>TWOYEARS){
+            return INT_MAX;
+        }
+        if(GetValueOut()>MAXBALANCEGENESIS){
+            int maturationBlock = getVestedSharesMaturityHeight(this->GetHash());
+            printf("maturation block:%d\n",maturationBlock);
+            return maturationBlock-pindexBest->nHeight;
+        }
+    }
+    return max(0, (nCoinbaseMaturity+1) - GetDepthInMainChain());
 }
 
 
@@ -889,13 +984,11 @@ bool CWalletTx::AcceptWalletTransaction(CTxDB& txdb, bool fCheckInputs)
     return false;
 }
 
-
 bool CWalletTx::AcceptWalletTransaction()
 {
     CTxDB txdb("r");
     return AcceptWalletTransaction(txdb);
 }
-
 
 int CTxIndex::GetDepthInMainChain() const
 {
@@ -940,6 +1033,12 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock)
 }
 
 
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // CBlock and CBlockIndex
@@ -963,7 +1062,6 @@ CBlockIndex* FindBlockByHeight(int nHeight)
     return pblockindex;
 }
 
-
 bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
 {
     if (!fReadTransactions)
@@ -978,7 +1076,6 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
     return true;
 }
 
-
 uint256 static GetOrphanRoot(const CBlock* pblock)
 {
     // Work back to the first block in the orphan chain
@@ -986,7 +1083,6 @@ uint256 static GetOrphanRoot(const CBlock* pblock)
         pblock = mapOrphanBlocks[pblock->hashPrevBlock];
     return pblock->GetHash();
 }
-
 
 // ppcoin: find block wanted by given orphan block
 uint256 WantedByOrphan(const CBlock* pblockOrphan)
@@ -1001,15 +1097,13 @@ int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees)
 {
 	int64 nSubsidy = 10 * COIN;
 	
-	// Subsidy is reduced by 5% every 2000 blocks, 
+	// Subsidy is reduced by 5% every 3000 blocks, 
     int exponent=(nHeight / 3000);
     for(int i=0;i<exponent;i++){
         nSubsidy=nSubsidy*19;
 	nSubsidy=nSubsidy/20;
     }
-    
-    if (nHeight== 30) {nSubsidy= 1000000 *COIN;}
-    
+       
     return nSubsidy +( nFees * 0);
 }
 
@@ -1043,6 +1137,17 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 randomSeed)
 	return ((nSubsidy) *(1/0.4500045)) + nFees;
 }
 
+int64 static GetBlockValue(int nHeight, int64 nFees)
+{
+    return GetProofOfWorkReward(nHeight, 0,0) + nFees ;
+}
+
+int64 static GetGrantValue(int64 nHeight)
+{
+	int64 grantaward=GetProofOfWorkReward(nHeight, 0, 0);
+	return grantaward/20;
+}
+
 
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
 // simple algorithm, not depend on the diff
@@ -1055,7 +1160,6 @@ int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTi
     int64 nSubsidy = nRewardCoinYear * nCoinAge * 33 / (365 * 33 + 8);
     if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, nBits);
-
     return nSubsidy;
 }
 
@@ -1064,7 +1168,6 @@ static const int64 nTargetSpacingWorkMax = 1 * nStakeTargetSpacing;
 
 //
 // maximum nBits value could possible be required nTime after
-// minimum proof-of-work required was nBase
 //
 unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTime)
 {
@@ -1079,7 +1182,6 @@ unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64 nTi
     }
     if (bnResult > bnTargetLimit)
         bnResult = bnTargetLimit;
-
     return bnResult.GetCompact();
 }
 
@@ -1211,6 +1313,7 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()).c_str());
 }
 
+
 void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
 {
     nTime = max(GetBlockTime(), GetAdjustedTime());
@@ -1219,16 +1322,8 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
  uint256 CBlock::GetHash() const
      {
  
- 		// uint256 midHash = GetMidHash();
- 		    
- 		//printf("GetHash - MidHash %s\n", midHash.ToString().c_str());
- 		//printf("GetHash - Birthday A %u hash \n", nBirthdayA);
- 		//printf("GetHash - Birthday B %u hash \n", nBirthdayB);
-		
-		
-		    uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
- //    fprintf( stderr, "init hash %s\n", r.ToString().c_str() );
- 
+ 		uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
+  
      return r; //Hash(BEGIN(nVersion), END(nBirthdayB));
  }
 
@@ -1368,7 +1463,6 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     return true;
 }
 
-
 const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const
 {
     MapPrevTx::const_iterator mi = inputs.find(input.prevout.hash);
@@ -1381,7 +1475,6 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
 
     return txPrev.vout[input.prevout.n];
 }
-
 
 int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
 {
@@ -1396,7 +1489,6 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
     return nResult;
 
 }
-
 
 unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
 {
@@ -1413,15 +1505,26 @@ unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
     return nSigOps;
 }
 
+bool CScriptCheck::operator()() const {
+    const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
+    if (!VerifyScript(scriptSig, scriptPubKey, *ptxTo, nIn, nFlags, nHashType))
+        return error("CScriptCheck() : %s VerifySignature failed", ptxTo->GetHash().ToString().substr(0,10).c_str());
+    return true;
+}
 
-bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
-                                 map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
-                                 const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash)
+bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType)
+{
+    return CScriptCheck(txFrom, txTo, nIn, flags, nHashType)();
+}
+
+bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
+    const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fScriptChecks, unsigned int flags, std::vector<CScriptCheck> *pvChecks)
 {
     // Take over previous transactions' spent pointers
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
     // fMiner is true when called from the internal bitcoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
+
     if (!IsCoinBase())
     {
         int64 nValueIn = 0;
@@ -1435,8 +1538,8 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
 
             if (prevout.n >= txPrev.vout.size() || prevout.n >= txindex.vSpent.size())
                 return DoS(100, error("ConnectInputs() : %s prevout.n out of range %d %"PRIszu" %"PRIszu" prev tx %s\n%s", GetHash().ToString().substr(0,10).c_str(), prevout.n, txPrev.vout.size(), txindex.vSpent.size(), prevout.hash.ToString().substr(0,10).c_str(), txPrev.ToString().c_str()));
-
-            // If prev is coinbase or coinstake, check that it's matured
+			
+	            // If prev is coinbase or coinstake, check that it's matured
             if (txPrev.IsCoinBase() || txPrev.IsCoinStake())
                 for (const CBlockIndex* pindex = pindexBlock; pindex && pindexBlock->nHeight - pindex->nHeight < nCoinbaseMaturity; pindex = pindex->pprev)
                     if (pindex->nBlockPos == txindex.pos.nBlockPos && pindex->nFile == txindex.pos.nFile)
@@ -1452,6 +1555,10 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
                 return DoS(100, error("ConnectInputs() : txin values out of range"));
 
         }
+
+        if (pvChecks)
+            pvChecks->reserve(vin.size());
+
         // The first loop above does all the inexpensive checks.
         // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
         // Helps prevent CPU exhaustion attacks.
@@ -1471,16 +1578,24 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs,
             // Skip ECDSA signature verification when connecting blocks (fBlock=true)
             // before the last blockchain checkpoint. This is safe because block merkle hashes are
             // still computed and checked, and any change will be caught at the next checkpoint.
-            if (!(fBlock && (nBestHeight < Checkpoints::GetTotalBlocksEstimate())))
+            if (fScriptChecks)
             {
                 // Verify signature
-                if (!VerifySignature(txPrev, *this, i, fStrictPayToScriptHash, 0))
+                CScriptCheck check(txPrev, *this, i, flags, 0);
+                if (pvChecks)
                 {
-                    // only during transition phase for P2SH: do not invoke anti-DoS code for
-                    // potentially old clients relaying bad P2SH transactions
-                    if (fStrictPayToScriptHash && VerifySignature(txPrev, *this, i, false, 0))
-                        return error("ConnectInputs() : %s P2SH VerifySignature failed", GetHash().ToString().substr(0,10).c_str());
-
+                    pvChecks->push_back(CScriptCheck());
+                    check.swap(pvChecks->back());
+                }
+                else if (!check())
+                {
+                    if (flags & STRICT_FLAGS)
+                    {
+                        // Don't trigger DoS code in case of STRICT_FLAGS caused failure.
+                        CScriptCheck check(txPrev, *this, i, flags & ~STRICT_FLAGS, 0);
+                        if (check())
+                            return error("ConnectInputs() : %s strict VerifySignature failed", GetHash().ToString().substr(0,10).c_str());
+                    }
                     return DoS(100,error("ConnectInputs() : %s VerifySignature failed", GetHash().ToString().substr(0,10).c_str()));
                 }
             }
@@ -1549,8 +1664,8 @@ bool CTransaction::ClientConnectInputs()
                 return false;
 
             // Verify signature
-            if (!VerifySignature(txPrev, *this, i, true, 0))
-                return error("ConnectInputs() : VerifySignature failed");
+            if (!VerifySignature(txPrev, *this, i, SCRIPT_VERIFY_NOCACHE | SCRIPT_VERIFY_P2SH, 0))
+                return error("ClientConnectInputs() : VerifySignature failed");
 
             ///// this is redundant with the mempool.mapNextTx stuff,
             ///// not sure which I want to get rid of
@@ -1575,8 +1690,16 @@ bool CTransaction::ClientConnectInputs()
 }
 
 
+
+
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
+	
+	if(GetArg("-authoritativechain",0)==1){
+        return error("DisconnectBlock() : this chain is authoritative - once blocks are connected, they cannot be disconnected.");
+    }
+    
+    
     // Disconnect in reverse order
     for (int i = vtx.size()-1; i >= 0; i--)
         if (!vtx[i].DisconnectInputs(txdb))
@@ -1599,6 +1722,19 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     return true;
 }
 
+static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
+
+void ThreadScriptCheck(void*) {
+    vnThreadsRunning[THREAD_SCRIPTCHECK]++;
+    RenameThread("NoirShares-scriptch");
+    scriptcheckqueue.Thread();
+    vnThreadsRunning[THREAD_SCRIPTCHECK]--;
+}
+
+void ThreadScriptCheckQuit() {
+    scriptcheckqueue.Quit();
+}
+
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 {
     // Check it again in case a previous version let a bad block in
@@ -1618,7 +1754,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     // two in the chain that violate it. This prevents exploiting the issue against nodes in their
     // initial block download.
     bool fEnforceBIP30 = true; // Always active in NoirShares
-    bool fStrictPayToScriptHash = true; // Always active in NoirShares
+    bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
 
     //// issue here: it doesn't know the version
     unsigned int nTxPos;
@@ -1630,6 +1766,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         nTxPos = pindex->nBlockPos + ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - (2 * GetSizeOfCompactSize(0)) + GetSizeOfCompactSize(vtx.size());
 
     map<uint256, CTxIndex> mapQueuedChanges;
+    CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
+	
+	int64 nStart = GetTimeMicros();
     int64 nFees = 0;
     int64 nValueIn = 0;
     int64 nValueOut = 0;
@@ -1664,15 +1803,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if (!tx.FetchInputs(txdb, mapQueuedChanges, true, false, mapInputs, fInvalid))
                 return false;
 
-            if (fStrictPayToScriptHash)
-            {
-                // Add in sigops done by pay-to-script-hash inputs;
-                // this is to prevent a "rogue miner" from creating
-                // an incredibly-expensive-to-validate block.
-                nSigOps += tx.GetP2SHSigOpCount(mapInputs);
-                if (nSigOps > MAX_BLOCK_SIGOPS)
-                    return DoS(100, error("ConnectBlock() : too many sigops"));
-            }
+            // Add in sigops done by pay-to-script-hash inputs;
+            // this is to prevent a "rogue miner" from creating
+            // an incredibly-expensive-to-validate block.
+            nSigOps += tx.GetP2SHSigOpCount(mapInputs);
+            if (nSigOps > MAX_BLOCK_SIGOPS)
+                return DoS(100, error("ConnectBlock() : too many sigops"));
 
             int64 nTxValueIn = tx.GetValueIn(mapInputs);
             int64 nTxValueOut = tx.GetValueOut();
@@ -1681,8 +1817,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if (!tx.IsCoinStake())
                 nFees += nTxValueIn - nTxValueOut;
 
-            if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
+            std::vector<CScriptCheck> vChecks;
+            if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fScriptChecks, SCRIPT_VERIFY_NOCACHE | SCRIPT_VERIFY_P2SH, nScriptCheckThreads ? &vChecks : NULL))
                 return false;
+            control.Add(vChecks);
         }
 
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
@@ -1698,6 +1836,82 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     // ppcoin: fees are destroyed to compensate the entire network
     if (fDebug && GetBoolArg("-printcreation"))
         printf("ConnectBlock() : destroy=%s nFees=%"PRI64d"\n", FormatMoney(nFees).c_str(), nFees);
+	checkForCheckpoints(vtx,GetBoolArg("-broadcastdraws"),GetBoolArg("-logblock"));
+
+    //Ensure if payout transaction(s) is/are included, all payouts are made and calculate commission allowed
+    int64 commissionablePayout=0;
+    int64 nonCommissionablePayout=0;
+    if(!checkForPayouts(vtx,commissionablePayout,nonCommissionablePayout,false,false,pindex->nHeight)){
+        return DoS(100, error("ConnectBlock() : coinbase not making payouts correctly.\n"));
+    }
+    nFees=nFees+commissionablePayout;
+    nFees=nFees+nonCommissionablePayout;
+    nFees=nFees+(commissionablePayout>>PRIZEPAYMENTCOMMISSIONS);
+
+    if(pindex->nHeight<PRIZEPAYMENTHEIGHT){
+        //Note this should be removed once checkpointed blocks stop accepting blocks with nc payouts
+        nFees=nFees+(nonCommissionablePayout>>PRIZEPAYMENTCOMMISSIONS);
+	
+    }
+	LOCK(grantdb);
+    int64 grantAward=0;
+	// grant awards
+    if(isGrantAwardBlock(pindex->nHeight)){
+	if(!getGrantAwards(pindex->nHeight)){
+		return DoS(100, error("ConnectBlock() : grant awards error"));
+	}
+			
+	//Ensure fees are going to award winners
+	printf("Check Grant Awards Are Being Added for block %d\n",pindex->nHeight);
+	unsigned int awardFound=0;
+	for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
+		grantAward=grantAward+gait->second;
+	}
+	for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
+		for (unsigned int j = 0; j <vtx[0].vout.size(); j++){
+			CTxDestination address;
+			ExtractDestination(vtx[0].vout[j].scriptPubKey,address);
+			string receiveAddress=CBitcoinAddress(address).ToString().c_str();
+			int64 theAmount=vtx[0].vout[j].nValue;
+			printf("Compare %llu, %llu\n",theAmount,gait->second);
+			printf("Compare %s, %s\n",receiveAddress.c_str(),gait->first.c_str());
+		
+			if(theAmount==gait->second && receiveAddress==gait->first){
+				awardFound++;
+				break;
+			}
+		}
+	}
+	
+	printf("Grant award in block %d, %lu\n",awardFound,grantAwards.size());
+	/*for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
+		printf("Grant award in block %s, %llu\n",gait->first.c_str(),gait->second);
+	}*/			
+	if (awardFound != grantAwards.size()){
+		return DoS(100, error("ConnectBlock() : coinbase not paying grants to award winners "));
+	}
+    }
+        
+    //Check correct amount awarded in grants
+    if(pindex->nHeight>0 && !fTestNet){
+	
+     if ((vtx[0].GetValueOut() > 222220000002)){
+        return DoS(100, error("ConnectBlock() %d : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", pindex->nHeight, vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
+    }
+}
+    //1% commission
+    nFees=nFees+(calculateTicketIncome(vtx)>>TICKETCOMMISSIONRATE);
+
+    unsigned int theNBits=bnProofOfWorkLimit.GetCompact();
+    if(pindex->nHeight>0){
+        theNBits=pindex->pprev->nBits;
+    }
+    
+    if (!control.Wait())
+        return DoS(100, false);
+    int64 nTime2 = GetTimeMicros() - nStart;
+    if (fBenchmark)
+        printf("- Verify %lld txins: %.2fms (%.3fms/txin)\n", nValueIn - 1, 0.001 * nTime2, nValueIn <= 1 ? 0 : 0.001 * nTime2 / (nValueIn-1));
 
     if (fJustCheck)
         return true;
@@ -1716,8 +1930,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         // printf("==> Got prevHash = %s\n", prevHash.ToString().c_str());
     }
 
-    if (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees, prevHash))
-        return false;
+    if ((vtx[0].GetValueOut() > 222220000002)){
+        return DoS(100, error("ConnectBlock() %d : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", pindex->nHeight, vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
+    }
 
     // Update block index on disk without changing it in memory.
     // The memory index structure will be changed after the db commits.
@@ -1857,7 +2072,6 @@ bool CBlock::SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew)
 
     return true;
 }
-
 
 bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 {
@@ -2085,7 +2299,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
     pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
     pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
     if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
-        return error("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016"PRI64x, pindexNew->nHeight, nStakeModifier);
+       return error("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016"PRI64x, pindexNew->nHeight, nStakeModifier);
 
     // Add to mapBlockIndex
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
@@ -2121,13 +2335,15 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
 }
 
 
-bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
+
+
+bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
 {
     // These are checks that are independent of context
     // that can be verified before saving an orphan block.
 
     // Size limits
-    if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if ((vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE))
         return DoS(100, error("CheckBlock() : size limits failed"));
 
     // Check proof of work matches claimed amount
@@ -2141,8 +2357,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
     if (vtx.empty() || !vtx[0].IsCoinBase())
         return DoS(100, error("CheckBlock() : first tx is not coinbase"));
     for (unsigned int i = 1; i < vtx.size(); i++)
-        if (vtx[i].IsCoinBase())
-            return DoS(100, error("CheckBlock() : more than one coinbase"));
+       /* if (vtx[i].IsCoinBase())
+            return DoS(100, error("CheckBlock() : more than one coinbase"));*/
 
     // Validate last stage of PoW only
     if (fCheckPOW && IsProofOfWork() && !CheckProofOfWork(GetHash(), nBits))
@@ -2211,7 +2427,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
 
     return true;
 }
-
 
 bool CBlock::AcceptBlock()
 {
@@ -2300,6 +2515,7 @@ CBigNum CBlockIndex::GetBlockTrust() const
 {
     CBigNum bnTarget;
     bnTarget.SetCompact(nBits);
+
     if (bnTarget <= 0)
         return 0;
 
@@ -2314,7 +2530,7 @@ CBigNum CBlockIndex::GetBlockTrust() const
         CBigNum bnPoWTrust = (bnProofOfWorkLimit / (bnTarget+1));
         return bnPoWTrust > 1 ? bnPoWTrust : 1;
     }
-} 
+}
 
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
@@ -2327,7 +2543,6 @@ bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, uns
     }
     return (nFound >= nRequired);
 }
-
 
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
@@ -2564,7 +2779,6 @@ bool CBlock::CheckBlockSignature() const
     return false;
 }
 
-
 bool CheckDiskSpace(uint64 nAdditionalBytes)
 {
     uint64 nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
@@ -2583,13 +2797,11 @@ bool CheckDiskSpace(uint64 nAdditionalBytes)
     return true;
 }
 
-
 static filesystem::path BlockFilePath(unsigned int nFile)
 {
     string strBlockFn = strprintf("blk%04u.dat", nFile);
     return GetDataDir() / strBlockFn;
 }
-
 
 FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode)
 {
@@ -2608,7 +2820,6 @@ FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszM
     }
     return file;
 }
-
 
 static unsigned int nCurrentBlockFile = 1;
 
@@ -2779,8 +2990,8 @@ printf("Gen Rng Hash B: %s\n", seedHash.ToString().c_str());
 
 bool LoadBlockIndex(bool fAllowNew)
 {
-	CBigNum bnTrustedModulus;
-	
+    CBigNum bnTrustedModulus;
+
     if (fTestNet)
     {
         pchMessageStart[0] = 0xcd;
@@ -2822,17 +3033,10 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis block
-        const char* pszTimestamp = "NoirBits - Future in hand.";
-        CTransaction txNew;
-        txNew.nTime = nChainStartTime;
-        txNew.vin.resize(1);
-        txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].SetEmpty();
-
+                
         CBlock block;
-        block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
+        addShareDrops(block);
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
         block.nTime    = nChainStartTime;
@@ -2841,10 +3045,13 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashRandomSeed = rseedGenesisBlock;
         block.nBirthdayA   = nChainStartBirthdayA;
         block.nBirthdayB   = nChainStartBirthdayB;
-        
-        //// debug print
         uint256 hash = block.GetHash();
-        printf("block.nBits = %u \n", block.nBits);
+      
+        
+       //block.print();
+       //// debug print
+        
+ /*       printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
@@ -2853,11 +3060,9 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("RSEED: %s\n", block.hashRandomSeed.ToString().c_str());
 		printf("birthdayA=%u;\n",block.nBirthdayA);
 		printf("birthdayB=%u;\n",block.nBirthdayB);
-        block.print();
+        
 
-
-
-      /* {
+      {
 		printf("Generating new genesis block...\n");
 		uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
 		uint256 testHash;
@@ -2870,8 +3075,8 @@ bool LoadBlockIndex(bool fAllowNew)
 				block.nNonce=block.nNonce+1;
 			}
 			// Amount calculation not needed for genesis block - all outputs are zero
-			//block.hashMerkleRoot = block.BuildMerkleTree();
-			block.hashMerkleRoot = merkleRootGenesisBlock;
+			block.hashMerkleRoot = block.BuildMerkleTree();
+			//block.hashMerkleRoot = merkleRootGenesisBlock;
 			testHash=block.GetHash();
 			printf("testHash %s\n", testHash.ToString().c_str());
 			printf("Hash Target %s\n", hashTarget.ToString().c_str());
@@ -2889,7 +3094,7 @@ bool LoadBlockIndex(bool fAllowNew)
 	}*/
 
         assert(block.hashMerkleRoot == merkleRootGenesisBlock);
-        block.print();
+      //  block.print();
         assert(hash == hashGenesisBlock);
         assert(block.CheckBlock());
 
@@ -3063,9 +3268,6 @@ bool LoadExternalBlockFile(FILE* fileIn)
     return nLoaded > 0;
 }
 
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CAlert
@@ -3142,6 +3344,10 @@ string GetWarnings(string strFor)
 
 
 
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Messages
@@ -3192,6 +3398,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return true;
     }
 
+
+
+
+
     if (strCommand == "version")
     {
         // Each connection can only send one version message
@@ -3238,7 +3448,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        // ppcoin: record my external IP reported by peer
+       /* if (pfrom->nVersion < 60010)
+        {
+            printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
+            pfrom->fDisconnect = true;
+            return true;
+        }*/
+
+        // record my external IP reported by peer
         if (addrFrom.IsRoutable() && addrMe.IsRoutable())
             addrSeenByPeer = addrMe;
 
@@ -3298,7 +3515,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 item.second.RelayTo(pfrom);
         }
 
-        // ppcoin: relay sync-checkpoint
+        // Relay sync-checkpoint
         {
             LOCK(Checkpoints::cs_hashSyncCheckpoint);
             if (!Checkpoints::checkpointMessage.IsNull())
@@ -3396,7 +3613,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         if (pfrom->fOneShot)
             pfrom->fDisconnect = true;
     }
-
 
     else if (strCommand == "inv")
     {
@@ -3879,8 +4095,6 @@ bool ProcessMessages(CNode* pfrom)
         {
             if ((int)vRecv.size() > nHeaderSize)
             {
-                //MYTOKEN_TEMP
-                
                 printf("\n\nPROCESSMESSAGE MESSAGESTART NOT FOUND\n\n");
                 vRecv.erase(vRecv.begin(), vRecv.end() - nHeaderSize);
             }
@@ -4132,9 +4346,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (fSecMsgEnabled)
             SecureMsgSendData(pto, fSendTrickle); // should be in cs_main?
     }
-    
-    
-    
     return true;
 }
 
@@ -4272,23 +4483,30 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     txNew.vout.resize(1);
     printf("Create Block, %d\n",pindexBest->nHeight+1); 
     
-    if(pindexBest->nHeight+1==25){
-	//Block 4k - add balances for beta testers, protoshares
-    	std::map<std::string,int64> genesisBalances= getGenesisBalances();
-	std::map<std::string,int64>::iterator balit;
-	int i=1;
-	int64 total=0;
-	txNew.vout.resize(genesisBalances.size()+1);
-	for(balit=genesisBalances.begin(); balit!=genesisBalances.end(); ++balit){
-		//printf("gb:%s,%llu",balit->first.c_str(),balit->second);
-		CBitcoinAddress address(balit->first);
-		txNew.vout[i].scriptPubKey.SetDestination( address.Get() );
-		txNew.vout[i].nValue = balit->second;
-		total=total+balit->second;
-		i++;
+
+	{
+    LOCK(grantdb);
+    //For grant award block, add grants to coinbase
+    if(isGrantAwardBlock(pindexBest->nHeight+1)){
+		if(!getGrantAwards(pindexBest->nHeight+1)){
+			 throw std::runtime_error("ConnectBlock() : ConnectBlock grant awards error");
+		}
+	printf("Got grant awards, now to add - Block %d\n", pindexBest->nHeight+1);
+	txNew.vout.resize(1+grantAwards.size());
+		    
+	int i=0;
+	for(gait=grantAwards.begin(); gait!=grantAwards.end(); ++gait){
+		printf("Add %s %llu\n",gait->first.c_str(),gait->second);
+	
+		CBitcoinAddress address(gait->first);
+		txNew.vout[i+1].scriptPubKey.SetDestination( address.Get() );
+		txNew.vout[i+1].nValue = gait->second;
+		i++;		
 	}
-	printf("Total ...%llu\n",total);  
-	} 
+    }
+    }
+    
+    printf("After grant ...\n");
 	
     txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
 
@@ -4533,6 +4751,17 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
                 }
             }
         }
+
+
+        int64 feesFromPayout=0;
+        int64 ncfeesFromPayout=0;
+
+        //This adds the required payouts if the block includes a payout transaction
+        checkForPayouts(pblock->vtx,feesFromPayout,ncfeesFromPayout,true,false,pindexPrev->nHeight+1);
+
+        nFees=nFees+(feesFromPayout>>PRIZEPAYMENTCOMMISSIONS);
+
+        nFees=nFees+(calculateTicketIncome(pblock->vtx)>>TICKETCOMMISSIONRATE);
 
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
@@ -4920,5 +5149,743 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
                 printf("Error: NewThread(ThreadBitcoinMiner) failed\n");
             Sleep(10);
         }
+	}
+}
+//Grant every 4 hours
+static const int64 GRANTBLOCKINTERVAL = (4*60*60)/nTargetSpacing;
+static string GRANTPREFIX ="NRS";
+
+
+static int numberOfOffices = 6;
+string electedOffices[7];
+//= {"ceo","cdo","cfo","cmo","coo","cbf","XFT"};
+//= Current Shareholders 
+//Chief Executive Officer
+//Chief Development Officer
+//Chief Operations Officer
+//Chief Marketing Officer
+//Chief Finance Officer
+//Charitable Donation
+
+
+//Implement in memory for now - this will cause slow startup as recalculation of all votes takes place every startup. 
+//These should be persisted in a database or on disk
+int64 grantDatabaseBlockHeight=-1; //How many blocks processed for grant allocation purposes
+std::map<std::string,int64> balances; //Balances as at grant allocation block point
+std::map<std::string,std::map<int64,std::string> > votingPreferences[7]; //Voting prefs as at grant allocation block point
+
+
+
+//These do not need to persist. They are necessarily rebuilt when required
+CBlockIndex* gdBlockPointer = NULL;
+std::map<std::string,std::map<int64, std::string> >::iterator ballotit;
+std::map<std::string,std::map<int64, std::string> > ballots;
+//std::map<std::string,std::map<int64, std::string> > newBallotObject;
+std::map<std::string,int64 > ballotBalances;
+std::map<std::string,double > ballotWeights;
+std::map<int64, std::string>::iterator svpit;
+ofstream grantAwardsOutput;
+bool debugVote = false;
+bool debugVoteExtra = false;
+std::map<std::string, int64>::iterator svpit3;
+std::map<int64, std::string>::iterator svpit4;
+std::map<std::string,int64>::iterator it;
+std::map<int64,std::string>::iterator it2;
+
+std::map<std::string,std::map<int64,std::string> >::iterator vpit;
+
+std::map<std::string,int64 > wastedVotes; //Report on Votes that were wasted
+std::map<std::string,std::map<int64,std::string> > electedVotes; //Report on where votes went 
+std::map<std::string,std::map<int64,std::string> > supportVotes; //Report on support for candidates
+
+int64 getNUMBEROFAWARDS(int64 blockNumber){
+		return 1;
+}
+
+bool isGrantAwardBlock(int64 nHeight){
+	if(nHeight%GRANTBLOCKINTERVAL ==0 && nHeight!=0 && nHeight!=GRANTBLOCKINTERVAL){
+		return true;
+	}
+	return false;	
+}
+
+
+void serializeGrantDB(string filename){
+		printf("Serialize Grant Info Database %llu\n",grantDatabaseBlockHeight);
+		ofstream grantdb;
+		grantdb.open (filename.c_str(), ios::trunc);
+		
+		//grantDatabaseBlockHeight
+		grantdb << grantDatabaseBlockHeight << "\n";
+		
+		//Balances
+		grantdb << balances.size()<< "\n";
+		for(it=balances.begin(); it!=balances.end(); ++it){
+			grantdb << it->first << "\n" << it->second<< "\n";
+		}
+		
+		//votingPreferences
+        for(int i=0;i<numberOfOffices;i++){
+            grantdb << votingPreferences[i].size()<< "\n";
+            for(vpit=votingPreferences[i].begin(); vpit!=votingPreferences[i].end(); ++vpit){
+                grantdb << vpit->first << "\n";
+                grantdb << vpit->second.size() << "\n";
+                for(it2=vpit->second.begin();it2!=vpit->second.end();++it2){
+                    grantdb << it2->first << "\n" << it2->second<< "\n";
+                }
+            }
+        }
+
+		grantdb.flush();
+		grantdb.close();
+}
+
+bool deSerializeGrantDB(string filename, int64 maxWanted){
+
+	printf("DeSerialize Grant Info Database\n");
+	
+	std::string line;
+	std::string line2;
+	ifstream myfile;
+	
+	myfile.open (filename.c_str());	
+	//ifstream myfile ("grantsdb.dat");
+	if (myfile.is_open()){
+		getline (myfile,line);
+		grantDatabaseBlockHeight=atoi64(line.c_str());
+		printf("Deserialize Grant Info Database Found Height %llu\n",grantDatabaseBlockHeight);
+		
+        if(grantDatabaseBlockHeight>maxWanted){
+            //vote database later than required - don't load
+            grantDatabaseBlockHeight=-1;
+            myfile.close();
+            return false;
+        }
+
+		//Balances
+		balances.clear();
+		getline (myfile,line);
+		int64 balancesSize=atoi64(line.c_str());
+		for(int i=0;i<balancesSize;i++){
+			getline (myfile,line);
+			getline (myfile,line2);
+			balances[line]=atoi64(line2.c_str());
+		}
+		
+		//votingPreferences
+        for(int i=0;i<numberOfOffices;i++){
+            votingPreferences[i].clear();
+            getline (myfile,line);
+            int64 votingPreferencesSize=atoi64(line.c_str());
+            for(int k=0;k<votingPreferencesSize;k++){
+                getline (myfile,line);
+                std::string vpAddress=line;
+                getline (myfile,line);
+                int64 vpAddressSize=atoi64(line.c_str());
+			
+                for(int j=0;j<vpAddressSize;j++){
+                    getline (myfile,line);
+                    getline (myfile,line2);
+                    votingPreferences[i][vpAddress][atoi64(line.c_str())]=line2;
+                }
+		
+            }
+        }
+				
+		myfile.close();
+		
+		//Set the pointer to next block to process
+		gdBlockPointer=pindexGenesisBlock;
+		for(int i=0;i<grantDatabaseBlockHeight;i++){
+            if(gdBlockPointer->pnext==NULL){
+                printf("Insufficent number of blocks loaded %s\n",filename.c_str());
+                return false;
+            }
+			gdBlockPointer=gdBlockPointer->pnext;
+		}
+		return true;
+	}else{
+		printf("Could not load Grant Info Database from %s\n",filename.c_str());
+		return false;
+	}
+
+}
+
+
+bool getGrantAwards(int64 nHeight){
+	//nHeight is the current block height
+	if(!isGrantAwardBlock(nHeight)){
+		printf("Error - calling getgrantawards for non grant award block");
+		return false;
+	}
+	return ensureGrantDatabaseUptoDate(nHeight);
+}
+
+bool ensureGrantDatabaseUptoDate(int64 nHeight){
+
+    //This should always be true on startup
+    if(getGrantDatabaseBlockHeight()==-1){
+        string newCV="xxx";
+        //Only count custom vote if re-indexing
+        if(GetBoolArg("-reindex"),false){
+            newCV=GetArg("-customvoteprefix",newCV);
+            printf("customvoteprefix:%s\n",newCV.c_str());
+        }
+        electedOffices[0]="ceo";
+        electedOffices[1]="cdo";
+        electedOffices[2]="cfo";
+        electedOffices[3]="cmo";
+        electedOffices[4]="coo";
+        electedOffices[5]="cbf";
+        electedOffices[6]=newCV;
     }
+
+    //nHeight is the current block height
+    //requiredgrantdatabaseheight is 20 less than the current block
+    int64 requiredGrantDatabaseHeight=nHeight-GRANTBLOCKINTERVAL;
+    printf("Ensure grant database up to date %llu\n",requiredGrantDatabaseHeight);
+
+    //Maybe we don't have to count votes from the start - let's check if there's a recent vote database stored
+    if(getGrantDatabaseBlockHeight()==-1){
+        deSerializeGrantDB((GetDataDir() / "blocks/grantdb.dat").string().c_str(),requiredGrantDatabaseHeight);
+        //printf("deserialized vote database:\n");
+    }
+
+    /*
+    if(getGrantDatabaseBlockHeight()>requiredGrantDatabaseHeight){
+        printf("Grant database has processed too many blocks. Needs to be rebuilt. %llu",nHeight);
+        balances.clear();
+        for(int i=0;i<numberOfOffices+1;i++){
+            votingPreferences[i].clear();
+        }
+        gdBlockPointer=pindexGenesisBlock;
+        grantDatabaseBlockHeight=-1;
+    }*/
+	
+    while(getGrantDatabaseBlockHeight()<requiredGrantDatabaseHeight){
+        processNextBlockIntoGrantDatabase();
+    }
+    return true;
+		
+}
+
+
+
+
+
+int64 getGrantDatabaseBlockHeight(){
+	return grantDatabaseBlockHeight;
+}
+
+
+int getOfficeNumberFromAddress(string grantVoteAddress, int64 nHeight){
+	if (!startsWith(grantVoteAddress.c_str(),GRANTPREFIX.c_str())){
+		return -1;
+	}
+    for(int i=0;i<numberOfOffices+1;i++){
+		//printf("substring %s\n",grantVoteAddress.substr(4,3).c_str());
+		if(grantVoteAddress.substr(4,3)==electedOffices[i]){
+			return i;
+		}
+	}
+	return -1;
+}
+
+void printVotingPrefs(std::string address){
+    //I don't know why, this is compiling, but crashing
+    /*std::map<int64, std::string> thisBallot=ballots.find(address)->second;
+    if(thisBallot.begin()==thisBallot.end()){
+        printf("No Voting Preferences\n");
+        return;
+    }
+    int pref=1;
+    for(svpit4=thisBallot.begin();svpit4!=thisBallot.end();++svpit4){
+        printf("Preference: (%d) %llu %s \n",pref, svpit4->first/COIN,svpit4->second.c_str());
+        pref++;
+    }*/
+
+    //This is slow and iterates too much, but on the plus side it doesn't crash the program.
+    //This crash probably caused by eliminate candidate corrupting the ballot structure.
+    //Should be safe to use more efficient code after fork
+    int pref=1;
+    for(ballotit=ballots.begin(); ballotit!=ballots.end(); ++ballotit){
+        if(address==ballotit->first){
+            for(svpit4=ballotit->second.begin();svpit4!=ballotit->second.end();++svpit4){
+                grantAwardsOutput<<"--Preference "<<pref<<" "<<svpit4->first<<" "<<svpit4->second.c_str()<<" \n";
+                pref++;
+            }
+        }
+    }
+
+}
+
+void processNextBlockIntoGrantDatabase(){
+
+	//printf("processNextBlockIntoGrantDatabase %d\n",grantDatabaseBlockHeight+1);
+	
+	CBlock block;
+	
+	//If it's the first block, we'll start with the Genesis Block
+	if(gdBlockPointer==NULL){
+		gdBlockPointer=pindexGenesisBlock;
+	}else{
+		gdBlockPointer=gdBlockPointer->pnext;
+	}
+	block.ReadFromDisk(gdBlockPointer);
+	//ReadBlockFromDisk(block, gdBlockPointer);
+        //block.ReadFromDisk(gdBlockPointer,true); //Litecoin codebase method
+	
+	
+	//Look at all transactions in the block to update balances and see if they contain voting preferences
+	for (unsigned int i = 0; i <block.vtx.size(); i++){
+		
+		std::map<std::string,int64 > votes;
+		std::map<std::string,int64 >::iterator votesit;
+		
+		//Deal with outputs first - increase balances and note what the votes are
+		for (unsigned int j = 0; j <block.vtx[i].vout.size(); j++){
+			CTxDestination address;
+			ExtractDestination(block.vtx[i].vout[j].scriptPubKey,address);
+			
+			string receiveAddress=CBitcoinAddress(address).ToString().c_str();
+			int64 theAmount=block.vtx[i].vout[j].nValue;
+			
+			//Update balance - if no previous balance, should start at 0
+			balances[receiveAddress]=balances[receiveAddress]+theAmount;				
+			
+			//Note any voting preferences made in the outputs
+			if(startsWith(receiveAddress.c_str(),(GRANTPREFIX).c_str()) && theAmount<10 && theAmount>0){
+				//printf("Vote found Amount: %llu\n",theAmount);
+				//Voting output - if the same address is voted a number of times in the same transaction, only the last one is counted
+				votes[receiveAddress]=theAmount;
+			}			
+		}
+		
+		//Deal with the inputs - reduce balances and apply voting preferences noted in the outputs
+		for (unsigned int j = 0; j <block.vtx[i].vin.size(); j++){
+			if(block.vtx[i].IsCoinBase()){
+				//This is a coinbase transaction, there is no input to reduce
+			}else{
+				CTransaction txPrev;
+				uint256 hashBlock;
+				GetTransaction(block.vtx[i].vin[j].prevout.hash,txPrev,hashBlock);
+				CTxDestination source;
+				ExtractDestination(txPrev.vout[block.vtx[i].vin[j].prevout.n].scriptPubKey,source);			
+				string spendAddress=CBitcoinAddress(source).ToString().c_str();
+				int64 theAmount=txPrev.vout[block.vtx[i].vin[j].prevout.n].nValue;
+				
+				//Reduce balance
+				balances[spendAddress]=balances[spendAddress]-theAmount;
+	
+				//If any of the outputs were votes
+				for(votesit=votes.begin(); votesit!=votes.end(); ++votesit){
+                    printf("Vote found: %s, %llu\n",votesit->first.c_str(),votesit->second);
+					string grantVoteAddress=(votesit->first);
+					int electedOfficeNumber = getOfficeNumberFromAddress(grantVoteAddress, gdBlockPointer->nHeight);
+					if(electedOfficeNumber>-1){
+                        printf("Vote added: %d %s, %llu\n",electedOfficeNumber,votesit->first.c_str(),votesit->second);
+                        votingPreferences[electedOfficeNumber][spendAddress][votesit->second] = grantVoteAddress;
+                        printf("Size: %lu \n",votingPreferences[electedOfficeNumber].size());
+                    }
+				}
+	
+			}
+		}
+	}
+	
+	grantDatabaseBlockHeight++;
+	
+	if(isGrantAwardBlock(grantDatabaseBlockHeight+GRANTBLOCKINTERVAL)){
+		getGrantAwardsFromDatabaseForBlock(grantDatabaseBlockHeight+GRANTBLOCKINTERVAL);
+		//Save the grant database to disk - these need to be persisted
+        serializeGrantDB((GetDataDir() / "blocks/grantdb.dat").string().c_str());
+
+        //check deserialization is working
+        //deSerializeGrantDB((GetDataDir() / "blocks/grantdb.dat").string().c_str());
+		//printf("2 current block on:%llu\n",gdBlockPointer->GetBlockHash());
+		
+	}
+}
+
+
+void printCandidateSupport(){
+	std::map<int64,std::string>::reverse_iterator itpv2;
+	
+	grantAwardsOutput<<"\nWinner Support: \n";
+		
+	for(ballotit=supportVotes.begin(); ballotit!=supportVotes.end(); ++ballotit){
+		grantAwardsOutput<<"\n--"<<ballotit->first<<" \n";
+		for(itpv2=ballotit->second.rbegin();itpv2!=ballotit->second.rend();++itpv2){
+            grantAwardsOutput<<"-->("<< itpv2->first/COIN <<"/"<<balances[itpv2->second.c_str()]/COIN <<") "<<itpv2->second.c_str()<<" \n";
+		}		
+	}
+}
+
+void printBalances(int64 howMany, bool printVoting, bool printWasted){
+	grantAwardsOutput<<"---Current Balances------\n";
+	std::multimap<int64, std::string > sortByBalance;
+	
+	std::map<std::string,int64>::iterator itpv;
+	std::map<int64,std::string>::reverse_iterator itpv2;
+	
+	for(itpv=balances.begin(); itpv!=balances.end(); ++itpv){
+		//int amt=(it->second)/COIN;
+		//sortByBalance[it->second]=it->first;
+		if(itpv->second>COIN){
+			sortByBalance.insert(pair<int64, std::string>(itpv->second,itpv->first));
+		}
+	}
+	
+	//printf("%d addresses with balances. Printing Top %d\n",balances.size(),howMany);
+	
+	std::multimap<int64, std::string >::reverse_iterator sbbit;
+	int64 count=0;
+	for (sbbit =  sortByBalance.rbegin(); sbbit !=  sortByBalance.rend();++sbbit){
+		if(howMany>count){
+			grantAwardsOutput<<"\n->Balance:"<<sbbit->first/COIN<<" - "<<sbbit->second.c_str()<<"\n";
+			if(printWasted){
+				for(itpv2=electedVotes[sbbit->second.c_str()].rbegin(); itpv2!=electedVotes[sbbit->second.c_str()].rend(); ++itpv2){
+					grantAwardsOutput << "---->" << itpv2->first/COIN << " supported " << itpv2->second << "\n";		
+				}
+				if(wastedVotes[sbbit->second.c_str()]/COIN>0){
+					grantAwardsOutput<<"---->"<<wastedVotes[sbbit->second.c_str()]/COIN<<"  wasted (Add More Preferences)\n";
+				}
+				if(votingPreferences[0].find(sbbit->second.c_str())==votingPreferences[0].end()){
+					grantAwardsOutput<<"---->No Vote: (Add Some Voting Preferences)\n";
+				}
+			}
+			
+			if(printVoting){
+				try{
+					printVotingPrefs(sbbit->second);
+				}catch (std::exception &e) {
+					grantAwardsOutput<<"Print Voting Prefs Exception\n";
+				}
+			}
+			count++;
+		}
+	}
+	grantAwardsOutput<<"---End Balances------\n";
+}
+
+
+bool getGrantAwardsFromDatabaseForBlock(int64 nHeight){
+	
+    printf("getGrantAwardsFromDatabase %llu\n",nHeight);
+	if(grantDatabaseBlockHeight!=nHeight-GRANTBLOCKINTERVAL){
+        printf("getGrantAwardsFromDatabase is being call when no awards are due. %llu %llu\n",grantDatabaseBlockHeight,nHeight);
+		return false;
+	}
+	
+	debugVote = GetBoolArg("-debugvote", false);
+	if(debugVote){
+		std::stringstream sstm;
+		sstm << "award" << setw(8) << std::setfill('0') << nHeight << ".txt";
+		string filename = sstm.str();
+		//printf("%s\n",filename.c_str());
+		//mkdir((GetDataDir() / "grantawards").string().c_str());
+		mkdir((GetDataDir() / "grantawards").string().c_str()
+#ifndef _WIN32
+		,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH
+#endif
+		);
+		grantAwardsOutput.open ((GetDataDir() / "grantawards" / filename).string().c_str(), ios::trunc);}
+	//save to disk
+	
+	if(debugVote)grantAwardsOutput << "-------------:\nElection Count:\n-------------:\n\n";
+	
+	//Clear from last time, ensure nothing left over
+
+	awardWinners.clear();
+	grantAwards.clear();
+
+		
+for(int i=0;i<numberOfOffices+1;i++){
+	ballots.clear();
+	ballotBalances.clear();
+	ballotWeights.clear();
+	wastedVotes.clear();
+	electedVotes.clear();
+	supportVotes.clear();
+	
+	//Iterate through every vote
+	for(vpit=votingPreferences[i].begin(); vpit!=votingPreferences[i].end(); ++vpit){
+		int64 voterBalance=balances[vpit->first];
+		//Ignore balances of 0 - they play no part.
+		if(voterBalance>0){
+			ballotBalances[vpit->first]=voterBalance;
+			ballotWeights[vpit->first]=1.0;
+			
+			//Order preferences by coins sent - lowest number of coins has top preference
+			for(it2=vpit->second.begin(); it2!=vpit->second.end(); ++it2){
+				//Where a voter has voted for more than one preference with the same amount, only the last one (alphabetically) will be valid. The others are discarded.
+				ballots[vpit->first][it2->first]=it2->second;
+			}
+		}else if (voterBalance<0){
+			printf("Something wrong here - balance is less than zero - this should never occur\n");
+			printf("Voter: %s %llu\n",vpit->first.c_str(),voterBalance);
+		}
+	}
+
+    //if(debugVote)printBalances(100,true,false);
+	getWinnersFromBallots(nHeight,i);
+
+	//At this point, we know the vote winners - now to see if grants are to be awarded - note nheight is the current blockheight
+    if(i<numberOfOffices){
+        for(int i=0;i<getNUMBEROFAWARDS(nHeight);i++){
+            grantAwards[awardWinners[i]]=grantAwards[awardWinners[i]]+GetGrantValue(nHeight);
+            if(debugVote)grantAwardsOutput << "Add grant award to Block "<<awardWinners[i].c_str()<<" ("<<GetGrantValue(nHeight)/COIN<<")\n";
+        }
+    }
+	if(debugVote)printCandidateSupport();
+	
+}	
+
+
+	//if(debugVote)printBalances(100,false,true);
+	if(debugVote){grantAwardsOutput.close();}
+	return true;
+}
+
+void getWinnersFromBallots(int64 nHeight, int officeNumber){
+
+	if(debugVote)grantAwardsOutput <<"\n\n\n--------"<< electedOffices[officeNumber]<<"--------\n";
+	
+	
+	if(debugVoteExtra)printBallots();
+	
+	//Calculate Total in all balances
+	int64 tally=0;
+	for(it=balances.begin(); it!=balances.end(); ++it){
+		tally=tally+it->second;
+	}
+	if(debugVote)grantAwardsOutput <<"Total coin issued: " << tally/COIN <<"\n";
+
+	//Calculate Total of balances of voters
+	int64 totalOfVoterBalances=0;
+	for(it=ballotBalances.begin(); it!=ballotBalances.end(); ++it){
+		totalOfVoterBalances=totalOfVoterBalances+it->second;
+	}
+	if(debugVote)grantAwardsOutput <<"Total of Voters' Balances: "<<totalOfVoterBalances/COIN<<"\n";
+	
+	//Turnout
+	if(debugVote)grantAwardsOutput <<"Percentage of total issued coin voting: "<<(totalOfVoterBalances*100)/tally<<" percent\n";
+	
+	//Calculate Droop Quota
+	int64 droopQuota = (totalOfVoterBalances/(getNUMBEROFAWARDS(nHeight)+1))+1;
+	if(debugVote)grantAwardsOutput <<"Droop Quota: "<<droopQuota/COIN<<"\n";
+	
+	
+	
+	//Conduct voting rounds until all grants are awarded
+	for(int i=getNUMBEROFAWARDS(nHeight);i>0;i--){
+		string electedCandidate;
+		int voteRoundNumber=0;
+		if(debugVote)grantAwardsOutput <<"-------------:\nRound:"<<getNUMBEROFAWARDS(nHeight)-i<<"\n";
+		if(debugVoteExtra)printBallots();
+		do{
+			//if(debugVote)grantAwardsOutput <<"-------------:\nElimination Round:%d\n",voteRoundNumber);
+			electedCandidate=electOrEliminate(droopQuota, i);
+			voteRoundNumber++;
+		}while(electedCandidate=="");
+		awardWinners[(i-getNUMBEROFAWARDS(nHeight))*-1]=electedCandidate;
+	}
+	//if(debugVote)grantAwardsOutput <<"--------End Grant Voting--------\n";
+	
+}
+
+//Sum total of first preferences
+std::map<std::string,int64 > preferenceCount;
+int64 numberCandidatesEliminated=0;	
+		
+string	electOrEliminate(int64 droopQuota, unsigned int requiredCandidates){
+
+	std::map<std::string,int64 >::iterator tpcit;
+	
+	
+	
+	//Recalculate the preferences each time as winners and losers are removed from ballots.
+	preferenceCount.clear();
+	
+	//Calculate support for each candidate. The balance X the weighting for each voter is applied to the total for the candidate currently at the top of the voter's ballot  
+	for(ballotit=ballots.begin(); ballotit!=ballots.end(); ++ballotit){
+		//Check: Multiplying int64 by double here, and representing answer as int64.
+		preferenceCount[ballotit->second.begin()->second]+=(ballotBalances[ballotit->first]*ballotWeights[ballotit->first]);
+	}
+	
+	//if(debugVote)grantAwardsOutput <<"Number of Remaining Candidates: %d\n",preferenceCount.size());
+	
+	//Find out which remaining candidate has the greatest and least support
+	string topOfThePoll;
+	int64 topOfThePollAmount=0;	
+	string bottomOfThePoll;
+	int64 bottomOfThePollAmount=9223372036854775807;
+
+		
+	for(tpcit=preferenceCount.begin(); tpcit!=preferenceCount.end(); ++tpcit){
+		//Check:When competing candidates have equal votes, the first (sorted by Map) will be chosen for top and bottom of the poll.
+		if(tpcit->second>topOfThePollAmount){
+			topOfThePollAmount=tpcit->second;
+			topOfThePoll=tpcit->first;
+		}
+		if(tpcit->second<bottomOfThePollAmount){
+			bottomOfThePollAmount=tpcit->second;
+			bottomOfThePoll=tpcit->first;
+		}
+		//if(tpcit->second>droopQuota/10){
+		//	if(debugVote)grantAwardsOutput <<"Support: "<<tpcit->first<<"("<<tpcit->second/COIN<<")\n";
+		//}
+		
+	}
+	
+	//Purely for debugging/information
+	if(topOfThePollAmount>=droopQuota || requiredCandidates>=preferenceCount.size() ||bottomOfThePollAmount>droopQuota/10){
+		if(debugVote)grantAwardsOutput <<"Candidates with votes equalling more than 10% of Droop quota\n";
+		for(tpcit=preferenceCount.begin(); tpcit!=preferenceCount.end(); ++tpcit){
+			if(tpcit->second>droopQuota/10){
+				if(debugVote)grantAwardsOutput <<"Support: "<<tpcit->first<<" ("<<tpcit->second/COIN<<")\n";
+			}
+		
+		}
+	}
+	
+	//if(debugVote)grantAwardsOutput <<"Bottom Preference Votes: %s %llu\n",bottomOfThePoll.c_str(),bottomOfThePollAmount/COIN);
+	
+	if(topOfThePollAmount==0){
+		//No ballots left -end - 
+		if(debugVote)grantAwardsOutput <<"No Candidates with support remaining. Grant awarded to unspendable address NRScEowF8PqsJvigKdmfAsRp6MnevnkhHs\n";
+		return "NRScEowF8PqsJvigKdmfAsRp6MnevnkhHs";
+	}
+	
+	if(topOfThePollAmount>=droopQuota || requiredCandidates>=preferenceCount.size()){
+		
+		//Note: This is a simplified Gregory Transfer Value - ignoring ballots where there are no other hopefuls.
+		double gregorySurplusTransferValue=((double)topOfThePollAmount-(double)droopQuota)/(double)topOfThePollAmount;
+		
+		//Don't want this value to be negative when candidates are elected with less than a quota
+		if(gregorySurplusTransferValue<0){gregorySurplusTransferValue=0;}
+		
+		electCandidate(topOfThePoll,gregorySurplusTransferValue,(requiredCandidates==1));
+		//if(debugVote)grantAwardsOutput <<"Top Preference Votes: %s %llu\n",topOfThePoll.c_str(),topOfThePollAmount/COIN);	
+		if(debugVote){
+			if(numberCandidatesEliminated>0){
+				grantAwardsOutput <<"Candidates Eliminated ("<<numberCandidatesEliminated<<")\n\n";
+				numberCandidatesEliminated=0;
+			}
+			grantAwardsOutput <<"Candidate Elected: "<<topOfThePoll.c_str()<<" ("<<topOfThePollAmount/COIN<<")\n";
+			grantAwardsOutput <<"Surplus Transfer Value: "<<gregorySurplusTransferValue<<"\n";				
+		}
+		return topOfThePoll;
+		
+	}else{
+		eliminateCandidate(bottomOfThePoll,false);
+		if(debugVote){
+			if(bottomOfThePollAmount>droopQuota/10){
+				if(numberCandidatesEliminated>0){
+					grantAwardsOutput <<"Candidates Eliminated ("<<numberCandidatesEliminated<<")\n";
+					numberCandidatesEliminated=0;
+				}
+				grantAwardsOutput <<"Candidate Eliminated: "<<bottomOfThePoll.c_str()<<" ("<<bottomOfThePollAmount/COIN<<")\n\n";
+			}else{
+				numberCandidatesEliminated++;
+			}
+		
+		}
+		return "";
+	}	
+	
+	
+}
+
+std::map<int64, std::string>::iterator svpit2;
+
+void electCandidate(string topOfThePoll, double gregorySurplusTransferValue,bool isLastCandidate){
+	
+	//Apply fraction to weights where the candidate was top of the preference list
+	for(ballotit=ballots.begin(); ballotit!=ballots.end(); ++ballotit){
+		svpit2=ballotit->second.begin();
+		if(svpit2->second==topOfThePoll){
+			//Record how many votes went towards electing this candidate for each user
+			electedVotes[ballotit->first][balances[ballotit->first]*(ballotWeights[ballotit->first]*(1-gregorySurplusTransferValue))]=svpit2->second;
+			//Record the support for each candidate elected
+			supportVotes[topOfThePoll][balances[ballotit->first]*(ballotWeights[ballotit->first]*(1-gregorySurplusTransferValue))]=ballotit->first;
+			
+			//This voter had the elected candidate at the top of the ballot. Adjust weight for future preferences.
+			ballotWeights[ballotit->first]=ballotWeights[ballotit->first]*gregorySurplusTransferValue;
+		}
+	}
+	
+	//Remove candidate from all ballots - this includes where he may be far down the list of preferences
+	eliminateCandidate(topOfThePoll,isLastCandidate);
+}
+
+void eliminateCandidate(string removeid,bool isLastCandidate){
+	
+	
+	std::map<std::string, int64> ballotsToRemove;
+	std::map<std::string, int64>::iterator btrit;
+	
+	//Remove candidate from all ballots - note the candidate may be way down the preference list
+	for(ballotit=ballots.begin(); ballotit!=ballots.end(); ++ballotit){
+		int64 markForRemoval=0;
+			
+		for(svpit2=ballotit->second.begin();svpit2!=ballotit->second.end();++svpit2){
+			if(svpit2->second==removeid){
+				//if(debugVote)grantAwardsOutput <<"1. Mark for Removal From Ballot: %s %d \n",removeid.c_str(),svpit2->first);
+				markForRemoval=svpit2->first;
+			}
+		}
+		
+		if(markForRemoval!=0){
+			ballotit->second.erase(markForRemoval);
+		}
+		
+		//Make a note of ballot to remove
+		if(ballotit->second.size()==0){
+			if(!isLastCandidate){
+				wastedVotes[ballotit->first]=(ballotBalances[ballotit->first]*ballotWeights[ballotit->first]);
+			}
+			ballotsToRemove[ballotit->first]=1;
+		}
+	}	
+	
+	for(btrit=ballotsToRemove.begin(); btrit!=ballotsToRemove.end(); ++btrit){
+		ballots.erase(btrit->first);
+	}
+	
+}
+
+
+
+void printBallots(){
+
+	printf("Current Ballot State\n");
+	int cutOff=0;
+	for(ballotit=ballots.begin(); ballotit!=ballots.end(); ++ballotit){
+		//if(cutOff<10){
+			printf("Voter: %s Balance: %llu Weight: %f Total: %f\n",ballotit->first.c_str(),ballotBalances[ballotit->first]/COIN,ballotWeights[ballotit->first],(ballotBalances[ballotit->first]/COIN)*ballotWeights[ballotit->first]);
+			int cutOff2=0;
+			//if(cutOff2<5){
+				for(svpit2=ballotit->second.begin();svpit2!=ballotit->second.end();++svpit2){
+					printf("Preference: (%d) %llu %s \n",cutOff2, svpit2->first,svpit2->second.c_str());
+				}
+			//}
+			cutOff2++;
+		//}
+		cutOff++;
+	}
+	
+	
+}
+
+
+bool startsWith(const char *str, const char *pre)
+{
+    size_t lenpre = strlen(pre),
+           lenstr = strlen(str);
+    return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
+}
+
+string getDefaultWalletAddress(){
+    return pwalletMain->getDefaultWalletAddress();
 }

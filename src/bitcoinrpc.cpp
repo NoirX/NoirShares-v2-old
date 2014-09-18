@@ -253,6 +253,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getaddressesbyaccount",  &getaddressesbyaccount,  true,   false,	   true  },
     { "sendtoaddress",          &sendtoaddress,          false,  false,	   true  },
     { "getreceivedbyaddress",   &getreceivedbyaddress,   false,  false,	   true  },
+    { "mergecoins",             &mergecoins,             false,  false,	   false },
     { "getreceivedbyaccount",   &getreceivedbyaccount,   false,  false,	   true  },
     { "listreceivedbyaddress",  &listreceivedbyaddress,  false,  false,	   true  },
     { "listreceivedbyaccount",  &listreceivedbyaccount,  false,  false,	   true  },
@@ -287,10 +288,14 @@ static const CRPCCommand vRPCCommands[] =
     { "submitblock",            &submitblock,            false,  false,	   false },
     { "listsinceblock",         &listsinceblock,         false,  false,	   true  },
     { "dumpprivkey",            &dumpprivkey,            false,  false,	   true  },
-    { "importprivkey",          &importprivkey,          false,  false,	   true  },
-    { "listunspent",            &listunspent,            false,  false,	   true  },
+    { "dumpwallet",             &dumpwallet,             true,   false,	   false },
+    { "importwallet",           &importwallet,           false,  false,	   false },
+	{ "importprivkey",          &importprivkey,          false,  false,	   true  },
+    { "importaddress",          &importaddress,          false,  true ,	   true  },
+	{ "listunspent",            &listunspent,            false,  false,	   true  },
     { "getrawtransaction",      &getrawtransaction,      false,  false,	   false },
     { "createrawtransaction",   &createrawtransaction,   false,  false,	   false },
+    { "createmultisig",         &createmultisig,         false,  false,	   false },
     { "decoderawtransaction",   &decoderawtransaction,   false,  false,	   false },
     { "decodescript",           &decodescript,           false,  false,	   false },
     { "signrawtransaction",     &signrawtransaction,     false,  false,	   true  },
@@ -1226,6 +1231,9 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "mergecoins"            && n > 0) ConvertTo<double>(params[0]);
+    if (strMethod == "mergecoins"            && n > 1) ConvertTo<double>(params[1]);
+    if (strMethod == "mergecoins"            && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]);
     if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "getreceivedbyaccount"   && n > 1) ConvertTo<boost::int64_t>(params[1]);
@@ -1266,13 +1274,16 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "getrawtransaction"      && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "createrawtransaction"   && n > 0) ConvertTo<Array>(params[0]);
     if (strMethod == "createrawtransaction"   && n > 1) ConvertTo<Object>(params[1]);
+    if (strMethod == "createmultisig"         && n > 0) ConvertTo<boost::int64_t>(params[0]);
+    if (strMethod == "createmultisig"         && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
     if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
     if (strMethod == "loadwallet"             && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "loadwallet"             && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "loadwallet"             && n > 3) ConvertTo<boost::int64_t>(params[3]);
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
-
+	if (strMethod == "importaddress"          && n > 2) ConvertTo<bool>(params[2]);
+	
     return params;
 }
 

@@ -16,9 +16,6 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-    <property name="styleSheet">
-     <string notr="true">color:white;background-color:black;border-width:1px</string>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
@@ -26,11 +23,14 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabMain">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
-       <string>&amp;Main</string>
+       <string>&amp;Main </string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_Main">
        <item>
@@ -161,6 +161,9 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabNetwork">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Network</string>
       </attribute>
@@ -290,6 +293,9 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabWindow">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Window</string>
       </attribute>
@@ -330,6 +336,9 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabDisplay">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
        <string>&amp;Display</string>
       </attribute>
@@ -418,14 +427,17 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tabComms">
+      <property name="styleSheet">
+       <string notr="true">color:white;background-color:black;border-width:1px</string>
+      </property>
       <attribute name="title">
-       <string>&amp;Communication</string>
+       <string>&amp;Noir +</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="groupBoxEM">
          <property name="title">
-          <string>Encrypted Messaging Settings</string>
+          <string>NoirTalk Settings</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
@@ -441,13 +453,13 @@
        <item>
         <widget class="QGroupBox" name="groupBoxTrollbox">
          <property name="title">
-          <string>Trollbox Settings</string>
+          <string>Holla! Settings</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QCheckBox" name="enableTrollbox">
             <property name="text">
-             <string>&amp;Enable Trollbox</string>
+             <string>&amp;Enable Holla!</string>
             </property>
            </widget>
           </item>

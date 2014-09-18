@@ -40,7 +40,15 @@
         <file alias="filesave">res/icons/filesave.png</file>
         <file alias="qrcode">res/icons/qrcode.png</file>
         <file alias="debugwindow">res/icons/debugwindow.png</file>
+        <file alias="dump">res/icons/dump.png</file>
+        <file alias="import">res/icons/import.png</file>
         <file alias="em">res/icons/em.png</file>
+        <file alias="lotto">res/icons/lotto.png</file>
+        <file alias="assets">res/icons/assets.png</file>
+        <file alias="invoice">res/icons/invoice.png</file>
+        <file alias="metacontact_unknown">res/icons/metacontact_unknown.png</file>
+        <file alias="ksayit_talking">res/icons/ksayit_talking.png</file>
+        <file alias="voting_prefs">res/icons/voting_prefs.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>
@@ -54,3 +62,4 @@
         <file alias="en">locale/bitcoin_en.qm</file>
     </qresource>
 </RCC>
+
