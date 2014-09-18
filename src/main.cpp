@@ -5753,8 +5753,8 @@ string	electOrEliminate(int64 droopQuota, unsigned int requiredCandidates){
 	
 	if(topOfThePollAmount==0){
 		//No ballots left -end - 
-		if(debugVote)grantAwardsOutput <<"No Candidates with support remaining. Grant awarded to unspendable address MVTEceo1111111111111111111111TvNrt\n";
-		return "MVTEceo1111111111111111111111TvNrt";
+		if(debugVote)grantAwardsOutput <<"No Candidates with support remaining. Grant awarded to unspendable address NRScEowF8PqsJvigKdmfAsRp6MnevnkhHs\n";
+		return "NRScEowF8PqsJvigKdmfAsRp6MnevnkhHs";
 	}
 	
 	if(topOfThePollAmount>=droopQuota || requiredCandidates>=preferenceCount.size()){
