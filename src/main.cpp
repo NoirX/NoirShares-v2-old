@@ -1895,12 +1895,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     //Check correct amount awarded in grants
     if(pindex->nHeight>0 && !fTestNet){
 	
-     if ((vtx[0].GetValueOut() > 22222000000002)){
+     if ((vtx[0].GetValueOut() > 222220000002)){
         return DoS(100, error("ConnectBlock() %d : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", pindex->nHeight, vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
     }
 }
-
-
     //1% commission
     nFees=nFees+(calculateTicketIncome(vtx)>>TICKETCOMMISSIONRATE);
 
@@ -1909,9 +1907,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         theNBits=pindex->pprev->nBits;
     }
     
-    if ((vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees,theNBits)) && (pindex->nHeight>150) )
-      return DoS(100, error("ConnectBlock() : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", vtx[0].GetValueOut(), GetProofOfWorkReward(pindex->nHeight, nFees,theNBits)));
-
     if (!control.Wait())
         return DoS(100, false);
     int64 nTime2 = GetTimeMicros() - nStart;
@@ -1935,8 +1930,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         // printf("==> Got prevHash = %s\n", prevHash.ToString().c_str());
     }
 
-    if (vtx[0].GetValueOut() > GetProofOfWorkReward(pindex->nHeight, nFees, prevHash))
-        return false;
+    if ((vtx[0].GetValueOut() > 222220000002)){
+        return DoS(100, error("ConnectBlock() %d : coinbase pays too much (actual=%"PRI64d" vs limit=%"PRI64d")", pindex->nHeight, vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees+grantAward)));
+    }
 
     // Update block index on disk without changing it in memory.
     // The memory index structure will be changed after the db commits.
