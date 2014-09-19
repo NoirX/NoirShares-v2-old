@@ -82,9 +82,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
 	
         BOOST_FOREACH(const CTxOut& txout, wtx.vout){
             fAllToMe = fAllToMe && wallet->IsMine(txout);
-			CTxDestination address;
+            CTxDestination address;
             ExtractDestination(txout.scriptPubKey, address);
-            lotteryTicket = lotteryTicket || CBitcoinAddress(address).ToString() == "NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
+            lotteryTicket = lotteryTicket || CBitcoinAddress(address).ToString() == "NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
             
         }
 
@@ -272,7 +272,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         CTxDestination address;
         ExtractDestination(txout.scriptPubKey, address);
         lotteryTicket = lotteryTicket || CBitcoinAddress(address).ToString() == "NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
-        dicegame = dicegame || CBitcoinAddress(address).ToString() == "NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
+        
     }
 
 

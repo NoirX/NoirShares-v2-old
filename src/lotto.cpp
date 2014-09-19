@@ -993,3 +993,28 @@ void randomTickets(int64 amount, int64 interval){
     }
 }
 
+string getLotteryResult(int64 blockHeight, std::set<int> ticketNumbers){
+    uint256 seedHash=Checkpoints::getSeedHash(blockHeight);
+    char str[15];
+    if(seedHash!=0){
+        std::set<int> drawNumbers;
+        drawNumbers = generateDrawNumbersFromString(seedHash);
+        int matchingNumber=countMatches(ticketNumbers,drawNumbers);
+        std::set<int>::iterator itt;
+        std::string myNumbers="| Draw: ";
+        for (itt=drawNumbers.begin(); itt!=drawNumbers.end(); ++itt){
+            int myNum=*itt;
+            char str2[15];
+            sprintf(str2, "%d", myNum);
+            myNumbers=myNumbers+str2;
+            myNumbers=myNumbers+" ";
+        }
+        sprintf(str, "| Match: %d", matchingNumber);
+        myNumbers=myNumbers+str;
+        return myNumbers;
+
+    }else{
+        sprintf(str, "| . . . ");
+    }
+    return str;
+}

@@ -9,27 +9,29 @@ USE_UPNP:=1
 USE_IPV6:=1
 
 DEPSDIR?=/usr/local
-BOOST_SUFFIX?=-mgw48-mt-s-1_55
+BOOST_SUFFIX?=-mgw49-mt-s-1_55
 
 INCLUDEPATHS= \
- -I"C:\deps\boost\include" \
- -I"C:\deps\db-4.8.30.NC\build_unix" \
- -I"C:\deps\openssl_1.0.1h\include" \
- -I"C:\deps\miniupnpc"
+ -I"$(CURDIR)" \
+ -I"/c/deps/boost_1_55_0" \
+ -I"/c/deps/db-4.8.30.NC/build_unix" \
+ -I"/c/deps/openssl-1.0.1i/include" \
+ -I"/c/deps/miniupnpc"
  
 LIBPATHS= \
- -L"C:\deps\boost\lib" \
- -L"C:\deps\db-4.8.30.NC\build_unix" \
- -L"C:\deps\openssl_1.0.1h\lib" \
- -L"C:\deps\openssl_1.0.1h\lib" \
- -L"C:\deps\miniupnpc"
+ -L"$(CURDIR)/leveldb" \
+ -L"/c/deps/boost_1_55_0/stage/lib" \
+ -L"/c/deps/db-4.8.30.NC/build_unix" \
+ -L"/c/deps/openssl-1.0.1i" \
+ -L"/c/deps/miniupnpc"
 
 LIBS= \
  -l boost_system$(BOOST_SUFFIX) \
  -l boost_filesystem$(BOOST_SUFFIX) \
  -l boost_program_options$(BOOST_SUFFIX) \
  -l boost_thread$(BOOST_SUFFIX) \
- -l boost_regex$(BOOST_LIB_SUFFIX)
+ -l boost_regex$(BOOST_SUFFIX) \
+ -l boost_chrono$(BOOST_SUFFIX) \
  -l db_cxx \
  -l ssl \
  -l crypto
@@ -38,8 +40,8 @@ DEFS=-DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -DBOOST_SPIRIT_THREADSAFE -D__NO_
 
 DEBUGFLAGS=-g
 CFLAGS=-mthreads -static -O2 -msse2 -w -Wall -Wextra -Wformat -Wformat-security -Wno-ignored-qualifiers -Wno-unused-parameter $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
-#LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat
-LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat -Wl,--large-address-aware -static -static-libgcc -static-libstdc++
+#LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat -Wl,--large-address-aware
+LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat  -static -static-libgcc -static-libstdc++
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
 ifndef USE_UPNP
@@ -72,7 +74,9 @@ OBJS= \
     obj/irc.o \
     obj/keystore.o \
     obj/main.o \
+    obj/momentum.o \
     obj/net.o \
+    obj/lotto.o \
     obj/protocol.o \
     obj/bitcoinrpc.o \
     obj/rpcdump.o \
