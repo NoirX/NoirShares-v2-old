@@ -1145,7 +1145,7 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
 int64 static GetGrantValue(int64 nHeight)
 {
 	int64 grantaward=GetProofOfWorkReward(nHeight, 0, 0);
-	return grantaward/300;
+	return grantaward/20;
 }
 
 

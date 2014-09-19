@@ -34,5 +34,4 @@ void checkTransactionForPayoutsFromCheckpointTransaction(CTransaction vtx,std::m
 
 string getLotteryResult(int64 blockHeight, std::set<int> ticketNumbers);
 
-
 #endif // LOTTOSHARES_H
