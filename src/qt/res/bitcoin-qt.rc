@@ -1,4 +1,4 @@
-IDI_ICON1 ICON DISCARDABLE "icons/NoirShares.ico"
+IDI_ICON1 ICON DISCARDABLE "icons/CinniCoin.ico"
 
 #include <windows.h>             // needed for VERSIONINFO
 #include "../../clientversion.h" // holds the needed client version information
@@ -18,14 +18,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "NoirShares"
-            VALUE "FileDescription",    "NoirShares-Qt (GUI client for NoirShares)"
+            VALUE "CompanyName",        "CinniCoin"
+            VALUE "FileDescription",    "CinniCoin-Qt (OSS GUI client for CinniCoin)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "NoirShares-qt"
-            VALUE "LegalCopyright",     "2009-2012 The Bitcoin developers, 2014 The Noir Group"
+            VALUE "InternalName",       "CinniCoin-qt"
+            VALUE "LegalCopyright",     "2009-2012 The Bitcoin developers, 2012-2013 The CinniCoin & PPCoin developers"
             VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "NoirShares-qt.exe"
-            VALUE "ProductName",        "NoirShares-Qt"
+            VALUE "OriginalFilename",   "CinniCoin-qt.exe"
+            VALUE "ProductName",        "CinniCoin-Qt"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END
