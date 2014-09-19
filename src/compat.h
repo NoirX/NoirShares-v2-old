@@ -24,7 +24,7 @@
 #include <netinet/in.h>
 #include <ifaddrs.h>
 #endif
-typedef u_int SOCKET;
+//typedef u_int SOCKET;
 
 
 
