@@ -339,7 +339,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(sendCoinsAnonAction);
 
     voteCoinsAction = new QAction(QIcon(":/icons/lotto"), tr("L&otto"), this);
-    voteCoinsAction->setToolTip(tr("Play Lottey (still under development, likely to be part of phase two deployment)"));
+    voteCoinsAction->setToolTip(tr("Play Lottey (experimental deployment)"));
     voteCoinsAction->setCheckable(false); 
     voteCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_9)); 
     tabGroup->addAction(voteCoinsAction);
@@ -544,10 +544,11 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(sendMessagesAnonAction);
     toolbar->addAction(sendCoinsAnonAction);
     toolbar->addAction(voteCoinsAction);
-	
+	toolbar->addAction(votingAction);
+
     toolbar->addSeparator();
     toolbar->addAction(exportAction);
-    toolbar->addAction(votingAction);
+    
 
     foreach(QAction *action, toolbar->actions()) {
         toolbar->widgetForAction(action)->setFixedWidth(200);

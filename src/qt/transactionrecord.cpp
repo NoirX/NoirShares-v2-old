@@ -3,6 +3,8 @@
 #include "wallet.h"
 #include "base58.h"
 
+#include "lotto.h"
+
 /* Return positive answer if transaction should be shown in list.
  */
 bool TransactionRecord::showTransaction(const CWalletTx &wtx)
@@ -272,7 +274,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         CTxDestination address;
         ExtractDestination(txout.scriptPubKey, address);
         lotteryTicket = lotteryTicket || CBitcoinAddress(address).ToString() == "NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
-        dicegame = dicegame || CBitcoinAddress(address).ToString() == "NP14jTPFto4L9jt2nRCuRx1bxERwVfqa63";
+        
     }
 
 
@@ -280,112 +282,27 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         int64 totalValue = 0;
         int64 lotteryNumbers[8]={0};
         int theSize=wtx.vout.size()-1;
+        std::set<int> numbersPlayed;
         for (unsigned int nOut = 0; nOut < theSize; nOut++)
         {
             const CTxOut& txout = wtx.vout[nOut];
             lotteryNumbers[nOut]=txout.nValue;
+            numbersPlayed.insert(txout.nValue);
             totalValue+=txout.nValue;
         }
 
         char nums[100];
         int blocknumber=wtx.GetHeightInMainChain();
         if(blocknumber!=-1){
-            snprintf(nums, 100, "Played: %llu %llu %llu %llu %llu %llu | Block:%d %s", lotteryNumbers[0],lotteryNumbers[1],lotteryNumbers[2],lotteryNumbers[3],lotteryNumbers[4],lotteryNumbers[5],blocknumber, this->lotteryResult.c_str());
+            string lotteryResultText=getLotteryResult(blocknumber,numbersPlayed);
+            snprintf(nums, 100, "Played: %llu %llu %llu %llu %llu %llu | Block:%d %s %s", lotteryNumbers[0],lotteryNumbers[1],lotteryNumbers[2],lotteryNumbers[3],lotteryNumbers[4],lotteryNumbers[5],blocknumber, this->lotteryResult.c_str(), lotteryResultText.c_str());
         }else{
             snprintf(nums, 100, "Played: %llu %llu %llu %llu %llu %llu | Waiting For Block", lotteryNumbers[0],lotteryNumbers[1],lotteryNumbers[2],lotteryNumbers[3],lotteryNumbers[4],lotteryNumbers[5]);
         }
         this->address=nums;
     }
 
-    if(dicegame){
-        int64 totalValue = 0;
-        //int64 lotteryNumbers[8]={0};
-        int theSize=wtx.vout.size()-1;
-        for (unsigned int nOut = 0; nOut < theSize; nOut++)
-        {
-            const CTxOut& txout = wtx.vout[nOut];
-            //lotteryNumbers[nOut]=txout.nValue;
-            totalValue+=txout.nValue;
-        }
-
-        char nums[100];
-        int blocknumber=wtx.GetHeightInMainChain();
-        int64 gameTypeInt=wtx.vout[0].nValue;
-        std::string gameType="";
-        switch(gameTypeInt){
-        case 1:
-            gameType="Roll 1";
-            break;
-        case 2:
-            gameType="Roll 1 or 2";
-            break;
-        case 3:
-            gameType="Roll 1 to 4";
-            break;
-        case 4:
-            gameType="Roll 1 to 8";
-            break;
-        case 5:
-            gameType="Roll 1 to 16";
-            break;
-        case 6:
-            gameType="Roll 1 to 32";
-            break;
-        case 7:
-            gameType="Roll 1 to 64";
-            break;
-        case 8:
-            gameType="Roll 1 to 128";
-            break;
-        case 9:
-            gameType="Roll 1 to 256";
-            break;
-        case 10:
-            gameType="Roll 1 to 512";
-            break;
-        case 11:
-            gameType="Roll 1 to 768";
-            break;
-        case 12:
-            gameType="Roll 1 to 896";
-            break;
-        case 13:
-            gameType="Roll 1 to 960";
-            break;
-        case 14:
-            gameType="Roll 1 to 992";
-            break;
-        case 15:
-            gameType="Roll 1 to 1008";
-            break;
-        case 16:
-            gameType="Roll 1 to 1016";
-            break;
-        case 17:
-            gameType="Roll 1 to 1020";
-            break;
-        case 18:
-            gameType="Roll 1 to 1022";
-            break;
-        case 19:
-            gameType="Roll 1 to 1023";
-            break;
-        case 20:
-            gameType="Roll Odd Number";
-            break;
-        case 21:
-            gameType="Roll Even Number";
-            break;
-        }
-
-
-        if(blocknumber!=-1){
-            snprintf(nums, 100, "Dice Game: %s | Block:%d %s", gameType.c_str(),blocknumber, this->lotteryResult.c_str());
-        }else{
-            snprintf(nums, 100, "Dice Game: %s | Waiting For Block", gameType.c_str());
-        }
-        this->address=nums;
-    }
+    
 }
 
 bool TransactionRecord::statusUpdateNeeded()

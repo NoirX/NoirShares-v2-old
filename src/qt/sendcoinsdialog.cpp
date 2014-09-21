@@ -43,37 +43,36 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
 
     // Coin Control
-     ui->lineEditCoinControlChange->setFont(GUIUtil::bitcoinAddressFont());
-     connect(ui->pushButtonCoinControl, SIGNAL(clicked()), this, SLOT(coinControlButtonClicked()));
-     connect(ui->checkBoxCoinControlChange, SIGNAL(stateChanged(int)), this, SLOT(coinControlChangeChecked(int)));
-     connect(ui->lineEditCoinControlChange, SIGNAL(textEdited(const QString &)), this, SLOT(coinControlChangeEdited(const QString &)));
- 
-     // Coin Control: clipboard actions
-     QAction *clipboardQuantityAction = new QAction(tr("Copy quantity"), this);
-     QAction *clipboardAmountAction = new QAction(tr("Copy amount"), this);
-     QAction *clipboardFeeAction = new QAction(tr("Copy fee"), this);
-     QAction *clipboardAfterFeeAction = new QAction(tr("Copy after fee"), this);
-     QAction *clipboardBytesAction = new QAction(tr("Copy bytes"), this);
-     QAction *clipboardPriorityAction = new QAction(tr("Copy priority"), this);
-     QAction *clipboardLowOutputAction = new QAction(tr("Copy low output"), this);
-     QAction *clipboardChangeAction = new QAction(tr("Copy change"), this);
-     connect(clipboardQuantityAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardQuantity()));
-     connect(clipboardAmountAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardAmount()));
-     connect(clipboardFeeAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardFee()));
-     connect(clipboardAfterFeeAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardAfterFee()));
-     connect(clipboardBytesAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardBytes()));
-     connect(clipboardPriorityAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardPriority()));
-     connect(clipboardLowOutputAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardLowOutput()));
-     connect(clipboardChangeAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardChange()));
-     ui->labelCoinControlQuantity->addAction(clipboardQuantityAction);
-     ui->labelCoinControlAmount->addAction(clipboardAmountAction);
-     ui->labelCoinControlFee->addAction(clipboardFeeAction);
-     ui->labelCoinControlAfterFee->addAction(clipboardAfterFeeAction);
-     ui->labelCoinControlBytes->addAction(clipboardBytesAction);
-     ui->labelCoinControlPriority->addAction(clipboardPriorityAction);
-     ui->labelCoinControlLowOutput->addAction(clipboardLowOutputAction);
-     ui->labelCoinControlChange->addAction(clipboardChangeAction);
- 
+    ui->lineEditCoinControlChange->setFont(GUIUtil::bitcoinAddressFont());
+    connect(ui->pushButtonCoinControl, SIGNAL(clicked()), this, SLOT(coinControlButtonClicked()));
+    connect(ui->checkBoxCoinControlChange, SIGNAL(stateChanged(int)), this, SLOT(coinControlChangeChecked(int)));
+    connect(ui->lineEditCoinControlChange, SIGNAL(textEdited(const QString &)), this, SLOT(coinControlChangeEdited(const QString &)));
+
+    // Coin Control: clipboard actions
+    QAction *clipboardQuantityAction = new QAction(tr("Copy quantity"), this);
+    QAction *clipboardAmountAction = new QAction(tr("Copy amount"), this);
+    QAction *clipboardFeeAction = new QAction(tr("Copy fee"), this);
+    QAction *clipboardAfterFeeAction = new QAction(tr("Copy after fee"), this);
+    QAction *clipboardBytesAction = new QAction(tr("Copy bytes"), this);
+    QAction *clipboardPriorityAction = new QAction(tr("Copy priority"), this);
+    QAction *clipboardLowOutputAction = new QAction(tr("Copy low output"), this);
+    QAction *clipboardChangeAction = new QAction(tr("Copy change"), this);
+    connect(clipboardQuantityAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardQuantity()));
+    connect(clipboardAmountAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardAmount()));
+    connect(clipboardFeeAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardFee()));
+    connect(clipboardAfterFeeAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardAfterFee()));
+    connect(clipboardBytesAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardBytes()));
+    connect(clipboardPriorityAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardPriority()));
+    connect(clipboardLowOutputAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardLowOutput()));
+    connect(clipboardChangeAction, SIGNAL(triggered()), this, SLOT(coinControlClipboardChange()));
+    ui->labelCoinControlQuantity->addAction(clipboardQuantityAction);
+    ui->labelCoinControlAmount->addAction(clipboardAmountAction);
+    ui->labelCoinControlFee->addAction(clipboardFeeAction);
+    ui->labelCoinControlAfterFee->addAction(clipboardAfterFeeAction);
+    ui->labelCoinControlBytes->addAction(clipboardBytesAction);
+    ui->labelCoinControlPriority->addAction(clipboardPriorityAction);
+    ui->labelCoinControlLowOutput->addAction(clipboardLowOutputAction);
+    ui->labelCoinControlChange->addAction(clipboardChangeAction);
 
     fNewRecipientAllowed = true;
 }
@@ -167,12 +166,11 @@ void SendCoinsDialog::on_sendButton_clicked()
         return;
     }
 
-     WalletModel::SendCoinsReturn sendstatus;
-     if (!model->getOptionsModel() || !model->getOptionsModel()->getCoinControlFeatures())
-         sendstatus = model->sendCoins(recipients);
-     else
-         sendstatus = model->sendCoins(recipients, CoinControlDialog::coinControl); 
-   
+    WalletModel::SendCoinsReturn sendstatus;
+    if (!model->getOptionsModel() || !model->getOptionsModel()->getCoinControlFeatures())
+        sendstatus = model->sendCoins(recipients);
+    else
+        sendstatus = model->sendCoins(recipients, CoinControlDialog::coinControl);
     switch(sendstatus.status)
     {
     case WalletModel::InvalidAddress:
