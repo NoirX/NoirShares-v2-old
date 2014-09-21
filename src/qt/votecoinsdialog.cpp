@@ -83,22 +83,6 @@ void VoteCoinsDialog::sendToRecipients(){
                 else{
                     valid = false;
                 }
-            }else if(entry->getGameType()==1){
-                //Dice
-                if(entry->validateDice()){
-                    //for(int i=0;i<2;i++){
-                        //recipients.append(entry->getValue(i));
-                        //totalPlay+=recipients[i].amount;
-                    //}
-                    recipients.append(entry->getDiceGame());
-                    recipients.append(entry->getDiceAmount());
-                    totalPlay+=recipients[0].amount;
-                    totalPlay+=recipients[1].amount;
-
-                }
-                else{
-                    valid = false;
-                }
             }
         }
 
@@ -108,17 +92,7 @@ void VoteCoinsDialog::sendToRecipients(){
             return;
         }
 
-    // Format confirmation message
-    /*QStringList formatted;
-    foreach(const SendCoinsRecipient &rcp, recipients)
-    {
-     #if QT_VERSION >= 0x050000
-        formatted.append(tr("%1 ").arg(rcp.amount));
-     #else
-        formatted.append(tr("%1 ").arg(rcp.amount));
-     #endif
-    }*/
-
+    
     fNewRecipientAllowed = false;
 
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm ticket"),
