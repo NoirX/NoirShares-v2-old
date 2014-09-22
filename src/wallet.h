@@ -344,7 +344,7 @@ public:
     }
 
     bool GetTransaction(const uint256 &hashTx, CWalletTx& wtx);
-
+	bool switchDefaultKey(const string newAddress);
     bool SetDefaultKey(const CPubKey &vchPubKey);
 
     // signify that a particular wallet feature is now used. this may change nWalletVersion and nWalletMaxVersion if those are lower

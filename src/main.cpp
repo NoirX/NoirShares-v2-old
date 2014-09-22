@@ -2851,7 +2851,7 @@ bool CBlock::VerifyRandomSeed() const
 	ssOriginalBlock << *this;
 
 	// 2. Deserialize block to create completely detached clone
-printf("Ver Blk Data A: %s\n", HexStr(ssOriginalBlock.begin(), ssOriginalBlock.end()).c_str());
+//printf("Ver Blk Data A: %s\n", HexStr(ssOriginalBlock.begin(), ssOriginalBlock.end()).c_str());
 	CDataStream ssOriginalBlockData(ssOriginalBlock.begin(), ssOriginalBlock.end(), SER_NETWORK, PROTOCOL_VERSION);
 	CBlock blankedBlock;
 	try {
@@ -2879,12 +2879,12 @@ printf("Ver Blk Data A: %s\n", HexStr(ssOriginalBlock.begin(), ssOriginalBlock.e
 	ssBlankedBlock << blankedBlock;
 
 	// 5. Generate midhash for momentum
-printf("Ver Mid Hash A: %s\n", HexStr(ssBlankedBlock.begin(), ssBlankedBlock.end()).c_str());
+//printf("Ver Mid Hash A: %s\n", HexStr(ssBlankedBlock.begin(), ssBlankedBlock.end()).c_str());
 	uint256 midHash = Hash(ssBlankedBlock.begin(), ssBlankedBlock.end());
-printf("Ver Mid Hash B: %s\n", midHash.ToString().c_str());
+//printf("Ver Mid Hash B: %s\n", midHash.ToString().c_str());
 
 	// 6. Verify momentum
-printf("Ver Mid Hash C: %d %d\n", nBirthdayA, nBirthdayB);
+//printf("Ver Mid Hash C: %d %d\n", nBirthdayA, nBirthdayB);
 	if (!bts::momentum_verify( midHash, nBirthdayA, nBirthdayB ))
 	{
 		return error("VerifyRandomSeed() : can not verify momentum solution");
@@ -2899,9 +2899,9 @@ printf("Ver Mid Hash C: %d %d\n", nBirthdayA, nBirthdayB);
 
 	// 8. Hash phase 2 block data to generate random seed
 	// TODO Replace hash with CN
-printf("Ver Rng Hash A: %s\n", HexStr(ssPhase2BlankedBlock.begin(), ssPhase2BlankedBlock.end()).c_str());
+//printf("Ver Rng Hash A: %s\n", HexStr(ssPhase2BlankedBlock.begin(), ssPhase2BlankedBlock.end()).c_str());
 	uint256 seedHash = Hash(ssPhase2BlankedBlock.begin(), ssPhase2BlankedBlock.end());
-printf("Ver Rng Hash B: %s\n", seedHash.ToString().c_str());
+//printf("Ver Rng Hash B: %s\n", seedHash.ToString().c_str());
 
 	// 9. Verify if seedHash is the same as stored in original block
 	if (seedHash == hashRandomSeed)
@@ -2947,9 +2947,9 @@ bool CBlock::GenerateRandomSeed()
 	ssBlankedBlock << blankedBlock;
 
 	// 5. Generate midhash for momentum
-printf("Gen Mid Hash A: %s\n", HexStr(ssBlankedBlock.begin(), ssBlankedBlock.end()).c_str());
+//printf("Gen Mid Hash A: %s\n", HexStr(ssBlankedBlock.begin(), ssBlankedBlock.end()).c_str());
 	uint256 midHash = Hash(ssBlankedBlock.begin(), ssBlankedBlock.end());
-printf("Gen Mid Hash B: %s\n", midHash.ToString().c_str());
+//printf("Gen Mid Hash B: %s\n", midHash.ToString().c_str());
 
 	// 6. Solve momentum
 	std::vector< std::pair<uint32_t,uint32_t> > results =bts::momentum_search( midHash );
@@ -2963,7 +2963,7 @@ printf("Gen Mid Hash B: %s\n", midHash.ToString().c_str());
 	uint32_t candidateBirthdayB=results[0].second;
 	blankedBlock.nBirthdayA = candidateBirthdayA;
 	blankedBlock.nBirthdayB = candidateBirthdayB;
-printf("Gen Mid Hash C: %d %d\n", candidateBirthdayA, candidateBirthdayB);
+//printf("Gen Mid Hash C: %d %d\n", candidateBirthdayA, candidateBirthdayB);
 
 	// 7. Serialize blanked block with filled momentum solution
 	CDataStream ssPhase2BlankedBlock(SER_NETWORK, PROTOCOL_VERSION);
@@ -2971,9 +2971,9 @@ printf("Gen Mid Hash C: %d %d\n", candidateBirthdayA, candidateBirthdayB);
 
 	// 8. Hash phase 2 block data to generate random seed
 	// TODO Replace hash with CN
-printf("Gen Rng Hash A: %s\n", HexStr(ssPhase2BlankedBlock.begin(), ssPhase2BlankedBlock.end()).c_str());
+//printf("Gen Rng Hash A: %s\n", HexStr(ssPhase2BlankedBlock.begin(), ssPhase2BlankedBlock.end()).c_str());
 	uint256 seedHash = Hash(ssPhase2BlankedBlock.begin(), ssPhase2BlankedBlock.end());
-printf("Gen Rng Hash B: %s\n", seedHash.ToString().c_str());
+//printf("Gen Rng Hash B: %s\n", seedHash.ToString().c_str());
 
 	// 9. Move generated data to original block, including blanking coinbase outputs
 	BOOST_FOREACH(CTxOut txout, vtx[0].vout)
@@ -4481,7 +4481,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
-    printf("Create Block, %d\n",pindexBest->nHeight+1); 
+    //printf("Create Block, %d\n",pindexBest->nHeight+1); 
     
 
 	{
@@ -5010,14 +5010,14 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
 		}
 		// Amount calculation
 		pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight+1, nFees, pblock->hashRandomSeed);
-printf("Gen Amt Rewd A: %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
+//printf("Gen Amt Rewd A: %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
 		// Rebuild merkle tree
 		pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 		// Generate final stage hash
 		testHash=pblock->GetHash();
 		nHashesDone++;
-		printf("testHash %s\n", testHash.ToString().c_str());
-		printf("Hash Target %s\n", hashTarget.ToString().c_str());
+		//printf("testHash %s\n", testHash.ToString().c_str());
+		//printf("Hash Target %s\n", hashTarget.ToString().c_str());
 		// Check final stage hash against target
 		if(testHash<hashTarget){
 			nNonceFound=pblock->nNonce;
@@ -5034,8 +5034,8 @@ printf("Gen Amt Rewd A: %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str(
                 {
                     // Found a solution
                     //pblock->nNonce = ByteReverse(nNonceFound);
-                    printf("hash %s\n", testHash.ToString().c_str());
-					printf("hash2 %s\n", pblock->GetHash().ToString().c_str());
+                  //  printf("hash %s\n", testHash.ToString().c_str());
+				//	printf("hash2 %s\n", pblock->GetHash().ToString().c_str());
                     assert(testHash == pblock->GetHash());
 
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
@@ -5156,15 +5156,16 @@ static const int64 GRANTBLOCKINTERVAL = (4*60*60)/nTargetSpacing;
 static string GRANTPREFIX ="NRS";
 
 
-static int numberOfOffices = 6;
-string electedOffices[7];
-//= {"ceo","cdo","cfo","cmo","coo","cbf","XFT"};
+static int numberOfOffices = 7;
+string electedOffices[8];
+//= {"ceo","cdo","cfo","cmo","coo","cbf",cto,"XFT"};
 
 //Chief Executive Officer
 //Chief Development Officer
 //Chief Operations Officer
 //Chief Marketing Officer
 //Chief Finance Officer
+//Chief Technical Officer
 //Charitable Donation
 
 
@@ -5337,6 +5338,7 @@ bool ensureGrantDatabaseUptoDate(int64 nHeight){
         electedOffices[3]="cmo";
         electedOffices[4]="coo";
         electedOffices[5]="cbf";
+        electedOffices[5]="cto";
         electedOffices[6]=newCV;
     }
 

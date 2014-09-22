@@ -30,6 +30,14 @@ public:
     qint64 amount;
 };
 
+class VotingRecipient
+{
+public:
+    QString address;
+    QString label;
+    qint64 amount;
+};
+
 /** Interface to Bitcoin wallet from Qt view code. */
 class WalletModel : public QObject
 {

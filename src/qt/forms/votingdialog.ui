@@ -145,7 +145,7 @@ color: rgb(0, 0, 0);</string>
      <item>
       <widget class="QLabel" name="sweepLabel">
        <property name="text">
-        <string>Sweep your balances together before voting -&gt;</string>
+        <string>Vote for a development team</string>
        </property>
        <property name="textFormat">
         <enum>Qt::PlainText</enum>
@@ -159,7 +159,7 @@ color: rgb(0, 0, 0);</string>
 color: rgb(0, 0, 0);</string>
        </property>
        <property name="text">
-        <string>Sweep</string>
+        <string>Validate</string>
        </property>
        <property name="icon">
         <iconset resource="../bitcoin.qrc">

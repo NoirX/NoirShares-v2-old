@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+#include <boost/assign/list_of.hpp>
 #include "wallet.h"
 #include "walletdb.h"
 #include "bitcoinrpc.h"
@@ -11,6 +11,9 @@
 
 using namespace json_spirit;
 using namespace std;
+using namespace boost;
+using namespace boost::assign;
+
 
 int64 nWalletUnlockTime;
 static CCriticalSection cs_nWalletUnlockTime;
@@ -205,7 +208,27 @@ Value getaccountaddress(CWallet* pWallet, const Array& params, bool fHelp)
     return ret;
 }
 
+Value setdefaultaddress(CWallet* pWallet, const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "setdefaultaddress <bitcoinaddress>\n"
+            "Sets the main address for the wallet. Please note, this is a beta feature. Backup your wallet before using it.");
 
+    CBitcoinAddress address(params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid NoirShares address");
+
+    //Check wallet includes address
+    if(!IsMine(*pWallet, CBitcoinAddress(address).Get())){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not present in the wallet. Import the address first. Please note, this is a beta feature. Backup your wallet before using it.");
+    }
+
+    //Switch default key
+    pWallet->switchDefaultKey(params[0].get_str());
+    //require restart
+    return "You must now restart the software for the changes to take full effect.  Please note, this is a beta feature. Backup your wallet before using it.";
+}
 
 Value setaccount(CWallet* pWallet, const Array& params, bool fHelp)
 {

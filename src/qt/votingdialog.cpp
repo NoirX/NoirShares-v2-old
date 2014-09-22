@@ -66,24 +66,11 @@ VotingDialog::~VotingDialog()
     delete ui;
 }
 
-void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
+void VotingDialog::sendToRecipients(){
 
     QList<SendCoinsRecipient> recipients;
 
-    if(sweep){
-        //Sweep
-        SendCoinsRecipient rv;
-        rv.address =QString::fromStdString(model->getDefaultWalletAddress());
-        rv.amount = model->getBalance()+model->getUnconfirmedBalance()-sweepFee;
-        rv.label = "Main Wallet Address";
-        recipients.append(rv);
-        //sendToRecipients(recipients);
-
-        //Change button states
-        ui->sendButton->setEnabled(true);
-        //ui->sweepLabel->setVisible(false);
-        //ui->sweepButton->setVisible(false);
-    }else{
+    {
         bool valid = true;
 
         if(!model)
@@ -152,11 +139,6 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
             QMessageBox::Ok, QMessageBox::Ok);
         break;
     case WalletModel::AmountWithFeeExceedsBalance:
-        if(sweep){
-            fNewRecipientAllowed = true;
-            sendToRecipients(true,sendstatus.fee);
-            break;
-        }
         QMessageBox::warning(this, tr("Send Coins"),
             tr("The total exceeds your balance when the %1 transaction fee is included.").
             arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, sendstatus.fee)),
@@ -188,7 +170,7 @@ void VotingDialog::sendToRecipients(bool sweep, qint64 sweepFee){
 
 void VotingDialog::on_sendButton_clicked()
 {
-    sendToRecipients(false,0);
+    sendToRecipients();
 }
 
 void VotingDialog::clear()

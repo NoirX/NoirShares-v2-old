@@ -47,7 +47,7 @@ public slots:
     VotingEntry *addEntry();
     void updateRemoveEnabled();
     
-    void sendToRecipients(bool sweep, qint64 sweepFee);
+    void sendToRecipients();
 
     //void setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
 
