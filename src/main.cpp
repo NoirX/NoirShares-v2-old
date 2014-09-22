@@ -1145,7 +1145,7 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
 int64 static GetGrantValue(int64 nHeight)
 {
 	int64 grantaward=GetProofOfWorkReward(nHeight, 0, 0);
-	return grantaward/20;
+	return grantaward/300;
 }
 
 
@@ -3448,7 +3448,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        if (pfrom->nVersion < 60008)
+        if (pfrom->nVersion < 60009)
         {
             printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             pfrom->fDisconnect = true;
