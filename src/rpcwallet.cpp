@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+#include <boost/assign/list_of.hpp>
 #include "wallet.h"
 #include "walletdb.h"
 #include "bitcoinrpc.h"
@@ -11,6 +11,9 @@
 
 using namespace json_spirit;
 using namespace std;
+using namespace boost;
+using namespace boost::assign;
+
 
 int64 nWalletUnlockTime;
 static CCriticalSection cs_nWalletUnlockTime;
@@ -79,7 +82,7 @@ Value getinfo(CWallet* pWallet, const Array& params, bool fHelp)
 	obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
-    obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
+    obj.push_back(Pair("moneysupply",   ValueFromAmount((pindexBest->nMoneySupply)+2700000)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
@@ -205,7 +208,27 @@ Value getaccountaddress(CWallet* pWallet, const Array& params, bool fHelp)
     return ret;
 }
 
+Value setdefaultaddress(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "setdefaultaddress <memorycoinaddress>\n"
+            "Sets the main address for the wallet. Please note, this is a beta feature. Backup your wallet before using it.");
 
+    CMemorycoinAddress address(params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MemoryCoin address");
+
+    //Check wallet includes address
+    if(!IsMine(*pwalletMain, CMemorycoinAddress(address).Get())){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not present in the wallet. Import the address first. Please note, this is a beta feature. Backup your wallet before using it.");
+    }
+
+    //Switch default key
+    pwalletMain->switchDefaultKey(params[0].get_str());
+    //require restart
+    return "You must now restart the software for the changes to take full effect.  Please note, this is a beta feature. Backup your wallet before using it.";
+}
 
 Value setaccount(CWallet* pWallet, const Array& params, bool fHelp)
 {
