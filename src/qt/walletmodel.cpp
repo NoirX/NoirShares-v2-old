@@ -179,10 +179,10 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         total += rcp.amount;
     }
 
-    if(recipients.size() > setAddress.size())
+    /*if(recipients.size() > setAddress.size())
     {
         return DuplicateAddress;
-    }
+    }*/
 
     int64 nBalance = 0;
     std::vector<COutput> vCoins;
