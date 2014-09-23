@@ -828,7 +828,7 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410918978;
+                            txNew.nTime = 1411471264;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
@@ -860,7 +860,7 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410918978;
+                            txNew.nTime = 1411471264;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
@@ -991,5 +991,31 @@ void randomTickets(int64 amount, int64 interval){
             sendmany(addresses, amounts,7,true);
         }
     }
+
 }
 
+string getLotteryResult(int64 blockHeight, std::set<int> ticketNumbers){
+    uint256 seedHash=Checkpoints::hashSyncCheckpoint;
+    char str[15];
+    if(seedHash!=0){
+        std::set<int> drawNumbers;
+        drawNumbers = generateDrawNumbersFromString(seedHash);
+        int matchingNumber=countMatches(ticketNumbers,drawNumbers);
+        std::set<int>::iterator itt;
+        std::string myNumbers="| Draw: ";
+        for (itt=drawNumbers.begin(); itt!=drawNumbers.end(); ++itt){
+            int myNum=*itt;
+            char str2[15];
+            sprintf(str2, "%d", myNum);
+            myNumbers=myNumbers+str2;
+            myNumbers=myNumbers+" ";
+        }
+        sprintf(str, "| Match: %d", matchingNumber);
+        myNumbers=myNumbers+str;
+        return myNumbers;
+
+    }else{
+        sprintf(str, "| . . . ");
+    }
+    return str;
+}

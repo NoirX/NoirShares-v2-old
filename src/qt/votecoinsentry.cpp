@@ -139,19 +139,6 @@ bool VoteCoinsEntry::validate()
         retval=false;
     }
 
-
-    /*if(!ui->payTo->hasAcceptableInput() ||
-       (model && !model->validateAddress(ui->payTo->text())))
-    {
-        ui->payTo->setValid(false);
-        retval = false;
-    }
-
-    if(!ui->payTo->text().startsWith("MVTE")){
-        ui->payTo->setValid(false);
-        retval = false;
-    }*/
-
     return retval;
 }
 

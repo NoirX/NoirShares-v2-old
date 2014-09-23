@@ -1040,7 +1040,7 @@ void BitcoinGUI::gotoVotingPage()
 {   
     votingAction->setChecked(true);
     centralWidget->setCurrentWidget(votingPage);
-
+	
     exportAction->setEnabled(true);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
     connect(exportAction, SIGNAL(triggered()), votingPage, SLOT(exportClicked()));

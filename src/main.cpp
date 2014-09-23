@@ -63,12 +63,12 @@ libzerocoin::Params* ZCParams;
 
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-uint256 merkleRootGenesisBlock("0x377d1908fe0f8b8b245f9a0a46846cb3b11ece52f59eef6b88719f241029ba28");
-uint256 rseedGenesisBlock("0x3501227d3a0dd01957e58bcb25ca732ee7155b2ecc1e1b232576ad2cb340abcd");
-const int64 nChainStartTime = 1410918978; 
-const unsigned long nChainStartNonce = 3;
-const unsigned long nChainStartBirthdayA = 3485519;
-const unsigned long nChainStartBirthdayB = 9863792;
+uint256 merkleRootGenesisBlock("0xa78f461e7a558b514567b79c68a594bbd18a70e7cef8d4a625c5bf4480d8046a");
+uint256 rseedGenesisBlock("0xf7f4383caaf9a7968b69c8ab0d7a3c166ee03ca91165cf71d26ea96db915b8d8");
+const int64 nChainStartTime = 1411471264; 
+const unsigned long nChainStartNonce = 2;
+const unsigned long nChainStartBirthdayA = 29770084;
+const unsigned long nChainStartBirthdayB = 39560193;
 
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
@@ -76,7 +76,7 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 4);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 2);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 2);
 
-unsigned int nStakeMinAge = 60 * 60 * 24 * 7;   // minimum age for coin age
+unsigned int nStakeMinAge = 60 * 60 * 24 * 5;   // minimum age for coin age
 unsigned int nStakeMaxAge = -1; // stake age of full weight: unlimited
 unsigned int nStakeTargetSpacing = 60 * 2;          // 4 min block spacing
 int nTargetSpacing = 60 *4;
@@ -1096,13 +1096,6 @@ uint256 WantedByOrphan(const CBlock* pblockOrphan)
 int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees)
 {
 	int64 nSubsidy = 10 * COIN;
-	
-	// Subsidy is reduced by 5% every 3000 blocks, 
-    int exponent=(nHeight / 3000);
-    for(int i=0;i<exponent;i++){
-        nSubsidy=nSubsidy*19;
-	nSubsidy=nSubsidy/20;
-    }
        
     return nSubsidy +( nFees * 0);
 }
@@ -3051,7 +3044,7 @@ bool LoadBlockIndex(bool fAllowNew)
        //block.print();
        //// debug print
         
- /*       printf("block.nBits = %u \n", block.nBits);
+        printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
@@ -3062,7 +3055,7 @@ bool LoadBlockIndex(bool fAllowNew)
 		printf("birthdayB=%u;\n",block.nBirthdayB);
         
 
-      {
+   /*   {
 		printf("Generating new genesis block...\n");
 		uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
 		uint256 testHash;
@@ -3384,7 +3377,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xcd, 0xf1, 0xe2, 0xb1 };
+unsigned char pchMessageStart[4] = { 0x2d, 0xe2, 0x1b, 0xd4 };
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
@@ -3448,7 +3441,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        if (pfrom->nVersion < 60009)
+        if (pfrom->nVersion < 60010)
         {
             printf("partner %s using a buggy client %d, disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             pfrom->fDisconnect = true;
@@ -5151,22 +5144,21 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
         }
 	}
 }
-//Grant every 4 hours
-static const int64 GRANTBLOCKINTERVAL = (4*60*60)/nTargetSpacing;
+//Grant every 8 hours
+static const int64 GRANTBLOCKINTERVAL = (8*60*60)/nTargetSpacing;
 static string GRANTPREFIX ="NRS";
 
 
-static int numberOfOffices = 7;
-string electedOffices[8];
-//= {"ceo","cdo","cfo","cmo","coo","cbf",cto,"XFT"};
+static int numberOfOffices = 4;
+string electedOffices[5];
+//= {"ceo","cdo","cmo","coo","GFS"};
 
 //Chief Executive Officer
 //Chief Development Officer
 //Chief Operations Officer
 //Chief Marketing Officer
-//Chief Finance Officer
-//Chief Technical Officer
-//Charitable Donation
+//GF Shareholders
+
 
 
 //Implement in memory for now - this will cause slow startup as recalculation of all votes takes place every startup. 
@@ -5334,12 +5326,10 @@ bool ensureGrantDatabaseUptoDate(int64 nHeight){
         }
         electedOffices[0]="ceo";
         electedOffices[1]="cdo";
-        electedOffices[2]="cfo";
+        electedOffices[2]="GFS";
         electedOffices[3]="cmo";
         electedOffices[4]="coo";
-        electedOffices[5]="cbf";
-        electedOffices[5]="cto";
-        electedOffices[6]=newCV;
+        electedOffices[5]=newCV;
     }
 
     //nHeight is the current block height
@@ -5352,28 +5342,13 @@ bool ensureGrantDatabaseUptoDate(int64 nHeight){
         deSerializeGrantDB((GetDataDir() / "blocks/grantdb.dat").string().c_str(),requiredGrantDatabaseHeight);
         //printf("deserialized vote database:\n");
     }
-
-    /*
-    if(getGrantDatabaseBlockHeight()>requiredGrantDatabaseHeight){
-        printf("Grant database has processed too many blocks. Needs to be rebuilt. %llu",nHeight);
-        balances.clear();
-        for(int i=0;i<numberOfOffices+1;i++){
-            votingPreferences[i].clear();
-        }
-        gdBlockPointer=pindexGenesisBlock;
-        grantDatabaseBlockHeight=-1;
-    }*/
-	
+    
     while(getGrantDatabaseBlockHeight()<requiredGrantDatabaseHeight){
         processNextBlockIntoGrantDatabase();
     }
     return true;
 		
 }
-
-
-
-
 
 int64 getGrantDatabaseBlockHeight(){
 	return grantDatabaseBlockHeight;
@@ -5394,21 +5369,7 @@ int getOfficeNumberFromAddress(string grantVoteAddress, int64 nHeight){
 }
 
 void printVotingPrefs(std::string address){
-    //I don't know why, this is compiling, but crashing
-    /*std::map<int64, std::string> thisBallot=ballots.find(address)->second;
-    if(thisBallot.begin()==thisBallot.end()){
-        printf("No Voting Preferences\n");
-        return;
-    }
-    int pref=1;
-    for(svpit4=thisBallot.begin();svpit4!=thisBallot.end();++svpit4){
-        printf("Preference: (%d) %llu %s \n",pref, svpit4->first/COIN,svpit4->second.c_str());
-        pref++;
-    }*/
-
-    //This is slow and iterates too much, but on the plus side it doesn't crash the program.
-    //This crash probably caused by eliminate candidate corrupting the ballot structure.
-    //Should be safe to use more efficient code after fork
+    
     int pref=1;
     for(ballotit=ballots.begin(); ballotit!=ballots.end(); ++ballotit){
         if(address==ballotit->first){
