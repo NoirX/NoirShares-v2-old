@@ -27,10 +27,9 @@ VoteCoinsEntry::VoteCoinsEntry(QWidget *parent) :
 #endif
     setFocusPolicy(Qt::TabFocus);
     setFocusProxy(ui->payAmount);
-    ui->gameType->setCurrentIndex(9);
     this->on_QuickPick_clicked();
     ui->payAmount->setValue(1000000);
-    ui->payAmount_2->setValue(1000000);
+    
 
     //GUIUtil::setupAddressWidget(ui->payTo, this);
 }
@@ -139,19 +138,6 @@ bool VoteCoinsEntry::validate()
     if(myset.size()<6){
         retval=false;
     }
-
-
-    /*if(!ui->payTo->hasAcceptableInput() ||
-       (model && !model->validateAddress(ui->payTo->text())))
-    {
-        ui->payTo->setValid(false);
-        retval = false;
-    }
-
-    if(!ui->payTo->text().startsWith("MVTE")){
-        ui->payTo->setValid(false);
-        retval = false;
-    }*/
 
     return retval;
 }

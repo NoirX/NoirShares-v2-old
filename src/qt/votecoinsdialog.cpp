@@ -125,15 +125,6 @@ void VoteCoinsDialog::sendToRecipients(){
                 sendstatus = model->sendCoins(recipients, NULL, true);
             }
         }
-    }else if(entry->getGameType()==1){
-        sendstatus= model->sendCoins(recipients, NULL, false);
-        if(sendstatus.status==WalletModel::SatoshiForChangeAddressRequired){
-            //try again
-            if(recipients[1].amount>2){
-                recipients[1].amount=recipients[1].amount-1;
-                sendstatus = model->sendCoins(recipients, NULL, false);
-            }
-        }
     }
     switch(sendstatus.status)
     {

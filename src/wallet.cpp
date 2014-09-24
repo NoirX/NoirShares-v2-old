@@ -2185,6 +2185,21 @@ bool CWallet::GetTransaction(const uint256 &hashTx, CWalletTx& wtx)
     return false;
 }
 
+bool CWallet::switchDefaultKey(const string newAddress){
+    CBitcoinAddress address(newAddress);
+    if (address.IsValid()){
+        CKeyID keyID;
+        if (!address.GetKeyID(keyID))
+            throw runtime_error(strprintf("%s does not refer to a key",newAddress.c_str()));
+        CPubKey vchPubKey;
+        if (!GetPubKey(keyID, vchPubKey))
+            throw runtime_error(strprintf("no full public key for address %s",newAddress.c_str()));
+        SetDefaultKey(vchPubKey);
+        return true;
+    }
+    return false;
+}
+
 bool CWallet::SetDefaultKey(const CPubKey &vchPubKey)
 {
     if (fFileBacked)

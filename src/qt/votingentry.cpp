@@ -129,7 +129,7 @@ bool VotingEntry::validate()
         retval = false;
     }
 
-    if(!ui->payTo->text().startsWith("MVTE")){
+    if(!ui->payTo->text().startsWith("NRS")){
         ui->payTo->setValid(false);
         retval = false;
     }

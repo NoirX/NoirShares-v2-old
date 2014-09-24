@@ -828,7 +828,7 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410918978;
+                            txNew.nTime = 1411471264;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
@@ -860,7 +860,7 @@ void addShareDrops(CBlock &block){
                             dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1410918978;
+                            txNew.nTime = 1411471264;
                             txNew.vin.resize(1);
                             txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
                             txNew.vout.resize(1);
@@ -882,7 +882,7 @@ void addShareDrops(CBlock &block){
   
 }
 
-bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requireChange)
+bool sendmany(CWallet* pWallet, string addresses[], int amounts[], int numberAddresses, bool requireChange)
 {
     //printf("Send 1:%d,%d\n",addresses.size());
     CWalletTx wtx;
@@ -921,11 +921,11 @@ bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requi
     //EnsureWalletIsUnlocked();
 
     // Send
-    CReserveKey keyChange(pwalletMain);
+    CReserveKey keyChange(pWallet);
     int64 nFeeRequired = 0;
     string strFailReason;
     //printf("create transaction");
-    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, NULL,true);
+    bool fCreated = pWallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, NULL,true);
     
     //printf("transaction created");
 
@@ -940,7 +940,7 @@ bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requi
         printf("Transaction failed - would create a transaction with no change which may be invalid\n");
         return false;
     }
-    if (!pwalletMain->CommitTransaction(wtx, keyChange)){
+    if (!pWallet->CommitTransaction(wtx, keyChange)){
         printf("Transaction commit failed");
         return false;
     }
@@ -985,11 +985,37 @@ void randomTickets(int64 amount, int64 interval){
         }while(drawnNumbers.size()<6);
 
         amounts[6]=amount-ticketAmount;
-        bool isSent=sendmany(addresses, amounts,7,true);
+        bool isSent=sendmany(0, addresses, amounts,7,true);
         if(!isSent){
             amounts[6]=amounts[6]-1;
-            sendmany(addresses, amounts,7,true);
+            sendmany(0, addresses, amounts,7,true);
         }
     }
+
 }
 
+string getLotteryResult(int64 blockHeight, std::set<int> ticketNumbers){
+    uint256 seedHash=Checkpoints::hashSyncCheckpoint;
+    char str[15];
+    if(seedHash!=0){
+        std::set<int> drawNumbers;
+        drawNumbers = generateDrawNumbersFromString(seedHash);
+        int matchingNumber=countMatches(ticketNumbers,drawNumbers);
+        std::set<int>::iterator itt;
+        std::string myNumbers="| Draw: ";
+        for (itt=drawNumbers.begin(); itt!=drawNumbers.end(); ++itt){
+            int myNum=*itt;
+            char str2[15];
+            sprintf(str2, "%d", myNum);
+            myNumbers=myNumbers+str2;
+            myNumbers=myNumbers+" ";
+        }
+        sprintf(str, "| Match: %d", matchingNumber);
+        myNumbers=myNumbers+str;
+        return myNumbers;
+
+    }else{
+        sprintf(str, "| . . . ");
+    }
+    return str;
+}

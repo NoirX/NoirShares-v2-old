@@ -152,7 +152,7 @@ bool WalletModel::validateAddress(const QString &address)
     return addressParsed.IsValid();
 }
 
-WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipient> &recipients)
+WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl, bool isTicket)
 {
     qint64 total = 0;
     QSet<QString> setAddress;
@@ -179,10 +179,10 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         total += rcp.amount;
     }
 
-    if(recipients.size() > setAddress.size())
+    /*if(recipients.size() > setAddress.size())
     {
         return DuplicateAddress;
-    }
+    }*/
 
     int64 nBalance = 0;
     std::vector<COutput> vCoins;

@@ -82,7 +82,7 @@ Value getinfo(CWallet* pWallet, const Array& params, bool fHelp)
 	obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("timeoffset",    (boost::int64_t)GetTimeOffset()));
-    obj.push_back(Pair("moneysupply",   ValueFromAmount((pindexBest->nMoneySupply)+2700000)));
+    obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",            addrSeenByPeer.ToStringIP()));
@@ -208,24 +208,24 @@ Value getaccountaddress(CWallet* pWallet, const Array& params, bool fHelp)
     return ret;
 }
 
-Value setdefaultaddress(const Array& params, bool fHelp)
+Value setdefaultaddress(CWallet* pWallet, const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "setdefaultaddress <memorycoinaddress>\n"
+            "setdefaultaddress <bitcoinaddress>\n"
             "Sets the main address for the wallet. Please note, this is a beta feature. Backup your wallet before using it.");
 
-    CMemorycoinAddress address(params[0].get_str());
+    CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid MemoryCoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid NoirShares address");
 
     //Check wallet includes address
-    if(!IsMine(*pwalletMain, CMemorycoinAddress(address).Get())){
+    if(!IsMine(*pWallet, CBitcoinAddress(address).Get())){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not present in the wallet. Import the address first. Please note, this is a beta feature. Backup your wallet before using it.");
     }
 
     //Switch default key
-    pwalletMain->switchDefaultKey(params[0].get_str());
+    pWallet->switchDefaultKey(params[0].get_str());
     //require restart
     return "You must now restart the software for the changes to take full effect.  Please note, this is a beta feature. Backup your wallet before using it.";
 }
