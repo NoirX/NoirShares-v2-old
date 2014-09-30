@@ -17,7 +17,7 @@ extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spiri
 
 
 
-Value smsgenable(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgenable(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -38,7 +38,7 @@ Value smsgenable(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsgdisable(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgdisable(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -58,7 +58,7 @@ Value smsgdisable(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsgoptions(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgoptions(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 3)
         throw runtime_error(
@@ -139,7 +139,7 @@ Value smsgoptions(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsglocalkeys(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsglocalkeys(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 3)
         throw runtime_error(
@@ -347,7 +347,7 @@ Value smsglocalkeys(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 };
 
-Value smsgscanchain(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgscanchain(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -368,7 +368,7 @@ Value smsgscanchain(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsgscanbuckets(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgscanbuckets(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -392,7 +392,7 @@ Value smsgscanbuckets(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsgaddkey(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgaddkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
@@ -426,7 +426,7 @@ Value smsgaddkey(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsggetpubkey(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsggetpubkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -510,7 +510,7 @@ Value smsggetpubkey(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsgsend(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgsend(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
@@ -538,7 +538,7 @@ Value smsgsend(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsgsendanon(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgsendanon(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
@@ -565,7 +565,7 @@ Value smsgsendanon(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value smsginbox(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsginbox(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1) // defaults to read
         throw runtime_error(
@@ -775,7 +775,7 @@ Value smsginbox(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 };
 
-Value smsgoutbox(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgoutbox(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1) // defaults to read
         throw runtime_error(
@@ -953,7 +953,7 @@ Value smsgoutbox(CWallet* pWallet, const Array& params, bool fHelp)
 };
 
 
-Value smsgbuckets(CWallet* pWallet, const Array& params, bool fHelp)
+Value smsgbuckets(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(

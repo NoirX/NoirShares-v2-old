@@ -11,7 +11,7 @@
 using namespace json_spirit;
 using namespace std;
 
-Value getgenerate(CWallet* pWallet, const Array& params, bool fHelp)
+Value getgenerate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -22,7 +22,7 @@ Value getgenerate(CWallet* pWallet, const Array& params, bool fHelp)
 }
 
 
-Value setgenerate(CWallet* pWallet, const Array& params, bool fHelp)
+Value setgenerate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
@@ -43,12 +43,12 @@ Value setgenerate(CWallet* pWallet, const Array& params, bool fHelp)
     }
     mapArgs["-gen"] = (fGenerate ? "1" : "0");
 
-    GenerateBitcoins(fGenerate, pWallet);
+    GenerateBitcoins(fGenerate, pwalletMain);
     return Value::null;
 }
 
 
-Value gethashespermin(CWallet* pWallet, const Array& params, bool fHelp)
+Value gethashespermin(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -63,7 +63,7 @@ Value gethashespermin(CWallet* pWallet, const Array& params, bool fHelp)
     return dhashespermin;
 }
 
-Value getmininginfo(CWallet* pWallet, const Array& params, bool fHelp)
+Value getmininginfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -78,8 +78,8 @@ Value getmininginfo(CWallet* pWallet, const Array& params, bool fHelp)
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     obj.push_back(Pair("generate",      GetBoolArg("-gen")));
     obj.push_back(Pair("genproclimit",  (int)GetArg("-genproclimit", -1)));
-    obj.push_back(Pair("hashespermin",  gethashespermin(NULL, params, false)));
-    obj.push_back(Pair("networkhashps", getnetworkhashps(NULL, params, false)));
+    obj.push_back(Pair("hashespermin",  gethashespermin(params, false)));
+    obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",       fTestNet));
     return obj;
@@ -111,7 +111,7 @@ Value GetNetworkHashPS(int lookup) {
     return (boost::int64_t)(((double)GetDifficulty() * pow(2.0, 32)) / timePerBlock);
 }
 
-Value getnetworkhashps(CWallet* pWallet, const Array& params, bool fHelp)
+Value getnetworkhashps(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(
@@ -123,7 +123,7 @@ Value getnetworkhashps(CWallet* pWallet, const Array& params, bool fHelp)
 }
 
 
-Value getworkex(CWallet* pWallet, const Array& params, bool fHelp)
+Value getworkex(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 2)
         throw runtime_error(
@@ -143,7 +143,7 @@ Value getworkex(CWallet* pWallet, const Array& params, bool fHelp)
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;
     static vector<CBlock*> vNewBlock;
-    static CReserveKey reservekey(pWallet);
+    static CReserveKey reservekey(pwalletMain);
 
     if (params.size() == 0)
     {
@@ -168,7 +168,7 @@ Value getworkex(CWallet* pWallet, const Array& params, bool fHelp)
             nStart = GetTime();
 
             // Create new block
-            pblock = CreateNewBlock(pWallet);
+            pblock = CreateNewBlock(pwalletMain);
             if (!pblock)
                 throw JSONRPCError(-7, "Out of memory");
             vNewBlock.push_back(pblock);
@@ -251,15 +251,15 @@ Value getworkex(CWallet* pWallet, const Array& params, bool fHelp)
 
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
-        if (!pblock->SignBlock(*pWallet))
+        if (!pblock->SignBlock(*pwalletMain))
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
-        return CheckWork(pblock, *pWallet, reservekey);
+        return CheckWork(pblock, *pwalletMain, reservekey);
     }
 }
 
 
-Value getwork(CWallet* pWallet, const Array& params, bool fHelp)
+Value getwork(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(
@@ -283,7 +283,7 @@ Value getwork(CWallet* pWallet, const Array& params, bool fHelp)
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
     static vector<CBlock*> vNewBlock;
-    static CReserveKey reservekey(pWallet);
+    static CReserveKey reservekey(pwalletMain);
 
     if (params.size() == 0)
     {
@@ -313,7 +313,7 @@ Value getwork(CWallet* pWallet, const Array& params, bool fHelp)
             nStart = GetTime();
 
             // Create new block
-            pblock = CreateNewBlock(pWallet);
+            pblock = CreateNewBlock(pwalletMain);
             if (!pblock)
                 throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
             vNewBlock.push_back(pblock);
@@ -381,7 +381,7 @@ Value getwork(CWallet* pWallet, const Array& params, bool fHelp)
         pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
-        if (!pblock->SignBlock(*pWallet))
+        if (!pblock->SignBlock(*pwalletMain))
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
         //return CheckWork(pblock, *pwalletMain, reservekey);
@@ -389,7 +389,7 @@ Value getwork(CWallet* pWallet, const Array& params, bool fHelp)
          uint256 posthash = pblock->GetHash();
         // fprintf( stderr, "post hash %s\n", posthash.ToString().c_str() );
  
-         bool check =  CheckWork(pblock, *pWallet, reservekey);
+         bool check =  CheckWork(pblock, *pwalletMain, reservekey);
         // fprintf( stderr, "check %d\n", check );
          /*
          if( check ) 
@@ -407,7 +407,7 @@ Value getwork(CWallet* pWallet, const Array& params, bool fHelp)
 }
 
 
-Value getblocktemplate(CWallet* pWallet, const Array& params, bool fHelp)
+Value getblocktemplate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
         throw runtime_error(
@@ -456,7 +456,7 @@ Value getblocktemplate(CWallet* pWallet, const Array& params, bool fHelp)
     if (pindexBest->nHeight >= LAST_POW_BLOCK)
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
-    static CReserveKey reservekey(pWallet);
+    static CReserveKey reservekey(pwalletMain);
 
     // Update block
     static unsigned int nTransactionsUpdatedLast;
@@ -480,7 +480,7 @@ Value getblocktemplate(CWallet* pWallet, const Array& params, bool fHelp)
             delete pblock;
             pblock = NULL;
         }
-        pblock = CreateNewBlock(pWallet);
+        pblock = CreateNewBlock(pwalletMain);
         if (!pblock)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
@@ -567,7 +567,7 @@ Value getblocktemplate(CWallet* pWallet, const Array& params, bool fHelp)
     return result;
 }
 
-Value submitblock(CWallet* pWallet, const Array& params, bool fHelp)
+Value submitblock(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
@@ -586,7 +586,7 @@ Value submitblock(CWallet* pWallet, const Array& params, bool fHelp)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
 
-    if (!block.SignBlock(*pWallet))
+    if (!block.SignBlock(*pwalletMain))
         throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
 
     bool fAccepted = ProcessBlock(NULL, &block);

@@ -12,7 +12,7 @@
 using namespace json_spirit;
 using namespace std;
 
-Value getconnectioncount(CWallet* pWallet, const Array& params, bool fHelp)
+Value getconnectioncount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -36,7 +36,7 @@ static void CopyNodeStats(std::vector<CNodeStats>& vstats)
     }
 }
 
-Value getpeerinfo(CWallet* pWallet, const Array& params, bool fHelp)
+Value getpeerinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -55,8 +55,6 @@ Value getpeerinfo(CWallet* pWallet, const Array& params, bool fHelp)
         obj.push_back(Pair("services", strprintf("%08"PRI64x, stats.nServices)));
         obj.push_back(Pair("lastsend", (boost::int64_t)stats.nLastSend));
         obj.push_back(Pair("lastrecv", (boost::int64_t)stats.nLastRecv));
-        obj.push_back(Pair("bytessent", (boost::int64_t)stats.nSendBytes));
-        obj.push_back(Pair("bytesrecv", (boost::int64_t)stats.nRecvBytes));
         obj.push_back(Pair("conntime", (boost::int64_t)stats.nTimeConnected));
         obj.push_back(Pair("version", stats.nVersion));
         obj.push_back(Pair("subver", stats.strSubVer));
@@ -64,8 +62,7 @@ Value getpeerinfo(CWallet* pWallet, const Array& params, bool fHelp)
         obj.push_back(Pair("releasetime", (boost::int64_t)stats.nReleaseTime));
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
         obj.push_back(Pair("banscore", stats.nMisbehavior));
-        if (stats.fSyncNode)
-            obj.push_back(Pair("syncnode", true));
+
         ret.push_back(obj);
     }
 
@@ -79,7 +76,7 @@ extern map<uint256, CAlert> mapAlerts;
 // There is a known deadlock situation with ThreadMessageHandler
 // ThreadMessageHandler: holds cs_vSend and acquiring cs_main in SendMessages()
 // ThreadRPCServer: holds cs_main and acquiring cs_vSend in alert.RelayTo()/PushMessage()/BeginMessage()
-Value sendalert(CWallet* pWallet, const Array& params, bool fHelp)
+Value sendalert(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 6)
         throw runtime_error(

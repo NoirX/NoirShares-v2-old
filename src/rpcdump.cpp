@@ -2,7 +2,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "init.h" 
+#include "init.h" // for pwalletMain
 #include "bitcoinrpc.h"
 #include "ui_interface.h"
 #include "base58.h"
@@ -40,7 +40,7 @@ string convertAddress2(const char address[], char newVersionByte){
     return result;
 }
 
-Value importprivkey(CWallet* pWallet, const Array& params, bool fHelp)
+Value importprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
@@ -67,74 +67,22 @@ Value importprivkey(CWallet* pWallet, const Array& params, bool fHelp)
     key.SetSecret(secret, fCompressed);
     CKeyID vchAddress = key.GetPubKey().GetID();
     {
-        LOCK2(cs_main, pWallet->cs_wallet);
-
-        pWallet->MarkDirty();
-        pWallet->SetAddressBookName(vchAddress, strLabel);
-
-        if (!pWallet->AddKey(key))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
-
-        pWallet->ScanForWalletTransactions(pindexGenesisBlock, true);
-        pWallet->ReacceptWalletTransactions();
-    }
-
-    return Value::null;
-}
-
-Value importaddress(CWallet* pWallet, const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 1 || params.size() > 3)
-        throw runtime_error(
-            "importaddress <address> [label] [rescan=true]\n"
-            "Adds an address or script (in hex) that can be watched as if it were in your wallet but cannot be used to spend.");
-
-    CScript script;
-    CBitcoinAddress address(params[0].get_str());
-    if (address.IsValid()) {
-        script.SetDestination(address.Get());
-    } else if (IsHex(params[0].get_str())) {
-        std::vector<unsigned char> data(ParseHex(params[0].get_str()));
-        script = CScript(data.begin(), data.end());
-    } else {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid NoirShares address or script");
-    }
-
-    string strLabel = "";
-    if (params.size() > 1)
-        strLabel = params[1].get_str();
-
-    // Whether to perform rescan after import
-    bool fRescan = true;
-    if (params.size() > 2)
-        fRescan = params[2].get_bool();
-
-    {
         LOCK2(cs_main, pwalletMain->cs_wallet);
 
-        // Don't throw error in case an address is already there
-        if (pwalletMain->HaveWatchOnly(script))
-            return Value::null;
-
         pwalletMain->MarkDirty();
+        pwalletMain->SetAddressBookName(vchAddress, strLabel);
 
-        if (address.IsValid())
-            pwalletMain->SetAddressBookName(address.Get(), strLabel);
+        if (!pwalletMain->AddKey(key))
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
 
-        if (!pwalletMain->AddWatchOnly(script))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding address to wallet");
-
-        if (fRescan)
-        {
-            pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
-            pwalletMain->ReacceptWalletTransactions();
-        }
+        pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
+        pwalletMain->ReacceptWalletTransactions();
     }
 
     return Value::null;
 }
 
-Value importwallet(CWallet* pWallet, const Array& params, bool fHelp)
+Value importwallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -150,7 +98,7 @@ Value importwallet(CWallet* pWallet, const Array& params, bool fHelp)
     return Value::null;
 }
 
-Value dumpprivkey(CWallet* pWallet, const Array& params, bool fHelp)
+Value dumpprivkey(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -173,7 +121,7 @@ Value dumpprivkey(CWallet* pWallet, const Array& params, bool fHelp)
     return CBitcoinSecret(vchSecret, fCompressed).ToString();
 }
 
-Value dumpwallet(CWallet* pWallet, const Array& params, bool fHelp)
+Value dumpwallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(

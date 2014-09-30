@@ -9,6 +9,8 @@
 
 #include "serialize.h"
 #include "compat.h"
+#include "hash.h"
+
 
 extern int nConnectTimeout;
 

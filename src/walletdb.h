@@ -123,12 +123,6 @@ public:
         return Write(std::make_pair(std::string("cscript"), hash), redeemScript, false);
     }
 
-    bool WriteWatchOnly(const CScript &dest)
-    {
-        nWalletDBUpdated++;
-        return Write(std::make_pair(std::string("watchs"), dest), '1');
-    }
-
     bool WriteBestBlock(const CBlockLocator& locator)
     {
         nWalletDBUpdated++;
@@ -204,7 +198,6 @@ public:
 
     DBErrors ReorderTransactions(CWallet*);
     DBErrors LoadWallet(CWallet* pwallet);
-    static void UnloadWallet(CWallet* pwallet);
     static bool Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys);
     static bool Recover(CDBEnv& dbenv, std::string filename);
 };

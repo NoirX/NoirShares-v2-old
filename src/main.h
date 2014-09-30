@@ -27,18 +27,17 @@ class CRequestTracker;
 class CNode;
 
 static const int LAST_POW_BLOCK = 100000;
-static const int64 FORKHEIGHT = 10468;
-static const int64 PRIZEPAYMENTHEIGHT = 25068;
+
 static const int TICKETCOMMISSIONRATE = 7; //1/128
 static const int PRIZEPAYMENTCOMMISSIONS = 10; //1/1024
 
-static const unsigned int MAX_BLOCK_SIZE = 10*1000000; // 10 * 1000 kb block
+static const unsigned int MAX_BLOCK_SIZE = 1*1000000; // 1 * 1000 kb block
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-static const int64 MIN_TX_FEE = 0.01 * COIN;
-static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
+static const int64 MIN_TX_FEE = 0.5 * CENT;
+static const int64 MIN_RELAY_TX_FEE = 0.5 * CENT;
 static const int64 MAX_MONEY = 5000000 * COIN;            // 5 mil
 static const int64 MAX_MINT_PROOF_OF_STAKE = 0.03 * COIN;  // 3% annual interest
 
@@ -56,7 +55,7 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlockOfficial ("0x035867b1587cbc73f7f8028b2b7cbd46aab7d99ea2a56441f12f3317d9a9b173");
+static const uint256 hashGenesisBlockOfficial ("0x01ae5bb0ec451c5c21125a0fe03ced307f16f45a94536945025fa3f597166380");
 
 
 static const uint256 hashGenesisBlockTestNet("0x");
@@ -71,7 +70,6 @@ extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern uint256 hashGenesisBlock;
 extern CBlockIndex* pindexGenesisBlock;
 extern unsigned int nStakeMinAge;
-extern unsigned int nNodeLifespan;
 extern int nCoinbaseMaturity;
 extern int nBestHeight;
 extern CBigNum bnBestChainTrust;
@@ -90,11 +88,9 @@ extern CCriticalSection cs_setpwalletRegistered;
 extern std::set<CWallet*> setpwalletRegistered;
 extern unsigned char pchMessageStart[4];
 extern std::map<uint256, CBlock*> mapOrphanBlocks;
-extern bool fMultiAddress;
 
 // Settings
 extern int64 nTransactionFee;
-extern int64 nMinimumInputValue;
 extern int nScriptCheckThreads;
 
 // Minimum disk space required - used in CheckDiskSpace()
@@ -106,13 +102,9 @@ class CTxDB;
 class CTxIndex;
 class CScriptCheck;
 
-/** Register a wallet to receive updates from core */
 void RegisterWallet(CWallet* pwalletIn);
-/** Unregister a wallet from core */
 void UnregisterWallet(CWallet* pwalletIn);
-void UnregisterAllWallets();
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
-void ReacceptWalletTransactions();
 bool ProcessBlock(CNode* pfrom, CBlock* pblock);
 bool CheckDiskSpace(uint64 nAdditionalBytes=0);
 FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
@@ -129,8 +121,9 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
 bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
-int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 randomSeed);
+int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 randomSeed, uint256 prevHash);
 int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees);
+
 int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight);
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
@@ -710,7 +703,8 @@ public:
         @param[in] fBlock	true if called from ConnectBlock
         @param[in] fMiner	true if called from CreateNewBlock
         @param[in] fScriptChecks	enable scripts validation?
-        @param[in] flags	STRICT_FLAGS script validation flags
+		@param[in] fStrictPayToScriptHash	true if fully validating p2sh transactions
+		@param[in] flags	STRICT_FLAGS script validation flags
         @param[in] pvChecks	NULL If pvChecks is not NULL, script checks are pushed onto it instead of being performed inline.
         @return Returns true if all checks succeed
      */
@@ -798,8 +792,8 @@ public:
 
 
     int SetMerkleBranch(const CBlock* pblock=NULL);
-    int GetHeightInMainChain() const;
     int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
+    int GetHeightInMainChain() const;
     int GetDepthInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
     bool IsInMainChain() const { return GetDepthInMainChain() > 0; }
     int GetBlocksToMaturity() const;

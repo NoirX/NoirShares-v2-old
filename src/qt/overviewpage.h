@@ -29,7 +29,7 @@ public:
     void showOutOfSyncWarning(bool fShow);
 
 public slots:
-    void setBalance(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
     void setNumTransactions(int count);
     void ircAppendMessage(QString message);
 	void unlockWallet();
@@ -41,13 +41,11 @@ signals:
 private:
     Ui::OverviewPage *ui;
     WalletModel *model;
-    qint64 currentBalanceTotal;
-    qint64 currentBalanceWatchOnly;
+    IRCModel *ircmodel;
+    qint64 currentBalance;
     qint64 currentStake;
     qint64 currentUnconfirmedBalance;
     qint64 currentImmatureBalance;
-	IRCModel *ircmodel;
-    qint64 currentBalance;
 
     TxViewDelegate *txdelegate;
     TransactionFilterProxy *filter;

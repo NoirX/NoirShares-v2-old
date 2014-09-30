@@ -24,8 +24,10 @@
 #include <netinet/in.h>
 #include <ifaddrs.h>
 #endif
-typedef u_int SOCKET;
 
+#ifndef WIN32
+typedef u_int SOCKET;
+#endif
 
 
 #ifdef WIN32

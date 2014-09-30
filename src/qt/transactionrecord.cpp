@@ -28,7 +28,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
     QList<TransactionRecord> parts;
     int64 nTime = wtx.GetTxTime();
     int64 nCredit = wtx.GetCredit(true);
-    int64 nDebit = wtx.GetDebit(MINE_ALL);
+    int64 nDebit = wtx.GetDebit();
     int64 nNet = nCredit - nDebit;
     uint256 hash = wtx.GetHash();
     std::map<std::string, std::string> mapValue = wtx.mapValue;

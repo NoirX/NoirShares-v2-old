@@ -287,19 +287,6 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                     wss.fAnyUnordered = true;
             }
         }
-        else if (strType == "watchs")
-        {
-            CScript script;
-            ssKey >> script;
-            char fYes;
-            ssValue >> fYes;
-            if (fYes == '1')
-                pwallet->LoadWatchOnly(script);
-
-            // Watch-only addresses have no birthday information for now,
-            // so set the wallet birthday to the beginning of time.
-            pwallet->nTimeFirstKey = 1;
-        }
         else if (strType == "key" || strType == "wkey")
         {
             vector<unsigned char> vchPubKey;
@@ -551,30 +538,6 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
         result = ReorderTransactions(pwallet);
 
     return result;
-}
-
-void CWalletDB::UnloadWallet(CWallet* pwallet)
-{
-    if (!pwallet || !pwallet->fFileBacked)
-        return;
-    while (!fShutdown)
-    {
-        {
-            LOCK(bitdb.cs_db);
-            if (!bitdb.mapFileUseCount.count(pwallet->strWalletFile) || bitdb.mapFileUseCount[pwallet->strWalletFile] == 0)
-            {
-                // Flush log data to the dat file
-                bitdb.CloseDb(pwallet->strWalletFile);
-                printf("%s checkpoint\n", pwallet->strWalletFile.c_str());
-                printf("%s detach\n", pwallet->strWalletFile.c_str());
-                bitdb.CheckpointLSN(pwallet->strWalletFile);
-                printf("%s closed\n", pwallet->strWalletFile.c_str());
-                bitdb.mapFileUseCount.erase(pwallet->strWalletFile);
-                return;
-            }
-        }
-        Sleep(100);
-    }
 }
 
 void ThreadFlushWalletDB(void* parg)

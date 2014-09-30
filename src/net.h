@@ -13,12 +13,11 @@
 #ifndef WIN32
 #include <arpa/inet.h>
 #endif
-
+#include "hash.h"
 #include "mruset.h"
 #include "netbase.h"
 #include "protocol.h"
 #include "addrman.h"
-#include "hash.h"
 #include "emessageclass.h"
 
 class CRequestTracker;
@@ -109,8 +108,7 @@ enum threadId
     THREAD_DUMPADDRESS,
     THREAD_RPCHANDLER,
     THREAD_MINTER,
-    THREAD_SCRIPTCHECK,
-
+	THREAD_SCRIPTCHECK,
     THREAD_MAX
 };
 
@@ -147,9 +145,6 @@ public:
     int64 nReleaseTime;
     int nStartingHeight;
     int nMisbehavior;
-    uint64 nSendBytes;
-    uint64 nRecvBytes;
-    bool fSyncNode;
 };
 
 
@@ -165,8 +160,6 @@ public:
     SOCKET hSocket;
     CDataStream vSend;
     CDataStream vRecv;
-    uint64 nSendBytes;
-    uint64 nRecvBytes;
     CCriticalSection cs_vSend;
     CCriticalSection cs_vRecv;
     int64 nLastSend;
@@ -204,7 +197,6 @@ public:
     CBlockIndex* pindexLastGetBlocksBegin;
     uint256 hashLastGetBlocksEnd;
     int nStartingHeight;
-    bool fStartSync;
 
     // flood relay
     std::vector<CAddress> vAddrToSend;
@@ -227,8 +219,6 @@ public:
         hSocket = hSocketIn;
         nLastSend = 0;
         nLastRecv = 0;
-        nSendBytes = 0;
-        nRecvBytes = 0;
         nLastSendEmpty = GetTime();
         nTimeConnected = GetTime();
         nHeaderStart = -1;
@@ -249,14 +239,13 @@ public:
         pindexLastGetBlocksBegin = 0;
         hashLastGetBlocksEnd = 0;
         nStartingHeight = -1;
-        fStartSync = false;
         fGetAddr = false;
         nMisbehavior = 0;
         hashCheckpointKnown = 0;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
 
         // Be shy and don't send version until we hear
-        if (hSocket != INVALID_SOCKET && !fInbound)
+        if (!fInbound)
             PushVersion();
     }
 
@@ -665,11 +654,6 @@ inline void RelayInventory(const CInv& inv)
             pnode->PushInventory(inv);
     }
 }
-
-class CTransaction;
-void RelayTransaction(const CTransaction& tx, const uint256& hash);
-void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
-
 
 template<typename T>
 void RelayMessage(const CInv& inv, const T& a)

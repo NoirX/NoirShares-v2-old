@@ -5,8 +5,6 @@
 #include "main.h"
 #include "wallet.h"
 
-CWalletManager* pWalletManager;
-// TODO: get rid of pwalletMain.
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 
@@ -19,15 +17,14 @@ struct TestingSetup {
         noui_connect();
         bitdb.MakeMock();
         LoadBlockIndex(true);
-        pWalletManager = new CWalletManager();
-        std::ostringstream ossErrors;
-        pWalletManager->LoadWallet("", ossErrors);
-        pwalletMain = pWalletManager->GetDefaultWallet().get();
+        bool fFirstRun;
+        pwalletMain = new CWallet("wallet.dat");
+        pwalletMain->LoadWallet(fFirstRun);
+        RegisterWallet(pwalletMain);
     }
     ~TestingSetup()
     {
-        delete pWalletManager;
-        pWalletManager = NULL;
+        delete pwalletMain;
         pwalletMain = NULL;
         bitdb.Flush(true);
     }
