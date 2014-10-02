@@ -8,7 +8,7 @@
 #include "net.h"
 #include "util.h"
 #include "hash.h"
-#define CHECKPOINT_MAX_SPAN (60 * 60 * 1) // max 1 hours before latest block
+#define CHECKPOINT_MAX_SPAN (60 * 20) // max 20 minutes latest block
 
 class uint256;
 class CBlockIndex;

@@ -823,7 +823,7 @@ bool sendmany(CWallet* pWallet, string addresses[], int amounts[], int numberAdd
     int64 nFeeRequired = 0;
     string strFailReason;
     //printf("create transaction");
-    bool fCreated = pWallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, NULL,true);
+    bool fCreated = pWallet->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, NULL);
     
     //printf("transaction created");
 

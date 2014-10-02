@@ -1073,7 +1073,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
                 if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue > 0 &&
-                (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))    
+                (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                     vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
         }
     }
@@ -1253,7 +1253,7 @@ bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<
 {
     vector<COutput> vCoins;
     AvailableCoins(vCoins, true, coinControl);
- 
+
      // coin control -> return all selected outputs (we want all selected to go into the transaction for sure)
      if (coinControl && coinControl->HasSelected())
      {
@@ -1274,7 +1274,7 @@ bool CWallet::SelectCoins(int64 nTargetValue, unsigned int nSpendTime, set<pair<
 
 
 
-bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl* coinControl, bool changeTransactionLast)
+bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet, const CCoinControl* coinControl)
 {
     int64 nValue = 0;
     BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
@@ -1335,19 +1335,19 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     nFeeRet += nChange;
                     nChange = 0;
                 }
-			
-				
+
+
                 if (nChange > 0)
                 {
                     // Fill a vout to ourself
                     // TODO: pass in scriptChange instead of reservekey so
                     // change transaction isn't always pay-to-bitcoin-address
                     CScript scriptChange;
-                    
+
                     // coin control: send change to custom address
                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
                         scriptChange.SetDestination(coinControl->destChange);
-                        
+
                     // no coin control: send change to newly generated address
                     else
                     {
@@ -1363,12 +1363,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
 
                         scriptChange.SetDestination(vchPubKey.GetID());
                     }
-                    if(changeTransactionLast){
-                        // Insert change at end:
-                        vector<CTxOut>::iterator position = wtxNew.vout.begin()+wtxNew.vout.size();
-                        wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
 
-                    }
 
                     // Insert change txn at random position:
                     vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size());
@@ -1492,7 +1487,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         bool fKernelFound = false;
         for (unsigned int n=0; n<min(nSearchInterval,(int64)nMaxStakeSearchInterval) && !fKernelFound && !fShutdown; n++)
         {
-            // Search backward in time from the given txNew timestamp 
+            // Search backward in time from the given txNew timestamp
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
             uint256 hashProofOfStake = 0;
             COutPoint prevoutStake = COutPoint(pcoin.first->GetHash(), pcoin.second);
@@ -1782,11 +1777,11 @@ bool CWallet::SetAddressBookName(const CTxDestination& address, const string& st
 {
     std::map<CTxDestination, std::string>::iterator mi = mapAddressBook.find(address);
     mapAddressBook[address] = strName;
-    
-    
+
+
     ChangeType nMode = (mi == mapAddressBook.end()) ? CT_NEW : CT_UPDATED;
     bool fOwned = ::IsMine(*this, address);
-    
+
     if (fOwned)
     {
         const CBitcoinAddress& caddress = address;
@@ -1801,7 +1796,7 @@ bool CWallet::SetAddressBookName(const CTxDestination& address, const string& st
 bool CWallet::DelAddressBookName(const CTxDestination& address)
 {
     mapAddressBook.erase(address);
-    
+
     bool fOwned = ::IsMine(*this, address);
     string sName = "";
     if (fOwned)
