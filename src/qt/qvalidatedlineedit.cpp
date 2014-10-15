@@ -10,13 +10,19 @@ QValidatedLineEdit::QValidatedLineEdit(QWidget *parent) :
 
 void QValidatedLineEdit::setValid(bool valid)
 {
-    setStyleSheet(valid ? "" : STYLE_INVALID);
-
     if(valid == this->valid)
     {
         return;
     }
 
+    if(valid)
+    {
+        setStyleSheet("");
+    }
+    else
+    {
+        setStyleSheet(STYLE_INVALID);
+    }
     this->valid = valid;
 }
 

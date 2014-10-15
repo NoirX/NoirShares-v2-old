@@ -146,26 +146,7 @@ int VoteCoinsEntry::getGameType(){
     return ui->gamePanel->currentIndex();
 }
 
-bool VoteCoinsEntry::validateDice(){
-    // Check input validity
-    bool retval = true;
 
-    /*if(!ui->payAmount_2->validate())
-    {
-        retval = false;
-    }
-    else
-    {
-        if(ui->payAmount_2->value() < 1000)
-        {
-            // Cannot play less than 1000
-            ui->payAmount_2->setValid(false);
-            retval = false;
-        }
-    }*/
-
-    return retval;
-}
 
 SendCoinsRecipient VoteCoinsEntry::getValue(int ballNumber)
 {

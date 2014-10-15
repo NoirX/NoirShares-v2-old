@@ -1,10 +1,10 @@
-#ifndef NoirSharesADDRESSVALIDATOR_H
-#define NoirSharesADDRESSVALIDATOR_H
+#ifndef BITCOINADDRESSVALIDATOR_H
+#define BITCOINADDRESSVALIDATOR_H
 
-#include <QRegExpValidator>
+#include <QValidator>
 
-/** Base48 entry widget validator.
-   Corrects near-miss characters and refuses characters that are no part of base48.
+/** Base58 entry widget validator.
+   Corrects near-miss characters and refuses characters that are not part of base58.
  */
 class BitcoinAddressValidator : public QValidator
 {
@@ -16,10 +16,6 @@ public:
     State validate(QString &input, int &pos) const;
 
     static const int MaxAddressLength = 35;
-signals:
-
-public slots:
-
 };
 
-#endif // NoirSharesADDRESSVALIDATOR_H
+#endif // BITCOINADDRESSVALIDATOR_H

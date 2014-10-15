@@ -2,12 +2,11 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef NoirShares_WALLETDB_H
-#define NoirShares_WALLETDB_H
+#ifndef BITCOIN_WALLETDB_H
+#define BITCOIN_WALLETDB_H
 
 #include "db.h"
 #include "base58.h"
-#include "keystore.h"
 
 class CKeyPool;
 class CAccount;
@@ -23,38 +22,6 @@ enum DBErrors
     DB_LOAD_FAIL,
     DB_NEED_REWRITE
 };
-
-class CKeyMetadata
-{
-public:
-    static const int CURRENT_VERSION=1;
-    int nVersion;
-    int64 nCreateTime; // 0 means unknown
-
-    CKeyMetadata()
-    {
-        SetNull();
-    }
-    CKeyMetadata(int64 nCreateTime_)
-    {
-        nVersion = CKeyMetadata::CURRENT_VERSION;
-        nCreateTime = nCreateTime_;
-    }
-
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        READWRITE(nCreateTime);
-    )
-
-    void SetNull()
-    {
-        nVersion = CKeyMetadata::CURRENT_VERSION;
-        nCreateTime = 0;
-    }
-};
-
 
 /** Access to the wallet database (wallet.dat) */
 class CWalletDB : public CDB
@@ -83,30 +50,21 @@ public:
         return Erase(std::make_pair(std::string("tx"), hash));
     }
 
-    bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta)
+    bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey)
     {
         nWalletDBUpdated++;
-
-        if(!Write(std::make_pair(std::string("keymeta"), vchPubKey), keyMeta))
-            return false;
-
-        return Write(std::make_pair(std::string("key"), vchPubKey.Raw()), vchPrivKey, false);
+        return Write(std::make_pair(std::string("key"), vchPubKey), vchPrivKey, false);
     }
 
-    bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta)
+    bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, bool fEraseUnencryptedKey = true)
     {
         nWalletDBUpdated++;
-        bool fEraseUnencryptedKey = true;
-
-        if(!Write(std::make_pair(std::string("keymeta"), vchPubKey), keyMeta))
-            return false;
-
-        if (!Write(std::make_pair(std::string("ckey"), vchPubKey.Raw()), vchCryptedSecret, false))
+        if (!Write(std::make_pair(std::string("ckey"), vchPubKey), vchCryptedSecret, false))
             return false;
         if (fEraseUnencryptedKey)
         {
-            Erase(std::make_pair(std::string("key"), vchPubKey.Raw()));
-            Erase(std::make_pair(std::string("wkey"), vchPubKey.Raw()));
+            Erase(std::make_pair(std::string("key"), vchPubKey));
+            Erase(std::make_pair(std::string("wkey"), vchPubKey));
         }
         return true;
     }
@@ -121,12 +79,6 @@ public:
     {
         nWalletDBUpdated++;
         return Write(std::make_pair(std::string("cscript"), hash), redeemScript, false);
-    }
-
-    bool WriteWatchOnly(const CScript &dest)
-    {
-        nWalletDBUpdated++;
-        return Write(std::make_pair(std::string("watchs"), dest), '1');
     }
 
     bool WriteBestBlock(const CBlockLocator& locator)
@@ -149,7 +101,7 @@ public:
     bool WriteDefaultKey(const CPubKey& vchPubKey)
     {
         nWalletDBUpdated++;
-        return Write(std::string("defaultkey"), vchPubKey.Raw());
+        return Write(std::string("defaultkey"), vchPubKey);
     }
 
     bool ReadPool(int64 nPool, CKeyPool& keypool)
@@ -204,9 +156,8 @@ public:
 
     DBErrors ReorderTransactions(CWallet*);
     DBErrors LoadWallet(CWallet* pwallet);
-    static void UnloadWallet(CWallet* pwallet);
     static bool Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys);
     static bool Recover(CDBEnv& dbenv, std::string filename);
 };
 
-#endif // NoirShares_WALLETDB_H
+#endif // BITCOIN_WALLETDB_H

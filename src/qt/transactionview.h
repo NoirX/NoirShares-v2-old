@@ -22,7 +22,6 @@ QT_END_NAMESPACE
 class TransactionView : public QWidget
 {
     Q_OBJECT
-
 public:
     explicit TransactionView(QWidget *parent = 0);
 
@@ -78,6 +77,7 @@ public slots:
     void changedAmount(const QString &amount);
     void exportClicked();
     void focusTransaction(const QModelIndex&);
+    void launchWebpage();
 
 };
 

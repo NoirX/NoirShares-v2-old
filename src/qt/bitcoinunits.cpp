@@ -11,9 +11,9 @@ BitcoinUnits::BitcoinUnits(QObject *parent):
 QList<BitcoinUnits::Unit> BitcoinUnits::availableUnits()
 {
     QList<BitcoinUnits::Unit> unitlist;
-    unitlist.append(BTC);
-    unitlist.append(mBTC);
-    unitlist.append(uBTC);
+    unitlist.append(NRS);
+    unitlist.append(mNRS);
+    unitlist.append(uNRS);
     return unitlist;
 }
 
@@ -21,9 +21,9 @@ bool BitcoinUnits::valid(int unit)
 {
     switch(unit)
     {
-    case BTC:
-    case mBTC:
-    case uBTC:
+    case NRS:
+    case mNRS:
+    case uNRS:
         return true;
     default:
         return false;
@@ -34,9 +34,9 @@ QString BitcoinUnits::name(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("NRS");
-    case mBTC: return QString("mNRS");
-    case uBTC: return QString::fromUtf8("μNRS");
+    case NRS: return QString("NRS");
+    case mNRS: return QString("mNRS");
+    case uNRS: return QString::fromUtf8("μNRS");
     default: return QString("???");
     }
 }
@@ -45,9 +45,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("NoirShares");
-    case mBTC: return QString("Milli-NoirShares (1 / 1,000)");
-    case uBTC: return QString("Micro-NoirShares (1 / 1,000,000)");
+    case NRS: return QString("NoirShares");
+    case mNRS: return QString("Milli-NoirShares (1 / 1,000)");
+    case uNRS: return QString("Micro-NoirShares (1 / 1,000,000)");
     default: return QString("???");
     }
 }
@@ -56,9 +56,9 @@ qint64 BitcoinUnits::factor(int unit)
 {
     switch(unit)
     {
-    case BTC:  return 1000000;
-    case mBTC: return 1000;
-    case uBTC: return 1;
+    case NRS:  return 1000000;
+    case mNRS: return 1000;
+    case uNRS: return 1;
     default:   return 1000000;
     }
 }
@@ -67,9 +67,9 @@ int BitcoinUnits::amountDigits(int unit)
 {
     switch(unit)
     {
-    case BTC: return 8; // 21,000,000 (# digits, without commas)
-    case mBTC: return 11; // 21,000,000,000
-    case uBTC: return 14; // 21,000,000,000,000
+    case NRS: return 8; // 21,000,000 (# digits, without commas)
+    case mNRS: return 11; // 21,000,000,000
+    case uNRS: return 14; // 21,000,000,000,000
     default: return 0;
     }
 }
@@ -78,9 +78,9 @@ int BitcoinUnits::decimals(int unit)
 {
     switch(unit)
     {
-    case BTC: return 6;
-    case mBTC: return 3;
-    case uBTC: return 0;
+    case NRS: return 6;
+    case mNRS: return 3;
+    case uNRS: return 0;
     default: return 0;
     }
 }

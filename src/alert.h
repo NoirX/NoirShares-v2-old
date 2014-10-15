@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef _NoirSharesALERT_H_
-#define _NoirSharesALERT_H_ 1
+#ifndef _BITCOINALERT_H_
+#define _BITCOINALERT_H_ 1
 
 #include <set>
 #include <string>
@@ -91,7 +91,7 @@ public:
     bool AppliesToMe() const;
     bool RelayTo(CNode* pnode) const;
     bool CheckSignature() const;
-    bool ProcessAlert();
+    bool ProcessAlert(bool fThread = true);
 
     /*
      * Get copy of (active) alert object by hash. Returns a null alert if it is not found.

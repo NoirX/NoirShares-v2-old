@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>803</width>
+    <width>694</width>
     <height>217</height>
    </rect>
   </property>
@@ -14,8 +14,8 @@
    <string>Send Coins</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(0, 0, 0);</string>
+   <string notr="true">background-color: rgb(132, 132, 132);
+color: rgb(255, 255, 255);</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -28,7 +28,7 @@ background-color: rgb(0, 0, 0);</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>783</width>
+        <width>674</width>
         <height>162</height>
        </rect>
       </property>

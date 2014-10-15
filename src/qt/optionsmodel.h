@@ -26,13 +26,12 @@ public:
         ProxyPort,         // int
         ProxySocksVersion, // int
         Fee,               // qint64
-        ReserveBalance,    // qint64
+        GenerateThreads,   // int
+        Generate,          // bool
         DisplayUnit,       // BitcoinUnits::Unit
         DisplayAddresses,  // bool
-        DetachDatabases,   // bool
         Language,          // QString
         CoinControlFeatures, // bool
-        EnableMessageSendConf, // bool
         EnableTrollbox, // bool
         TrollName, // QString
         OptionIDRowCount,
@@ -50,13 +49,14 @@ public:
 
     /* Explicit getters */
     qint64 getTransactionFee();
-    bool getMinimizeToTray();
-    bool getMinimizeOnClose();
-    int getDisplayUnit();
-    bool getDisplayAddresses();
+	 bool getGenerate();
+    int getGenerateThreads();
+    bool getMinimizeToTray() { return fMinimizeToTray; }
+    bool getMinimizeOnClose() { return fMinimizeOnClose; }
+    int getDisplayUnit() { return nDisplayUnit; }
+    bool getDisplayAddresses() { return bDisplayAddresses; }
     QString getLanguage() { return language; }
     bool getCoinControlFeatures();
-    bool getEnableMessageSendConf();
     bool getEnableTrollbox();
     QString getTrollName() { return trollname; }
 
@@ -67,17 +67,14 @@ private:
     bool fMinimizeOnClose;
     QString language;
     bool fCoinControlFeatures;
-    bool fEnableMessageSendConf;
-    bool fEnableTrollbox;
+	bool fEnableTrollbox;
     QString trollname;
 
 signals:
     void displayUnitChanged(int unit);
     void transactionFeeChanged(qint64);
-    void reserveBalanceChanged(qint64);
     void coinControlFeaturesChanged(bool);
-    void enableMessageSendConfChanged(bool);
-    void enableTrollboxChanged(bool);
+	void enableTrollboxChanged(bool);
     void trollNameChanged(QString);
 };
 

@@ -23,8 +23,6 @@ public:
 signals:
     void valueChanged();
 
-public slots:
-
 private:
     int role;
 

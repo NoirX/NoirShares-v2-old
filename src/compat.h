@@ -2,8 +2,8 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef _NoirShares_COMPAT_H
-#define _NoirShares_COMPAT_H 1
+#ifndef _BITCOIN_COMPAT_H
+#define _BITCOIN_COMPAT_H 1
 
 #ifdef WIN32
 #define _WIN32_WINNT 0x0501
@@ -11,6 +11,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#define FD_SETSIZE 1024 // max number of fds in fd_set
 #include <winsock2.h>
 #include <mswsock.h>
 #include <ws2tcpip.h>
@@ -24,8 +25,10 @@
 #include <netinet/in.h>
 #include <ifaddrs.h>
 #endif
-typedef u_int SOCKET;
 
+#ifndef WIN32
+typedef u_int SOCKET;
+#endif
 
 
 #ifdef WIN32

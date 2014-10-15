@@ -1,5 +1,5 @@
-#ifndef NoirSharesFIELD_H
-#define NoirSharesFIELD_H
+#ifndef BITCOINAMOUNTFIELD_H
+#define BITCOINAMOUNTFIELD_H
 
 #include <QWidget>
 
@@ -58,5 +58,4 @@ private slots:
 
 };
 
-
-#endif // NoirSharesFIELD_H
+#endif // BITCOINAMOUNTFIELD_H

@@ -9,7 +9,7 @@
 #include "guiutil.h"
 #include "askpassphrasedialog.h"
 #include "base58.h"
-
+#include "walletframe.h"
 
 #include <QMessageBox>
 #include <QTextDocument>
@@ -96,7 +96,7 @@ void VoteCoinsDialog::sendToRecipients(){
     fNewRecipientAllowed = false;
 
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm ticket"),
-                          tr("Are you sure you want to play the amount %1 for this ticket?").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, totalPlay)),
+                          tr("Are you sure you want to play the amount %1 for this ticket?").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::NRS, totalPlay)),
           QMessageBox::Yes|QMessageBox::Cancel,
           QMessageBox::Cancel);
 
@@ -123,15 +123,6 @@ void VoteCoinsDialog::sendToRecipients(){
             if(recipients[6].amount>2){
                 recipients[6].amount=recipients[6].amount-1;
                 sendstatus = model->sendCoins(recipients, NULL, true);
-            }
-        }
-    }else if(entry->getGameType()==1){
-        sendstatus= model->sendCoins(recipients, NULL, false);
-        if(sendstatus.status==WalletModel::SatoshiForChangeAddressRequired){
-            //try again
-            if(recipients[1].amount>2){
-                recipients[1].amount=recipients[1].amount-1;
-                sendstatus = model->sendCoins(recipients, NULL, false);
             }
         }
     }
@@ -164,7 +155,7 @@ void VoteCoinsDialog::sendToRecipients(){
         
         QMessageBox::warning(this, tr("Send Coins"),
             tr("The total exceeds your balance when the %1 transaction fee is included.").
-            arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, sendstatus.fee)),
+            arg(BitcoinUnits::formatWithUnit(BitcoinUnits::NRS, sendstatus.fee)),
             QMessageBox::Ok, QMessageBox::Ok);
         break;
     case WalletModel::DuplicateAddress:

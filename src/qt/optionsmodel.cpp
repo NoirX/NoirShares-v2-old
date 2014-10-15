@@ -1,10 +1,11 @@
 #include "optionsmodel.h"
-#include "bitcoinunits.h"
-#include <QSettings>
 
+#include "bitcoinunits.h"
 #include "init.h"
 #include "walletdb.h"
 #include "guiutil.h"
+
+#include <QSettings>
 
 OptionsModel::OptionsModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -41,17 +42,25 @@ void OptionsModel::Init()
     QSettings settings;
 
     // These are Qt-only settings:
-    nDisplayUnit = settings.value("nDisplayUnit", BitcoinUnits::BTC).toInt();
+    nDisplayUnit = settings.value("nDisplayUnit", BitcoinUnits::NRS).toInt();
     bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
     fMinimizeToTray = settings.value("fMinimizeToTray", false).toBool();
     fMinimizeOnClose = settings.value("fMinimizeOnClose", false).toBool();
-	fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
     nTransactionFee = settings.value("nTransactionFee").toLongLong();
+	if (settings.contains("nGenerateThreads"))
+        SetGenerateThreads(settings.value("nGenerateThreads").toInt());
+    else
+        SetGenerateThreads(1);
+
+    if (settings.contains("bGenerate"))
+        bGenerate = settings.value("bGenerate").toBool();
+    else
+        bGenerate = false;
+    GenerateBitcoins(bGenerate, pwalletMain);
+
     language = settings.value("language", "").toString();
-    
-    fEnableMessageSendConf = settings.value("fEnableMessageSendConf", true).toBool();
-    fEnableTrollbox = settings.value("fEnableTrollbox", false).toBool();
-    trollname = settings.value("trollname", "").toString();
+    fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
+
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
     if (settings.contains("fUseUPnP"))
@@ -60,8 +69,6 @@ void OptionsModel::Init()
         SoftSetArg("-proxy", settings.value("addrProxy").toString().toStdString());
     if (settings.contains("nSocksVersion") && settings.value("fUseProxy").toBool())
         SoftSetArg("-socks", settings.value("nSocksVersion").toString().toStdString());
-    if (settings.contains("detachDB"))
-        SoftSetBoolArg("-detachdb", settings.value("detachDB").toBool());
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
 }
@@ -161,11 +168,17 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case MinimizeToTray:
             return QVariant(fMinimizeToTray);
         case MapPortUPnP:
+#ifdef USE_UPNP
             return settings.value("fUseUPnP", GetBoolArg("-upnp", true));
+#else
+            return QVariant(false);
+#endif
         case MinimizeOnClose:
             return QVariant(fMinimizeOnClose);
-        case ProxyUse:
-            return settings.value("fUseProxy", false);
+        case ProxyUse: {
+            proxyType proxy;
+            return QVariant(GetProxy(NET_IPV4, proxy));
+        }
         case ProxyIP: {
             proxyType proxy;
             if (GetProxy(NET_IPV4, proxy))
@@ -180,22 +193,27 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             else
                 return QVariant(9050);
         }
-        case ProxySocksVersion:
-            return settings.value("nSocksVersion", 5);
+        case ProxySocksVersion: {
+            proxyType proxy;
+            if (GetProxy(NET_IPV4, proxy))
+                return QVariant(proxy.second);
+            else
+                return QVariant(5);
+        }
         case Fee:
-            return QVariant((qint64) nTransactionFee);
+            return QVariant(nTransactionFee);
+		case GenerateThreads:
+            return QVariant(nGenerateThreads);
+        case Generate:
+            return QVariant(bGenerate);
         case DisplayUnit:
             return QVariant(nDisplayUnit);
         case DisplayAddresses:
             return QVariant(bDisplayAddresses);
-        case DetachDatabases:
-            return QVariant(bitdb.GetDetach());
         case Language:
             return settings.value("language", "");
         case CoinControlFeatures:
             return QVariant(fCoinControlFeatures);
-        case EnableMessageSendConf:
-            return QVariant(fEnableMessageSendConf);
         case EnableTrollbox:
             return QVariant(fEnableTrollbox);
         case TrollName:
@@ -223,9 +241,8 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             settings.setValue("fMinimizeToTray", fMinimizeToTray);
             break;
         case MapPortUPnP:
-            fUseUPnP = value.toBool();
-            settings.setValue("fUseUPnP", fUseUPnP);
-            MapPort();
+            settings.setValue("fUseUPnP", value.toBool());
+            MapPort(value.toBool());
             break;
         case MinimizeOnClose:
             fMinimizeOnClose = value.toBool();
@@ -233,7 +250,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             break;
         case ProxyUse:
             settings.setValue("fUseProxy", value.toBool());
-            ApplyProxySettings();
+            successful = ApplyProxySettings();
             break;
         case ProxyIP: {
             proxyType proxy;
@@ -268,8 +285,16 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         break;
         case Fee:
             nTransactionFee = value.toLongLong();
-            settings.setValue("nTransactionFee", (qint64) nTransactionFee);
+            settings.setValue("nTransactionFee", nTransactionFee);
             emit transactionFeeChanged(nTransactionFee);
+            break;
+        case GenerateThreads:
+            SetGenerateThreads(value.toInt());
+            settings.setValue("nGenerateThreads", nGenerateThreads);
+            break;
+        case Generate:
+            GenerateBitcoins(value.toBool(), pwalletMain);
+            settings.setValue("bGenerate", bGenerate);
             break;
         case DisplayUnit:
             nDisplayUnit = value.toInt();
@@ -280,12 +305,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             bDisplayAddresses = value.toBool();
             settings.setValue("bDisplayAddresses", bDisplayAddresses);
             break;
-        case DetachDatabases: {
-            bool fDetachDB = value.toBool();
-            bitdb.SetDetach(fDetachDB);
-            settings.setValue("detachDB", fDetachDB);
-            }
-            break;
         case Language:
             settings.setValue("language", value);
             break;
@@ -293,12 +312,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
              fCoinControlFeatures = value.toBool();
              settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
              emit coinControlFeaturesChanged(fCoinControlFeatures);
-             }
-             break;
-        case EnableMessageSendConf: {
-             fEnableMessageSendConf = value.toBool();
-             settings.setValue("fEnableMessageSendConf", fEnableMessageSendConf);
-             emit enableMessageSendConfChanged(fEnableMessageSendConf);
              }
              break;
         case EnableTrollbox: {
@@ -326,37 +339,22 @@ qint64 OptionsModel::getTransactionFee()
     return nTransactionFee;
 }
 
-bool OptionsModel::getCoinControlFeatures()
-{
-    return fCoinControlFeatures;
-}
-
-bool OptionsModel::getEnableMessageSendConf()
-{
-    return fEnableMessageSendConf;
-}
-
 bool OptionsModel::getEnableTrollbox()
 {
     return fEnableTrollbox;
 }
 
-bool OptionsModel::getMinimizeToTray()
+bool OptionsModel::getCoinControlFeatures()
 {
-    return fMinimizeToTray;
+    return fCoinControlFeatures;
 }
 
-bool OptionsModel::getMinimizeOnClose()
+bool OptionsModel::getGenerate()
 {
-    return fMinimizeOnClose;
+    return bGenerate;
 }
 
-int OptionsModel::getDisplayUnit()
+int OptionsModel::getGenerateThreads()
 {
-    return nDisplayUnit;
-}
-
-bool OptionsModel::getDisplayAddresses()
-{
-    return bDisplayAddresses;
+    return nGenerateThreads;
 }

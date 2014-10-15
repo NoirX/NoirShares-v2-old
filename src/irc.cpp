@@ -57,10 +57,6 @@ bool DecodeAddress(string str, CService& addr)
 }
 
 
-
-
-
-
 static bool Send(SOCKET hSocket, const char* pszSend)
 {
     if (strstr(pszSend, "PONG") != pszSend)
@@ -155,7 +151,7 @@ bool Wait(int nSeconds)
     {
         if (fShutdown)
             return false;
-        Sleep(1000);
+        MilliSleep(1000);
     }
     return true;
 }
@@ -314,7 +310,7 @@ void ThreadIRCSeed2(void* parg)
                 return;
         }
         nNameRetry = 0;
-        Sleep(500);
+        MilliSleep(500);
 
         // Get our external IP from the IRC server and re-nick before joining the channel
         CNetAddr addrFromIRC;
@@ -341,7 +337,7 @@ void ThreadIRCSeed2(void* parg)
 
             // Set to #1, for encrypted messaging. new channel for the people who keep up
             // with technology
-            int channel_number = 1;
+            int channel_number = 2;
             channel = strprintf("#abcittCoin%02d", channel_number);
             Send(hSocket, strprintf("JOIN %s\r", channel.c_str()).c_str());
             Send(hSocket, strprintf("WHO %s\r",  channel.c_str()).c_str());

@@ -28,17 +28,12 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
     QList<TransactionRecord> parts;
     int64 nTime = wtx.GetTxTime();
     int64 nCredit = wtx.GetCredit(true);
-    int64 nDebit = wtx.GetDebit(MINE_ALL);
+    int64 nDebit = wtx.GetDebit();
     int64 nNet = nCredit - nDebit;
     uint256 hash = wtx.GetHash();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
-    if (wtx.IsCoinStake())
-    {
-        // Stake generation
-        parts.append(TransactionRecord(hash, nTime, TransactionRecord::StakeMint, "", -nDebit, wtx.GetValueOut()));
-    }
-    else if (nNet > 0 || wtx.IsCoinBase())
+    if (nNet > 0 || wtx.IsCoinBase())
     {
         //
         // Credit
@@ -214,7 +209,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         if (wtx.nLockTime < LOCKTIME_THRESHOLD)
         {
             status.status = TransactionStatus::OpenUntilBlock;
-            status.open_for = nBestHeight - wtx.nLockTime;
+            status.open_for = wtx.nLockTime - nBestHeight + 1;
         }
         else
         {
@@ -239,7 +234,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     }
 
     // For generated transactions, determine maturity
-    if(type == TransactionRecord::Generated || type == TransactionRecord::StakeMint)
+    if(type == TransactionRecord::Generated)
     {
         int64 nCredit = wtx.GetCredit(true);
         if (nCredit == 0)
@@ -253,8 +248,6 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
                 // Check if the block was requested by anyone
                 if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
                     status.maturity = TransactionStatus::MaturesWarning;
-				else if(wtx.GetBlocksToMaturity() == 0)
-					status.maturity = TransactionStatus::Mature;
             }
             else
             {
@@ -269,7 +262,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
 
     //For lottery tickets - update block
     bool lotteryTicket = false;
-    bool dicegame=false;
+
     BOOST_FOREACH(const CTxOut& txout, wtx.vout){
         CTxDestination address;
         ExtractDestination(txout.scriptPubKey, address);
@@ -283,7 +276,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         int64 lotteryNumbers[8]={0};
         int theSize=wtx.vout.size()-1;
         std::set<int> numbersPlayed;
-        for (unsigned int nOut = 0; nOut < theSize; nOut++)
+        for (int nOut = 0; nOut < theSize; nOut++)
         {
             const CTxOut& txout = wtx.vout[nOut];
             lotteryNumbers[nOut]=txout.nValue;

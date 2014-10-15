@@ -103,9 +103,9 @@ void VotingDialog::sendToRecipients(){
     foreach(const SendCoinsRecipient &rcp, recipients)
     {
      #if QT_VERSION >= 0x050000
-        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount), rcp.label.toHtmlEscaped(), rcp.address));
+        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::NRS, rcp.amount), rcp.label.toHtmlEscaped(), rcp.address));
      #else
-        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount), Qt::escape(rcp.label), rcp.address));
+        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::NRS, rcp.amount), Qt::escape(rcp.label), rcp.address));
      #endif
     }
 
@@ -141,7 +141,7 @@ void VotingDialog::sendToRecipients(){
     case WalletModel::AmountWithFeeExceedsBalance:
         QMessageBox::warning(this, tr("Send Coins"),
             tr("The total exceeds your balance when the %1 transaction fee is included.").
-            arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, sendstatus.fee)),
+            arg(BitcoinUnits::formatWithUnit(BitcoinUnits::NRS, sendstatus.fee)),
             QMessageBox::Ok, QMessageBox::Ok);
         break;
     case WalletModel::DuplicateAddress:
@@ -237,21 +237,6 @@ void VotingDialog::removeEntry(VotingEntry* entry)
     delete entry;
     updateRemoveEnabled();
 }
-
-/*QWidget *VoteCoinsDialog::setupTabChain(QWidget *prev)
-{
-    for(int i = 0; i < ui->entries->count(); ++i)
-    {
-        VoteCoinsEntry *entry = qobject_cast<VoteCoinsEntry*>(ui->entries->itemAt(i)->widget());
-        if(entry)
-        {
-            prev = entry->setupTabChain(prev);
-        }
-    }
-    QWidget::setTabOrder(prev, ui->addButton);
-    QWidget::setTabOrder(ui->addButton, ui->sendButton);
-    return ui->sendButton;
-}*/
 
 void VotingDialog::setAddress(const QString &address)
 {

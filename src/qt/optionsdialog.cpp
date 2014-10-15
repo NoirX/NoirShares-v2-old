@@ -10,8 +10,6 @@
 #include <QIntValidator>
 #include <QLocale>
 #include <QMessageBox>
-#include <QRegExp>
-#include <QRegExpValidator>
 
 OptionsDialog::OptionsDialog(QWidget *parent) :
     QDialog(parent),
@@ -43,11 +41,14 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
     connect(ui->connectSocks, SIGNAL(toggled(bool)), ui->socksVersion, SLOT(setEnabled(bool)));
     connect(ui->connectSocks, SIGNAL(clicked(bool)), this, SLOT(showRestartWarning_Proxy()));
 
+    connect(ui->generate, SIGNAL(toggled(bool)), this, SLOT(generateChanged(bool)));
+
     ui->proxyIp->installEventFilter(this);
 
     /* Window elements init */
 #ifdef Q_OS_MAC
-    ui->tabWindow->setVisible(false);
+    /* remove Window tab on Mac */
+    ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->tabWindow));
 #endif
 
     /* Display elements init */
@@ -100,6 +101,15 @@ OptionsDialog::~OptionsDialog()
     delete ui;
 }
 
+void OptionsDialog::generateChanged(bool generate)
+{
+    ui->generateThreads->setEnabled(generate);
+
+    ui->label_2->setEnabled(generate);
+
+    ui->label->setEnabled(generate);
+}
+
 void OptionsDialog::setModel(OptionsModel *model)
 {
     this->model = model;
@@ -113,7 +123,7 @@ void OptionsDialog::setModel(OptionsModel *model)
         mapper->toFirst();
     }
 
-    /* update the display unit, to not use the default ("BTC") */
+    /* update the display unit, to not use the default ("NRS") */
     updateDisplayUnit();
 
     /* warn only when language selection changes by user action (placed here so init via mapper doesn't trigger this) */
@@ -121,15 +131,17 @@ void OptionsDialog::setModel(OptionsModel *model)
 
     /* disable apply button after settings are loaded as there is nothing to save */
     disableApplyButton();
+
+    generateChanged(model->getGenerate());
 }
 
 void OptionsDialog::setMapper()
 {
     /* Main */
     mapper->addMapping(ui->transactionFee, OptionsModel::Fee);
-    mapper->addMapping(ui->reserveBalance, OptionsModel::ReserveBalance);
+	mapper->addMapping(ui->generateThreads, OptionsModel::GenerateThreads);
+    mapper->addMapping(ui->generate, OptionsModel::Generate);	
     mapper->addMapping(ui->bitcoinAtStartup, OptionsModel::StartAtStartup);
-    mapper->addMapping(ui->detachDatabases, OptionsModel::DetachDatabases);
 
     /* Network */
     mapper->addMapping(ui->mapPortUpnp, OptionsModel::MapPortUPnP);
@@ -150,10 +162,7 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->unit, OptionsModel::DisplayUnit);
     mapper->addMapping(ui->displayAddresses, OptionsModel::DisplayAddresses);
     mapper->addMapping(ui->coinControlFeatures, OptionsModel::CoinControlFeatures);
-
-    //Communications
-    mapper->addMapping(ui->enableMessageSendConf, OptionsModel::EnableMessageSendConf);
-    mapper->addMapping(ui->enableTrollbox, OptionsModel::EnableTrollbox);
+	mapper->addMapping(ui->enableTrollbox, OptionsModel::EnableTrollbox);
     mapper->addMapping(ui->trollNameEdit, OptionsModel::TrollName);
 }
 

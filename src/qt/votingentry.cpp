@@ -2,7 +2,7 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-// Copyright (c) 2013-2014 NoirShares
+// Copyright (c) 2013-2014 Memorycoin Dev Team
 
 #include "votingentry.h"
 #include "ui_votingentry.h"
@@ -94,7 +94,7 @@ void VotingEntry::clear()
     //ui->addAsLabel->clear();
     //ui->payAmount->clear();
     ui->payTo->setFocus();
-    // update the display unit, to not use the default ("BTC")
+    // update the display unit, to not use the default ("NRS")
     updateDisplayUnit();
 }
 
@@ -150,29 +150,16 @@ SendCoinsRecipient VotingEntry::getValue()
     return rv;
 }
 
-/*QWidget *VoteCoinsEntry::setupTabChain(QWidget *prev)
-{
-    QWidget::setTabOrder(prev, ui->payTo);
-    QWidget::setTabOrder(ui->payTo, ui->addressBookButton);
-    QWidget::setTabOrder(ui->addressBookButton, ui->pasteButton);
-    QWidget::setTabOrder(ui->pasteButton, ui->deleteButton);
-    //QWidget::setTabOrder(ui->deleteButton, ui->addAsLabel);
-    //return ui->payAmount->setupTabChain(ui->addAsLabel);
-    //return ui->deleteButton->setupTabChain(ui->deleteButton);
-    return NULL;
-}*/
-
 void VotingEntry::setValue(const SendCoinsRecipient &value)
 {
     ui->payTo->setText(value.address);
-    //ui->addAsLabel->setText(value.label);
-    //ui->payAmount->setValue(value.amount);
+    
 }
 
 void VotingEntry::setAddress(const QString &address)
 {
     ui->payTo->setText(address);
-    //ui->payAmount->setFocus();
+    
 }
 
 bool VotingEntry::isClear()
@@ -189,7 +176,6 @@ void VotingEntry::updateDisplayUnit()
 {
     if(model && model->getOptionsModel())
     {
-        // Update payAmount with the current unit
-        //ui->payAmount->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
+        
     }
 }

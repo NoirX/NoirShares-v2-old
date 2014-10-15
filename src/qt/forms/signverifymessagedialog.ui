@@ -14,7 +14,7 @@
    <string>Signatures - Sign / Verify a Message</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(0, 0, 0);
+   <string notr="true">background-color: rgb(132, 132, 132);
 color: rgb(255, 255, 255);</string>
   </property>
   <property name="modal">
@@ -24,7 +24,7 @@ color: rgb(255, 255, 255);</string>
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabSignMessage">
       <attribute name="title">
@@ -52,7 +52,11 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QValidatedLineEdit" name="addressIn_SM">
            <property name="toolTip">
-            <string>The address to sign the message with (e.g. NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q)</string>
+            <string>The address to sign the message with (e.g. Ler4HNAEfwYhBmGXcFP2Po1NpRUEiK8km2)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
            </property>
            <property name="maxLength">
             <number>34</number>
@@ -106,6 +110,20 @@ color: rgb(255, 255, 255);</string>
          <property name="toolTip">
           <string>Enter the message you want to sign here</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="signatureLabel_SM">
+         <property name="text">
+          <string>Signature</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
         </widget>
        </item>
        <item>
@@ -119,6 +137,10 @@ color: rgb(255, 255, 255);</string>
             <font>
              <italic>true</italic>
             </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
            </property>
            <property name="readOnly">
             <bool>true</bool>
@@ -152,11 +174,10 @@ color: rgb(255, 255, 255);</string>
             <string>Sign the message to prove you own this NoirShares address</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(255, 255, 255);
-color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
-            <string>&amp;Sign Message</string>
+            <string>Sign &amp;Message</string>
            </property>
            <property name="icon">
             <iconset resource="../bitcoin.qrc">
@@ -173,8 +194,7 @@ color: rgb(0, 0, 0);</string>
             <string>Reset all sign message fields</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(255, 255, 255);
-color: rgb(0, 0, 0);</string>
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>
@@ -263,7 +283,11 @@ color: rgb(0, 0, 0);</string>
          <item>
           <widget class="QValidatedLineEdit" name="addressIn_VM">
            <property name="toolTip">
-            <string>The address the message was signed with (e.g. NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q)</string>
+            <string>The address the message was signed with (e.g. Ler4HNAEfwYhBmGXcFP2Po1NpRUEiK8km2)</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
            </property>
            <property name="maxLength">
             <number>34</number>
@@ -293,10 +317,20 @@ color: rgb(0, 0, 0);</string>
         </layout>
        </item>
        <item>
-        <widget class="QPlainTextEdit" name="messageIn_VM"/>
+        <widget class="QPlainTextEdit" name="messageIn_VM">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+         </property>
+        </widget>
        </item>
        <item>
-        <widget class="QValidatedLineEdit" name="signatureIn_VM"/>
+        <widget class="QValidatedLineEdit" name="signatureIn_VM">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2_VM">
@@ -305,8 +339,11 @@ color: rgb(0, 0, 0);</string>
            <property name="toolTip">
             <string>Verify the message to ensure it was signed with the specified NoirShares address</string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(0, 0, 0);</string>
+           </property>
            <property name="text">
-            <string>&amp;Verify Message</string>
+            <string>Verify &amp;Message</string>
            </property>
            <property name="icon">
             <iconset resource="../bitcoin.qrc">
@@ -321,6 +358,9 @@ color: rgb(0, 0, 0);</string>
           <widget class="QPushButton" name="clearButton_VM">
            <property name="toolTip">
             <string>Reset all verify message fields</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(0, 0, 0);</string>
            </property>
            <property name="text">
             <string>Clear &amp;All</string>

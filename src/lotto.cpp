@@ -3,9 +3,9 @@
 #include "alert.h"
 #include "checkpoints.h"
 #include "db.h"
+#include "txdb.h"
 #include "net.h"
 #include "init.h"
-#include "base58.h"
 #include "ui_interface.h"
 #include "checkqueue.h"
 #include <boost/algorithm/string.hpp>
@@ -37,7 +37,7 @@ string TICKETADDRESS                ="NbUs6cqeo8CiUfAyz7yaRc3WWiFUK58F3Q";
 char* mPUBKey="-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1blo14f8xTPJUlfo0YVy\nLcixUMVfbbtoa6QCdLOaW27rlnm4zOjuFXCpFpUw3I8GvVkvqLev0Y5wE4SySUZ8\n4q3Y4YQv/7QPl9GK3jGw99c9NHnTR01xaSqymYfocgxH0OEQ2NS15E9hS6pPkRQT\nlm0k4sYr3sKHBKe+DPKBACo7az6QvpXwncFiUW7yGEZPwhzcbVAQo8E6609B00nB\nfkBrzYc6u5/IcbRV+gygYbN0EjiV9AHQtMSzkMHsA3X0T5IGRZPWOtfnfmpxzaiO\nWWXJ6nfABZXE4fqnfBcISdo2Hp701t86FnSRuuIpFGFrfKueQwEaeJps9RFyAMhA\nuwIDAQAB\n-----END PUBLIC KEY-----";
 string TIMEKEEPERRSABROADCASTADDRESS ="NR1YPBEq5SQFpBcjWpK6UmauTvqQZk6Zq5";
 
-lottoshares::lottoshares()
+NoirShares::NoirShares()
 {
 }
 
@@ -54,7 +54,11 @@ bool verifymessage(string strAddress, string strMessage, vector<unsigned char> v
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
     ss << strMessage;
-	CPubKey pubkey;
+
+    CPubKey pubkey;
+    if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
+        return false;
+
     return (pubkey.GetID() == keyID);
 }
 
@@ -85,10 +89,6 @@ std::set<int> generateDrawNumbersFromString(uint256 seedhash){
     return drawnNumbers;
 }
 
-int getDiceRoll(uint256 transactionHash, uint256 seedHash){
-    uint64 xorred = transactionHash.Get64(2) ^ seedHash.Get64(2);
-    return (xorred%1024)+1;
-}
 
 int countMatches(std::set<int> ticketNumbers, std::set<int> drawNumbers){
     int count=0;
@@ -166,96 +166,7 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
             //myfile << "Skipping Coinbase\n";
             //This is a coinbase transaction, it can't be a lottery ticket, skip
         }else{
-            if(ticketBlockHeader->nHeight>FORKHEIGHT && ticketBlock.vtx[i].vout.size()==3){
-                //Dice plays always have 3 outputs
-
-                //First 2 outputs must have ticket address
-                bool validOutAddresses=true;
-                int64 stake=0;
-                for(int j=0;j<2;j++){
-                    CTxDestination address;
-                    ExtractDestination(ticketBlock.vtx[i].vout[j].scriptPubKey,address);
-                    std::string outAddress=CBitcoinAddress(address).ToString().c_str();
-                    stake=stake+ticketBlock.vtx[i].vout[j].nValue;
-                    
-                }
-
-                if(!validOutAddresses){
-                    //This is not a ticket
-                    printf("Skipping - not using ticket addres\n");
-                    continue;
-                }
-
-                printf("Dice Trx ID: %s\n",ticketBlock.vtx[i].GetHash().GetHex().c_str());
-
-                int64 gameNumber64=ticketBlock.vtx[i].vout[0].nValue;
-                printf("Game: %llu\n",gameNumber64);
-                if(gameNumber64>21){
-                    continue;
-                }
-                int gameNumber=gameNumber64;
-
-                int diceRoll=getDiceRoll(ticketBlock.vtx[i].GetHash(),seedHash);
-                printf("Roll: %d\n",diceRoll);
-
-                if(gameNumber<22){
-
-                    printf("Valid Dice Roll\n");
-                    totalTicketStake+=stake;
-
-                    int64 prize=0;
-                    if(gameNumber>0 && gameNumber<11){
-                        int threshold=(powerPositiveIntegers(2,gameNumber-1))+1;
-                        int64 winAmount=stake*(powerPositiveIntegers(2,11-gameNumber));
-                        printf("Test Less Than: %d for prize %llu\n",threshold,winAmount);
-                        if(diceRoll<threshold){
-                            prize=winAmount;
-                        }
-                    }else if(gameNumber>10 && gameNumber<20){
-                        int threshold=1025-(powerPositiveIntegers(2,(gameNumber-19)*-1));
-                        //int64 winAmount=stake+(stake>>(gameNumber-10));
-                        int64 winAmount=stake+(stake/(powerPositiveIntegers(2,(gameNumber-9))-1));
-                        printf("Test Less Than: %d for prize %llu\n",threshold,winAmount);
-                        if(diceRoll<threshold){
-                            prize=winAmount;
-                        }
-                    }else if(gameNumber==20){
-                        printf("Test Odd\n");
-                        if(diceRoll%2==1){
-                            prize=stake*2;
-                        }
-                    }else if(gameNumber==21){
-                        printf("Test Even\n");
-                        if(diceRoll%2==0){
-                            prize=stake*2;
-                        }
-                    }
-
-                    printf("Prize %llu\n",prize);
-
-                    if(prize>0){
-                        CTxDestination address;
-                        ExtractDestination(ticketBlock.vtx[i].vout[2].scriptPubKey,address);
-                        std::string payoutAddress=CBitcoinAddress(address).ToString().c_str();
-                        printf("Payout Address %s\n",payoutAddress.c_str());
-                        payoutRequirements[payoutAddress]=payoutRequirements[payoutAddress]+prize;
-                        ncfeesFromPayout=ncfeesFromPayout+prize;
-                        totalPrizes+=prize;
-                        
-                    }
-                    //Update wallet with info
-                    char str[15];
-                    sprintf(str, "| Rolled: %d", diceRoll);
-                    std::string myNumbers=str;
-                    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered){
-                        printf("lotto.cpp addlnitim\n");
-                        pwallet->AddLotteryNumbersIfTransactionInvolvingMe(ticketBlock.vtx[i].GetHash(), ticketBlock.vtx[i], myNumbers);
-                    }
-
-                }
-
-
-            }else if(ticketBlock.vtx[i].vout.size()==8){
+             if(ticketBlock.vtx[i].vout.size()==8){
                 //Lottery tickets always have 8 outputs
                 //printf("Transaction - Has 8 Outputs\n");
 
@@ -317,21 +228,15 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
                     printf("Matching Number %d\n",matchingNumber);
 
                     int64 prize=0;
-                    /*if(matchingNumber==0){
-                        prize=stake/10;
-                    }else if(matchingNumber==1){
-                        prize=stake/100;
-                    }else if(matchingNumber==2){
-                        prize=stake*1;
-                    }else*/
+                    
                     if(matchingNumber==3){
-                        prize=stake/10;
-                    }else if(matchingNumber==4){
                         prize=stake*10;
+                    }else if(matchingNumber==4){
+                        prize=stake*80;
                     }else if(matchingNumber==5){
-                        prize=stake*100;
+                        prize=stake*750;
                     }else if(matchingNumber==6){
-                        prize=stake*5000;
+                        prize=stake*8500;
                     }
 
                     printf("Prize %llu\n",prize);
@@ -363,25 +268,7 @@ void calculatePayoutRequirements(std::map<string, int64> &payoutRequirements, in
                             myfile << "Matching Numbers: " << matchingNumber << " Prize:" << prize <<"\n";
                         }
                     }
-                    //Update wallet with info
-                    std::set<int>::iterator itt;
-                    std::string myNumbers="| Draw: ";
-                    for (itt=drawNumbers.begin(); itt!=drawNumbers.end(); ++itt){
-                        int myNum=*itt;
-                        char str[15];
-                        sprintf(str, "%d", myNum);
-                        myNumbers=myNumbers+str;
-                        myNumbers=myNumbers+" ";
-                    }
-                    char str[15];
-                    sprintf(str, "| Match: %d", matchingNumber);
-                    myNumbers=myNumbers+str;
-                    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered){
-                        printf("lotto.cpp addlnitim\n");
-
-                        pwallet->AddLotteryNumbersIfTransactionInvolvingMe(ticketBlock.vtx[i].GetHash(), ticketBlock.vtx[i], myNumbers);
-                    }
-
+                    
                 }
             }else{
                 printf("Skipping Transaction - Not 3 or 8 Outputs\n");
@@ -500,15 +387,13 @@ uint256 checkTransactionForCheckpoints(CTransaction tx, bool makeFileQueue, bool
             if(RSA_verify(NID_sha256, hash, SHA256_DIGEST_LENGTH, sign, signLen, pubkey)){
                 uint256 signatureHash;
                 SHA256((unsigned char*)sign, 256, (unsigned char*)&signatureHash);
-                
+                Checkpoints::addCheckpoint(theTime, theHeight, theHash, makeFileQueue, logBlock, signatureHash);
+                printf("Success - add checkpoint %s\n",messageToSign);
                 return signatureHash;
             }
-
-
-
         }
     }
-    return NULL;
+  return NULL;
 }
 
 void checkForCheckpoints(std::vector<CTransaction> vtx, bool makeFileQueue, bool logBlock){
@@ -623,7 +508,7 @@ bool checkForPayouts(std::vector<CTransaction> &vtx, int64 &feesFromPayout, int6
         if(vtx[i].IsCoinBase()){
             //This is a coinbase transaction, it can't be a draw result, skip
         }else{
-            if(blockHeight<FORKHEIGHT){
+            if(blockHeight>0){
                 checkTransactionForPayoutsFromDrawTransaction(vtx[i],payoutRequirements,feesFromPayout,ncfeesFromPayout,logTickets,myfile);
             }else{
                 checkTransactionForPayoutsFromCheckpointTransaction(vtx[i],payoutRequirements,feesFromPayout,ncfeesFromPayout,logTickets,myfile);
@@ -728,7 +613,7 @@ void writeLogInfoForBlock(uint256 logBlockHash){
 
     //Subsidy allowed
     int64 thefees=0;
-    int64 subsidyAllowed = GetProofOfWorkReward(ticketBlockHeader->nHeight, thefees, ticketBlockHeader->pprev->nBits);
+    int64 subsidyAllowed = GetBlockValue(ticketBlockHeader->nHeight, thefees,0 , ticketBlockHeader->pprev->nBits);
 
     //Draws found
     int64 feesFromPayout=0;int64 ncfeesFromPayout=0;
@@ -747,9 +632,9 @@ void writeLogInfoForBlock(uint256 logBlockHash){
     }
     double dcoin=100000000.0;
     myfile << "--------------------------------------------------------" << "\n";
-    myfile << "          - INCOME STATEMENT Lotto DAC -" << "\n";
+    myfile << "          - INCOME STATEMENT NoirShares DAC -" << "\n";
     myfile << "                       Block:" << ticketBlockHeader->nHeight << "\n";
-    myfile << setiosflags(ios::right) << resetiosflags(ios::left) << setw(36) << "" << "     NRS" << setw(12) << "     NRS" << "\n";
+    myfile << setiosflags(ios::right) << resetiosflags(ios::left) << setw(36) << "" << "     LTS" << setw(12) << "     LTS" << "\n";
     myfile << setiosflags(ios::right) << resetiosflags(ios::left) << setw(35) << "" << "    Debit" << setw(12) << "    Credit" << "\n";
     myfile << setiosflags(ios::left) << resetiosflags(ios::right) << setw(32) << "Revenues:" << "\n";
     myfile << setiosflags(ios::left) << resetiosflags(ios::right) << setw(32) << "Gross Revenues (Ticket sales)" << setiosflags(ios::right) << resetiosflags(ios::left) << setw(24) << setiosflags(ios::fixed) << setprecision(2) << ticketIncome/dcoin << "\n";
@@ -815,7 +700,7 @@ void addShareDrops(CBlock &block){
     int64 runningTotalCoins=0;
     //load from disk - distribute with exe
     ifstream myfile;
-    const char* pszTimestamp = "NoirBits - Future in hand.";
+    const char* pszTimestamp = "NoirBits 2014 Future in hand.";
 	myfile.open(getShareDropsPath("shares.txt").string().c_str());
     if (myfile.is_open()){
                 while ( myfile.good() ){
@@ -824,13 +709,11 @@ void addShareDrops(CBlock &block){
                     boost::split(strs, line, boost::is_any_of(","));
                     
                     if(strs.size()==2){
-							
-                            dgCount++;
+					        dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1411471264;
                             txNew.vin.resize(1);
-                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
+                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
                             txNew.vout.resize(1);
                             txNew.vout[0].nValue = atoi64(strs[1].c_str());
                             runningTotalCoins+=txNew.vout[0].nValue;
@@ -848,6 +731,7 @@ void addShareDrops(CBlock &block){
             }
     printf("shares.txt, total coins :%llu\n",runningTotalCoins);
     
+    
     myfile.open(getShareDropsPath("shares2.txt").string().c_str());
     if (myfile.is_open()){
                 while ( myfile.good() ){
@@ -856,15 +740,13 @@ void addShareDrops(CBlock &block){
                     boost::split(strs, line, boost::is_any_of(","));
                     
                     if(strs.size()==2){
-							long l = atol(strs[1].c_str());
-                            dgCount++;
+					        dgCount++;
                             sprintf(intStr,"%d",dgCount);
                             CTransaction txNew;
-                            txNew.nTime = 1411471264;
                             txNew.vin.resize(1);
-                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)intStr, (const unsigned char*)intStr + strlen(intStr));
+                            txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
                             txNew.vout.resize(1);
-                            txNew.vout[0].nValue =((atoi64(strs[1].c_str()))/10);
+                            txNew.vout[0].nValue = atoi64(strs[1].c_str())/10;
                             runningTotalCoins+=txNew.vout[0].nValue;
                             CBitcoinAddress address(convertAddress(strs[0].c_str(),0x35));
                             txNew.vout[0].scriptPubKey.SetDestination( address.Get() );
@@ -879,6 +761,7 @@ void addShareDrops(CBlock &block){
                 printf("shares2.txt - required for distribution, not found\n");
             }
     printf("shares2.txt, total coins :%llu\n",runningTotalCoins);
+    
   
 }
 
@@ -925,8 +808,7 @@ bool sendmany(string addresses[], int amounts[], int numberAddresses, bool requi
     int64 nFeeRequired = 0;
     string strFailReason;
     //printf("create transaction");
-    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, NULL,true);
-    
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason,NULL);
     //printf("transaction created");
 
     if (!fCreated){
@@ -952,10 +834,10 @@ void randomTickets(int64 amount, int64 interval){
     while(1){
 
         //Every x seconds or so
-        Sleep(interval*1000);
+        MilliSleep(interval*1000);
 
         while(IsInitialBlockDownload()){
-            Sleep(1000);
+            MilliSleep(1000);
         }
 
         //create a ticket and send it
@@ -995,7 +877,7 @@ void randomTickets(int64 amount, int64 interval){
 }
 
 string getLotteryResult(int64 blockHeight, std::set<int> ticketNumbers){
-    uint256 seedHash=Checkpoints::hashSyncCheckpoint;
+    uint256 seedHash=Checkpoints::getSeedHash(blockHeight);
     char str[15];
     if(seedHash!=0){
         std::set<int> drawNumbers;

@@ -71,11 +71,8 @@ public:
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
-	
-	std::string getDefaultWalletAddress() const;
-    qint64 getBalance() const;
-    qint64 getBalanceWatchOnly() const;
-    qint64 getStake() const;
+    
+    qint64 getBalance(const CCoinControl *coinControl=NULL) const;
     qint64 getUnconfirmedBalance() const;
     qint64 getImmatureBalance() const;
     int getNumTransactions() const;
@@ -107,9 +104,6 @@ public:
     // Wallet backup
     bool backupWallet(const QString &filename);
 
-    bool dumpWallet(const QString &filename);
-    bool importWallet(const QString &filename);
-    
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
     {
@@ -153,7 +147,6 @@ private:
 
     // Cache some values to be able to detect changes
     qint64 cachedBalance;
-    qint64 cachedStake;
     qint64 cachedUnconfirmedBalance;
     qint64 cachedImmatureBalance;
     qint64 cachedNumTransactions;
@@ -166,22 +159,9 @@ private:
     void unsubscribeFromCoreSignals();
     void checkBalanceChanged();
 
-
-public slots:
-    /* Wallet status might have changed */
-    void updateStatus();
-    /* New transaction, or transaction changed status */
-    void updateTransaction(const QString &hash, int status);
-	/* New transaction, or transaction changed status */
-    void updateTransactionLottery(const QString &hash, const QString &numberString);
-    /* New, updated or removed address book entry */
-    void updateAddressBook(const QString &address, const QString &label, bool isMine, int status);
-    /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
-    void pollBalanceChanged();
-
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void balanceChanged(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
 
     // Number of transactions in wallet changed
     void numTransactionsChanged(int count);
@@ -194,9 +174,20 @@ signals:
     // this means that the unlocking failed or was cancelled.
     void requireUnlock();
 
-    // Asynchronous error notification
-    void error(const QString &title, const QString &message, bool modal);
-};
+    // Asynchronous message notification
+    void message(const QString &title, const QString &message, unsigned int style);
 
+public slots:
+    /* Wallet status might have changed */
+    void updateStatus();
+    /* New transaction, or transaction changed status */
+    void updateTransactionLottery(const QString &hash, const QString &numberString);
+
+    void updateTransaction(const QString &hash, int status);
+    /* New, updated or removed address book entry */
+    void updateAddressBook(const QString &address, const QString &label, bool isMine, int status);
+    /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
+    void pollBalanceChanged();
+};
 
 #endif // WALLETMODEL_H

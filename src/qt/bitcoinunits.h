@@ -1,5 +1,5 @@
-#ifndef NoirSharesUNITS_H
-#define NoirSharesUNITS_H
+#ifndef BITCOINUNITS_H
+#define BITCOINUNITS_H
 
 #include <QString>
 #include <QAbstractListModel>
@@ -9,6 +9,8 @@
 */
 class BitcoinUnits: public QAbstractListModel
 {
+    Q_OBJECT
+
 public:
     explicit BitcoinUnits(QObject *parent);
 
@@ -17,9 +19,9 @@ public:
      */
     enum Unit
     {
-        BTC,
-        mBTC,
-        uBTC
+        NRS,
+        mNRS,
+        uNRS
     };
 
     //! @name Static API
@@ -64,4 +66,4 @@ private:
 };
 typedef BitcoinUnits::Unit BitcoinUnit;
 
-#endif // NoirSharesUNITS_H
+#endif // BITCOINUNITS_H

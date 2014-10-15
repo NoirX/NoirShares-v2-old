@@ -45,6 +45,7 @@ private slots:
     void showRestartWarning_Lang();
     void updateDisplayUnit();
     void handleProxyIpValid(QValidatedLineEdit *object, bool fState);
+    void generateChanged(bool generate);
 
 signals:
     void proxyIpValid(QValidatedLineEdit *object, bool fValid);

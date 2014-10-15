@@ -3,17 +3,18 @@
 
 #include <QWidget>
 
-QT_BEGIN_NAMESPACE
-class QModelIndex;
-QT_END_NAMESPACE
-
 namespace Ui {
     class OverviewPage;
 }
+class ClientModel;
 class WalletModel;
 class IRCModel;
 class TxViewDelegate;
 class TransactionFilterProxy;
+
+QT_BEGIN_NAMESPACE
+class QModelIndex;
+QT_END_NAMESPACE
 
 /** Overview ("home") page widget */
 class OverviewPage : public QWidget
@@ -24,30 +25,26 @@ public:
     explicit OverviewPage(QWidget *parent = 0);
     ~OverviewPage();
 
-    void setModel(WalletModel *model);
-    void setIRCModel(IRCModel *model);
+    void setClientModel(ClientModel *clientModel);
+    void setWalletModel(WalletModel *walletModel);
+	void setIRCModel(IRCModel *model);
     void showOutOfSyncWarning(bool fShow);
 
 public slots:
-    void setBalance(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
-    void setNumTransactions(int count);
-    void ircAppendMessage(QString message);
-	void unlockWallet();
-    //void pollIRC();
+    void setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
+	void ircAppendMessage(QString message);
 
 signals:
     void transactionClicked(const QModelIndex &index);
 
 private:
     Ui::OverviewPage *ui;
-    WalletModel *model;
-    qint64 currentBalanceTotal;
-    qint64 currentBalanceWatchOnly;
-    qint64 currentStake;
-    qint64 currentUnconfirmedBalance;
-    qint64 currentImmatureBalance;
+    ClientModel *clientModel;
+    WalletModel *walletModel;
 	IRCModel *ircmodel;
     qint64 currentBalance;
+    qint64 currentUnconfirmedBalance;
+    qint64 currentImmatureBalance;
 
     TxViewDelegate *txdelegate;
     TransactionFilterProxy *filter;
@@ -57,7 +54,8 @@ private slots:
     void enableTrollbox();
     void updateTrollName();
     void handleTransactionClicked(const QModelIndex &index);
-    void sendIRCMessage();
+    void updateAlerts(const QString &warnings);
+	void sendIRCMessage();
 };
 
 #endif // OVERVIEWPAGE_H

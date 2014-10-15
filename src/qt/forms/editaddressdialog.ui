@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>457</width>
-    <height>129</height>
+    <height>126</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Edit Address</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(0, 0, 0);
+   <string notr="true">background-color: rgb(132, 132, 132);
 color: rgb(255, 255, 255);</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -38,6 +38,10 @@ color: rgb(255, 255, 255);</string>
        <property name="toolTip">
         <string>The label associated with this address book entry</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+       </property>
       </widget>
      </item>
      <item row="1" column="0">
@@ -55,6 +59,10 @@ color: rgb(255, 255, 255);</string>
        <property name="toolTip">
         <string>The address associated with this address book entry. This can only be modified for sending addresses.</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+       </property>
       </widget>
      </item>
     </layout>
@@ -62,8 +70,7 @@ color: rgb(255, 255, 255);</string>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="styleSheet">
-      <string notr="true">color: rgb(0, 0, 0);
-background-color: rgb(255, 255, 255);</string>
+      <string notr="true">color: rgb(0, 0, 0);</string>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

@@ -1,5 +1,5 @@
-#ifndef LOTTOSHARES_H
-#define LOTTOSHARES_H
+#ifndef LOTTO_H
+#define LOTTO_H
 
 #include "main.h"
 #include "bignum.h"
@@ -10,11 +10,13 @@
 using namespace std;
 using namespace boost;
 
-class lottoshares
+class NoirShares
 {
 public:
-    lottoshares();
+    NoirShares();
 };
+
+extern int runningTotalCoins; 
 
 void checkForCheckpoints(std::vector<CTransaction> vtx, bool makeFileQueue, bool logBlock);
 
@@ -34,4 +36,4 @@ void checkTransactionForPayoutsFromCheckpointTransaction(CTransaction vtx,std::m
 
 string getLotteryResult(int64 blockHeight, std::set<int> ticketNumbers);
 
-#endif // LOTTOSHARES_H
+#endif // LOTTO_H
