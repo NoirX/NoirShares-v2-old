@@ -47,7 +47,7 @@ using namespace boost;
 //
 bool bGenerate = true;
 int nGenerateThreads = 1;
-const int64 nTargetTimespan = 5 * 60 * 60; // NoirShares: 5 hours
+const int64 nTargetTimespan = 2 * 60 * 60; // NoirShares: 5 hours
 static const int64 nTargetSpacing = 4 * 60; // NoirShares: 4 minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
@@ -61,13 +61,13 @@ unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 uint256 smallestInvalidHash = uint256("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000");
-uint256 hashGenesisBlock("0x0e8623ad69a570fdff44d7849e25d533ccd586dee62766150610d30f537175b9");
-uint256 merklerootGenesisBlock("0x3d014cd3886d6b000d2da0f82a195d32c2709ec4a23e13f11f2f704c89d9183f");
-uint256 rseedGenesisBlock("0xeb887c52edfa97aa8486f7d8de5b1641e3682a8d0c3461c1c5e3a17b0d228e4f");
-const int64 nChainStartTime = 1413269548;
-const unsigned long nChainStartNonce = 5;
-const unsigned long nChainStartBirthdayA = 1947609;
-const unsigned long nChainStartBirthdayB = 6975188;
+uint256 hashGenesisBlock("0x07612754f1d88a49e997d0278467f94cf04db6ad7337fa9b82d5719ed520ed33");
+uint256 merklerootGenesisBlock("0x2f736fa857f98735f31a1559455dbd626bd54bc30c2e8f1a4dd300349fb8b1a7");
+uint256 rseedGenesisBlock("0x3ea6f63a979055646d2057d15af7a486c4f505bc9cd2580c71098aa0f58761d0");
+const int64 nChainStartTime = 1413365838;
+const unsigned long nChainStartNonce = 9;
+const unsigned long nChainStartBirthdayA = 2559841;
+const unsigned long nChainStartBirthdayB = 37035517;
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 4); /* Lower difficulty  */
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1129,7 +1129,7 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 int64 GetAverageProofOfWorkReward(int nHeight, int64 nFees)
 {
     int64 nSubsidy = 10 * COIN;
-
+	
     return nSubsidy + nFees;
     if (fDebug)
     printf("GetAverageProofOfWorkReward(): create=%s nHeight=%d nFees=%llu\n", FormatMoney(nSubsidy).c_str(), nHeight, nFees);
@@ -1170,10 +1170,8 @@ int64 GetBlockValue(int nHeight, int64 nFees, uint256 randomSeed, uint256 prevHa
 int64 static GetGrantValue(int nHeight, int64 nFees, uint256 randomSeed, uint256 prevHash)
 {
     int64 grantaward=GetBlockValue(nHeight, nFees, randomSeed, prevHash);
-    return grantaward/5;
+    return grantaward;
 }
-
-
 
 //
 // minimum amount of work that could possibly be required nTime after
@@ -3193,13 +3191,7 @@ bool InitBlockIndex() {
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) {
-        // Genesis Block:
-        // CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1231006505, nBits=1d00ffff, nNonce=2083236893, vtx=1)
-        //   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-        //     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73)
-        //     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
-        //   vMerkleTree: 4a5e1e
-
+        
         // Genesis block
         CBlock block;
         block.hashPrevBlock = 0;
@@ -3213,12 +3205,8 @@ bool InitBlockIndex() {
         block.nBirthdayA   = nChainStartBirthdayA;
         block.nBirthdayB   = nChainStartBirthdayB;
         uint256 hash = block.GetHash();
-
-     /*  if (fDebug)
-       block.print();*/
-       // debug print
         
-        printf("block.nBits = %u \n", block.nBits);
+    /*    printf("block.nBits = %u \n", block.nBits);
         printf("Hash: %s\n", hash.ToString().c_str());
         printf("block.nTime = %u \n", block.nTime);
         printf("Genesis: %s\n", hashGenesisBlock.ToString().c_str());
@@ -3229,7 +3217,7 @@ bool InitBlockIndex() {
         printf("birthdayB=%u;\n",block.nBirthdayB);
     
 
-    /*  {
+      {
         printf("Generating new genesis block...\n");
         uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
         uint256 testHash;
@@ -5174,15 +5162,10 @@ printf("Gen Amt Rewd A: %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str(
             // Check if something found
             if (nNonceFound != (unsigned int) -1)
             {
-                //for (unsigned int i = 0; i < sizeof(hash)/4; i++)
-               //((unsigned int*)&hash)[i] = ByteReverse(((unsigned int*)&hash)[i]);
 
                 if (testHash <= hashTarget)
                 {
-                    // Found a solution
-                   //pblock->nNonce = ByteReverse(nNonceFound);
-                  //  printf("hash %s\n", testHash.ToString().c_str());
-                //	printf("hash2 %s\n", pblock->GetHash().ToString().c_str());
+                    
                     assert(testHash == pblock->GetHash());
 
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
