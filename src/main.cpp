@@ -1325,13 +1325,19 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
 
         // Read txPrev
         CTransaction& txPrev = inputsRet[prevout.hash].second;
+        
+        if (txPrev.ReadFromDisk(txindex.pos))
+        return true; 
+        
+        
         if (!fFound || txindex.pos == CDiskTxPos(1,1,1))
         {
             // Get prev tx from single transactions in memory
             {
                 LOCK(mempool.cs);
                 if (!mempool.exists(prevout.hash))
-                    return error("FetchInputs() : %s mempool Tx prev not found %s", GetHash().ToString().substr(0,10).c_str(),  prevout.hash.ToString().substr(0,10).c_str());
+                    return ("FetchInputs() : %s mempool Tx prev not found %s", GetHash().ToString().substr(0,10).c_str(),  prevout.hash.ToString().substr(0,10).c_str());
+                    
                 txPrev = mempool.lookup(prevout.hash);
             }
             if (!fFound)
@@ -1633,9 +1639,14 @@ void ThreadScriptCheckQuit() {
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 {
     // Check it again in case a previous version let a bad block in
-    if (!CheckBlock(!fJustCheck, !fJustCheck))
+    if (!CheckBlock(!fJustCheck, pindex->nHeight, !fJustCheck))
         return false;
 
+		if (GetHash() == hashGenesisBlock) {
+       
+        pindexGenesisBlock = pindex;
+        
+    }
     // Do not allow blocks that contain transactions which 'overwrite' older transactions,
     // unless those are already completely spent.
     // If such overwrites are allowed, coinbases and transactions depending upon those
