@@ -21,7 +21,7 @@ BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
             VALUE "CompanyName",        "NoirShares"
-            VALUE "FileDescription",    "NoirShares-Qt (OSS GUI client for UnitedScryptCoin)"
+            VALUE "FileDescription",    "NoirShares-Qt (GUI client for NoirLotto (DAC) )"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "NoirShares-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR

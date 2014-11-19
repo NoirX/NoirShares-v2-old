@@ -95,8 +95,8 @@ color: rgb(255, 255, 255);</string>
         <cursorShape>IBeamCursor</cursorShape>
        </property>
        <property name="text">
-        <string notr="true">Copyright &amp;copy; 2009-YYYY The Bitcoin developers
-Copyright &amp;copy; 2011-YYYY The NoirShares developers</string>
+        <string notr="true">Copyright &amp;copy; 2009-YYYY The Bitcoin, Litecoin, LottoShares, Memorycoin developers
+Copyright &amp;copy; 2013-YYYY The NoirShares developers</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
@@ -113,7 +113,7 @@ Copyright &amp;copy; 2011-YYYY The NoirShares developers</string>
        </property>
        <property name="text">
         <string>
-This is experimental software.
+This is experimental software open source and free. I make no promises or guarantees.
 
 Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.
 

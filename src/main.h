@@ -26,8 +26,6 @@ class CNode;
 
 struct CBlockIndexWorkComparator;
 
-static const int64 FORKHEIGHT = 10468;
-static const int64 PRIZEPAYMENTHEIGHT = 25068;
 static const int TICKETCOMMISSIONRATE = 7; //1/128
 static const int PRIZEPAYMENTCOMMISSIONS = 10; //1/1024
 
@@ -63,7 +61,7 @@ static const int64 DUST_SOFT_LIMIT = 0;
 /** Dust Hard Limit, ignored as wallet inputs (mininput default) */
 static const int64 DUST_HARD_LIMIT = 0;   
 /** No amount larger than this (in satoshi) is valid */
-static const int64 MAX_MONEY = 100000000 * COIN;
+static const int64 MAX_MONEY = 5000000 * COIN;
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int COINBASE_MATURITY = 1;
@@ -627,7 +625,7 @@ public:
     {
         // Large (in bytes) low-priority (new, small-coin) transactions
         // need a fee.
-        return dPriority > COIN * 576 / 250;
+        return dPriority > COIN * 144 / 250;
     }
 
 // Apply the effects of this transaction on the UTXO set represented by view
@@ -1293,7 +1291,8 @@ public:
     uint256 hashRandomSeed;
     uint32_t nBirthdayA;
     uint32_t nBirthdayB;
-    
+
+
 
     CBlockHeader()
     {
@@ -1312,7 +1311,6 @@ public:
         READWRITE(hashRandomSeed);
         READWRITE(nBirthdayA);
         READWRITE(nBirthdayB);
-
     )
 
     void SetNull()

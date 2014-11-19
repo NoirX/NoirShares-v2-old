@@ -60,8 +60,9 @@ public:
 private:
     BitcoinGUI *gui;
     ClientModel *clientModel;
+    IRCModel *ircModel;
     WalletModel *walletModel;
-	IRCModel *ircModel;
+	
 
     OverviewPage *overviewPage;
     QWidget *transactionsPage;
